@@ -145,14 +145,18 @@
         </div>
 
         <div class="card">
-            <h2>Game finished</h2>
+            <h2>Game finished &ndash; who won?</h2>
+            <div class="winners">
+                <button type="button" class="wbtn blue" id="win-blue" data-act="win" data-side="blue"></button>
+                <button type="button" class="wbtn red" id="win-red" data-act="win" data-side="red"></button>
+            </div>
+            <p class="result" id="series-result" hidden></p>
             <div class="actions">
-                <button type="button" class="btn primary big" id="next-game" data-act="next-game">Next game ▶</button>
                 <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides for the next game</label>
-                <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides now</button>
+                <button type="button" class="btn ghost" id="next-game" data-act="next-game">Next game without a result</button>
                 <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
             </div>
-            <p class="hint">Add the win above first. “Next game” then bumps the game number, clears the draft and takes you back to the Draft tab. It switches off on the last game of the series.</p>
+            <p class="hint">One press adds the win, bumps the game number, clears the draft and takes you to the Draft tab. If that win decides the series, it only adds the win. Pressed the wrong one? Use Undo on the Draft tab, or the &minus; next to the score.</p>
         </div>
     </section>
 

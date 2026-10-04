@@ -107,7 +107,7 @@ input::placeholder { color: #5d6676; }
 }
 .btn:hover, .stepper button:hover, .chip:hover { background: #2a3140; border-color: #3c4658; }
 .btn:active, .stepper button:active { transform: translateY(1px); }
-.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled, .stepper button:disabled { opacity: 0.45; cursor: default; }
 .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
 .btn.primary:hover { background: #4a9eff; }
 .btn.ghost { background: transparent; }
@@ -375,8 +375,30 @@ input::placeholder { color: #5d6676; }
 .ebtn.live i { color: #0b0e14; }
 .ebtn.live::after { content: 'ON SCREEN'; margin-left: auto; font-size: 11px; letter-spacing: 0.08em; }
 
+/* ---- live game: who won ---- */
+.winners { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+.wbtn {
+    height: 64px;
+    padding: 0 18px;
+    color: #fff;
+    background: var(--team);
+    border: 0;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 19px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+.wbtn:hover:not(:disabled) { filter: brightness(1.15); }
+.wbtn:active:not(:disabled) { transform: translateY(1px); }
+.wbtn:disabled { opacity: 0.35; cursor: default; }
+.result { margin: 0 0 14px; padding: 10px 14px; font-size: 16px; font-weight: 700; color: var(--gold); background: var(--bg); border: 1px solid var(--gold); border-radius: 6px; }
+
 @media (max-width: 1100px) {
-    .scorecard, .events { grid-template-columns: 1fr; }
+    .scorecard, .events, .winners { grid-template-columns: 1fr; }
     .ecol.neutral .ecol-title, .ecol.red .ecol-title { text-align: left; }
     .summary { margin-left: 0; }
 }

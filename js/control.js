@@ -26,8 +26,11 @@
     // ---- draft logic -----------------------------------------------------
     // `series` snapshots (taken by Next game / Reset series) also remember the
     // game number, scores and played-hero lists so Undo can put them back.
+    // Only the board (picks, bans, phase) is snapshotted: the settings stored
+    // beside it, such as the design or the timers, are not something to undo.
     function snapshot(state, series) {
-        const snap = { draft: state.draft };
+        const d = state.draft;
+        const snap = { draft: { picks: d.picks, bans: d.bans, step: d.step } };
         if (series) {
             snap.series = {
                 game: state.tournament.game,
@@ -47,9 +50,10 @@
     }
 
     function restore(state, snap) {
-        state.draft = snap.draft;
-        const left = Store.timerLeft(state);
-        state.draft.timer = { running: false, endsAt: 0, remaining: left > 0 ? left : Store.stepDuration(state, Store.currentStep(state)) };
+        state.draft.picks = snap.draft.picks;
+        state.draft.bans = snap.draft.bans;
+        state.draft.step = snap.draft.step;
+        state.draft.timer = { running: false, endsAt: 0, remaining: Store.stepDuration(state, Store.currentStep(state)) };
         if (!snap.series) return;
         if (snap.series.swapped) swapSides(state);
         state.tournament.game = snap.series.game;
@@ -142,12 +146,36 @@
         }
     }
 
+    // The side that has won the series, or '' while it is still open.
+    function seriesWinner(state) {
+        const need = Store.winsNeeded(state);
+        return SIDES.filter(function (side) { return state.teams[side].score >= need; })[0] || '';
+    }
+
+    function seriesOver(state) {
+        return state.tournament.game >= state.tournament.bestOf || !!seriesWinner(state);
+    }
+
+    // Move on to the next game. The caller has just taken a series snapshot.
+    function advanceGame(s) {
+        recordPlayed(s);
+        s.tournament.game += 1;
+        resetDraft(s);
+        if ($('swap-on-next').checked) {
+            swapSides(s);
+            const snap = JSON.parse(history.pop());
+            snap.series.swapped = true;
+            history.push(JSON.stringify(snap));
+        }
+        selected = null;
+    }
+
     // ---- actions (buttons with data-act) ---------------------------------
     const actions = {
         'game-up': function (s) { s.tournament.game = clamp(s.tournament.game + 1, 1, s.tournament.bestOf); },
         'game-down': function (s) { s.tournament.game = clamp(s.tournament.game - 1, 1, 99); },
-        'score-up': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score + 1, 0, 9); },
-        'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, 9); },
+        'score-up': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score + 1, 0, Store.winsNeeded(s)); },
+        'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, Store.winsNeeded(s)); },
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
         'swap-sides': function (s) {
@@ -156,19 +184,17 @@
             history.length = 0;
         },
         'next-game': function (s) {
-            // A best-of-N series has no game N + 1.
-            if (s.tournament.game >= s.tournament.bestOf) return;
+            // A best-of-N series has no game N + 1, and none after it is won.
+            if (seriesOver(s)) return;
             snapshot(s, true);
-            recordPlayed(s);
-            s.tournament.game += 1;
-            resetDraft(s);
-            if ($('swap-on-next').checked) {
-                swapSides(s);
-                const snap = JSON.parse(history.pop());
-                snap.series.swapped = true;
-                history.push(JSON.stringify(snap));
-            }
-            selected = null;
+            advanceGame(s);
+        },
+        // "X won": add the win and, unless it decides the series, start the next game.
+        'win': function (s, b) {
+            if (seriesWinner(s)) return;
+            snapshot(s, true);
+            s.teams[b.dataset.side].score += 1;
+            if (!seriesOver(s)) advanceGame(s);
         },
         'reset-series': function (s) {
             snapshot(s, true);
@@ -464,9 +490,27 @@
 
         $('game-no').textContent = state.tournament.game;
         const lastGame = state.tournament.game >= state.tournament.bestOf;
+        const need = Store.winsNeeded(state);
+        const winner = seriesWinner(state);
+        SIDES.forEach(function (side) {
+            $('win-' + side).textContent = (state.teams[side].name || side) + ' won \u25b6';
+            $('win-' + side).disabled = !!winner;
+        });
+        $('series-result').hidden = !winner;
+        if (winner) {
+            const loser = winner === 'blue' ? 'red' : 'blue';
+            $('series-result').textContent = 'Series over \u2013 ' + state.teams[winner].name + ' win ' +
+                state.teams[winner].score + '\u2013' + state.teams[loser].score + '.';
+        }
         $('game-up').disabled = lastGame;
-        $('next-game').disabled = lastGame;
-        $('next-game').title = lastGame ? 'This is the last game of a best of ' + state.tournament.bestOf + '.' : '';
+        $('next-game').disabled = seriesOver(state);
+        $('next-game').title = winner ? state.teams[winner].name + ' already won the series.'
+            : lastGame ? 'This is the last game of a best of ' + state.tournament.bestOf + '.' : '';
+        document.querySelectorAll('[data-act="score-up"]').forEach(function (b) { b.disabled = state.teams[b.dataset.side].score >= need; });
+        document.querySelectorAll('[data-act="score-down"]').forEach(function (b) { b.disabled = state.teams[b.dataset.side].score <= 0; });
+        document.querySelector('[data-act="game-down"]').disabled = state.tournament.game <= 1;
+        document.querySelector('[data-act="step-prev"]').disabled = d.step <= 0;
+        document.querySelector('[data-act="step-next"]').disabled = !step;
         renderLogoPreview($('tour-logo-preview'), state.tournament.logo || 'Assets/Other/tournamentlogo.png', '');
 
         $('series-label').textContent = 'Best of ' + state.tournament.bestOf;
@@ -582,7 +626,7 @@
                 const game = Store.get().tournament.game;
                 Store.update(function (s) { actions[name](s, actBtn); });
                 // A new game starts with its draft.
-                if (name === 'next-game' && Store.get().tournament.game !== game) showTab('draft');
+                if (Store.get().tournament.game > game) showTab('draft');
                 return;
             }
             const slot = e.target.closest('.slot');
@@ -644,9 +688,16 @@
             Store.update(function (s) {
                 setPath(s, input.dataset.bind, value);
                 // A stopped timer follows the configured phase length.
-                if (input.dataset.bind === 'draft.banCount') resetDraft(s);
-                // A shorter series cannot be on a game past its last one.
-                else if (input.dataset.bind === 'tournament.bestOf') s.tournament.game = clamp(s.tournament.game, 1, value);
+                if (input.dataset.bind === 'draft.banCount') {
+                    resetDraft(s);
+                    // Older snapshots follow the other phase order.
+                    history.length = 0;
+                }
+                // A shorter series cannot be on a game, or a score, past its end.
+                else if (input.dataset.bind === 'tournament.bestOf') {
+                    s.tournament.game = clamp(s.tournament.game, 1, value);
+                    SIDES.forEach(function (side) { s.teams[side].score = clamp(s.teams[side].score, 0, Store.winsNeeded(s)); });
+                }
                 else if (/draft\.(banTime|pickTime)$/.test(input.dataset.bind) && !s.draft.timer.running) {
                     s.draft.timer.remaining = Store.stepDuration(s, Store.currentStep(s));
                 }
