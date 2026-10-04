@@ -80,6 +80,12 @@
                 <label class="check onair"><input type="checkbox" data-bind="draft.visible"> Draft overlay on screen</label>
             </div>
 
+            <div class="effect-row">
+                <span class="effect-label">Battlefield effect</span>
+                <div class="effects"></div>
+                <input type="text" class="effect-input" data-bind="tournament.effect" placeholder="or type another" aria-label="Battlefield effect">
+            </div>
+
             <div class="board">
                 <div class="board-side blue" id="board-blue"></div>
                 <div class="board-side red" id="board-red"></div>
@@ -118,6 +124,7 @@
                     <output id="score-blue">0</output>
                     <button type="button" data-act="score-up" data-side="blue" aria-label="Add a blue win">+</button>
                 </div>
+                <div class="stats-ctl" id="stats-blue"></div>
             </div>
             <div class="score-mid">
                 <div class="score-label">Game</div>
@@ -136,6 +143,12 @@
                     <output id="score-red">0</output>
                     <button type="button" data-act="score-up" data-side="red" aria-label="Add a red win">+</button>
                 </div>
+                <div class="stats-ctl" id="stats-red"></div>
+            </div>
+            <div class="effect-row">
+                <span class="effect-label">Battlefield effect</span>
+                <div class="effects"></div>
+                <input type="text" class="effect-input" data-bind="tournament.effect" placeholder="or type another" aria-label="Battlefield effect">
             </div>
         </div>
 
@@ -229,6 +242,18 @@
                     <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
                 </div>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Show tournament / game info</label>
+                <label class="check"><input type="checkbox" data-bind="scoreboard.showStats"> Show turrets / turtles / lords under each team</label>
+                <hr>
+                <div class="options">
+                    <label class="check"><input type="checkbox" data-bind="scoreboard.showEffect"> Show the battlefield effect panel</label>
+                    <label class="field small">Panel corner
+                        <select data-bind="scoreboard.effectSide">
+                            <option value="right">Top right</option>
+                            <option value="left">Top left</option>
+                        </select>
+                    </label>
+                    <label class="field small">Panel top (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.effectTop" data-num></label>
+                </div>
                 <hr>
                 <div class="options">
                     <label class="field medium">Centre of the bar

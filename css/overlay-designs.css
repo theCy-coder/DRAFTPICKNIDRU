@@ -101,6 +101,8 @@
    DRAFT - Towers: picks stacked down both edges, the middle stays clear
    ==================================================================== */
 .draft[data-design="towers"] { top: 20px; }
+/* the draft fills the screen here, so the effect panel goes at its top */
+.draft[data-design="towers"] .fxp { bottom: auto; top: 0; margin: 0; }
 .draft[data-design="towers"] .main { order: 1; flex: 1 1 0; height: auto; min-height: 0; }
 .draft[data-design="towers"] .fearless { order: 2; }
 .draft[data-design="towers"] .top { order: 3; }
@@ -282,10 +284,10 @@
 .sb[data-design="minimal"].split .tab { top: 48px; height: 22px; font-size: 15px; background: rgba(10, 12, 18, 0.8); }
 .sb[data-design="minimal"].split .team.blue .tab { left: -6px; }
 .sb[data-design="minimal"].split .team.red .tab { right: -6px; }
-.sb[data-design="minimal"].bar .middle { height: 48px; border-bottom: 0; background: rgba(10, 12, 18, 0.94); }
-.sb[data-design="minimal"].bar .info { display: flex; align-items: baseline; gap: 12px; }
-.sb[data-design="minimal"].bar .info .tour { line-height: 44px; }
-.sb[data-design="minimal"].bar .info .series { font-size: 16px; color: var(--muted); white-space: nowrap; }
+.sb[data-design="minimal"].bar .middle { height: 48px; max-width: 640px; border-bottom: 0; background: rgba(10, 12, 18, 0.94); }
+.sb[data-design="minimal"].bar .info { display: flex; align-items: baseline; gap: 12px; max-width: 100%; }
+.sb[data-design="minimal"].bar .info .tour { flex: none; max-width: 300px; line-height: 44px; }
+.sb[data-design="minimal"].bar .info .series { flex: 0 1 auto; min-width: 0; max-width: 300px; color: var(--muted); }
 
 /* ====================================================================
    SCOREBOARD - Neon
@@ -335,3 +337,18 @@
 .sb[data-design="prestige"].split .team.red .tab { right: -1px; }
 .sb[data-design="prestige"].bar .info .tour { color: var(--gold); }
 .sb[data-design="prestige"].bar .info .series { color: var(--text); }
+
+/* ====================================================================
+   SCOREBOARD - objective counters in each design
+   ==================================================================== */
+.sb[data-design="glass"] .stats { top: 70px; border-radius: 13px; background: rgba(16, 20, 30, 0.58); border: 1px solid rgba(255, 255, 255, 0.18); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); }
+.sb[data-design="glass"] .team.blue .stats { right: 10px; }
+.sb[data-design="glass"] .team.red .stats { left: 10px; }
+.sb[data-design="minimal"] .stats { top: 48px; height: 22px; font-size: 16px; background: rgba(10, 12, 18, 0.8); }
+.sb[data-design="minimal"] .stats svg { width: 13px; height: 13px; }
+.sb[data-design="neon"] .stats { top: 70px; background: rgba(4, 7, 13, 0.86); border: 1px solid var(--team); }
+.sb[data-design="neon"] .team.blue .stats { right: -2px; }
+.sb[data-design="neon"] .team.red .stats { left: -2px; }
+.sb[data-design="prestige"] .stats { top: 62px; background: #0b0a07; border: 1px solid rgba(255, 201, 77, 0.6); border-top: 0; color: var(--gold); }
+.sb[data-design="prestige"] .team.blue .stats { right: -1px; }
+.sb[data-design="prestige"] .team.red .stats { left: -1px; }

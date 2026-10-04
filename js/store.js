@@ -12,12 +12,15 @@
     function emptyTeam(name, tag) {
         // played: heroes this team picked in earlier games of the series,
         // one entry per game: { game: 1, heroes: ['ling', ...] }
-        return { name: name, tag: tag, logo: '', score: 0, players: ['', '', '', '', ''], played: [] };
+        // stats: objectives this team has taken in the current game.
+        return { name: name, tag: tag, logo: '', score: 0, players: ['', '', '', '', ''], played: [],
+            stats: { towers: 0, turtles: 0, lords: 0 } };
     }
 
     function defaults() {
         return {
-            tournament: { name: 'Tournament Name', stage: '', bestOf: 3, game: 1, logo: '' },
+            // effect: this game's battlefield effect, e.g. 'Revealing Wisps' ('' = none)
+            tournament: { name: 'Tournament Name', stage: '', bestOf: 3, game: 1, logo: '', effect: '' },
             teams: { blue: emptyTeam('Blue Team', 'BLU'), red: emptyTeam('Red Team', 'RED') },
             draft: {
                 visible: true,
@@ -35,11 +38,12 @@
                 timer: { running: false, endsAt: 0, remaining: 60000 }
             },
             // middle: what the Bar layout shows in its centre: 'info' | 'logo' | 'image'
-            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true, middle: 'info', image: '' },
+            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true, showStats: true, middle: 'info', image: '',
+                showEffect: true, effectSide: 'right', effectTop: 20 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.
             event: { id: '', side: '', at: 0 },
-            banner: { top: 110, seconds: 5 }
+            banner: { top: 136, seconds: 5 }
         };
     }
 

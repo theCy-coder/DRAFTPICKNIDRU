@@ -350,6 +350,7 @@ body.bg-green { background: #00ff00; }
 .center .bar i { display: block; height: 100%; width: 100%; background: var(--team, var(--gold)); transform-origin: 50% 50%; }
 .center .meta { margin-top: 7px; font-size: 20px; line-height: 20px; color: var(--muted); }
 
+
 @keyframes pick-in { from { transform: translateY(100%) scale(1.15); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ban-in { from { transform: scale(1.5); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes flash { from { background: rgba(255, 255, 255, 0.85); } to { background: rgba(255, 255, 255, 0); } }
@@ -430,6 +431,27 @@ body.bg-green { background: #00ff00; }
 .sb.split .team.red .tab { right: 0; }
 .sb .tab:empty, .sb.no-info .tab, .sb.no-info .info { display: none; }
 
+/* objectives taken this game, hanging under the inner end of each plate */
+.sb .stats {
+    position: absolute;
+    top: 64px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 14px;
+    font-size: 20px;
+    line-height: 1;
+    background: rgba(13, 16, 23, 0.86);
+}
+.sb .team.blue .stats { right: 0; }
+.sb .team.red .stats { left: 0; flex-direction: row-reverse; }
+.sb .stats span { display: flex; align-items: center; gap: 5px; }
+.sb .stats svg { width: 16px; height: 16px; color: var(--team); }
+.sb .stats b { font-weight: normal; padding-top: 2px; }
+.sb.no-stats .stats { display: none; }
+.sb.split:not(.no-stats) .tab { max-width: 268px; overflow: hidden; white-space: nowrap; }
+
 /* bar: one solid strip with the series info in the middle */
 .sb.bar .tab { display: none; }
 .sb.bar .middle {
@@ -444,9 +466,59 @@ body.bg-green { background: #00ff00; }
 .sb .mid-img { max-height: 84%; max-width: 320px; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5)); }
 .sb .mid-img[hidden], .sb.bar.mid-image .middle .info { display: none; }
 .sb.bar .info .tour { font-size: 26px; line-height: 26px; text-align: center; max-width: 376px; }
-.sb.bar .info .series { font-size: 18px; line-height: 20px; color: var(--gold); text-align: center; }
+.sb.bar .info .series { font-size: 18px; line-height: 20px; color: var(--gold); text-align: center; max-width: 376px; }
 
 @keyframes bump { 0% { transform: scale(1.6); filter: brightness(2); } 100% { transform: none; filter: none; } }
+
+/* ====================================================================
+   Battlefield effect panel: this game's map rule, as an icon and a name.
+   Top corner of the scoreboard overlay, and above the draft.
+   ==================================================================== */
+.fxp {
+    --fx: var(--gold);
+    position: absolute;
+    right: 20px;
+    display: flex;
+    align-items: stretch;
+    height: 58px;
+    pointer-events: none;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+    opacity: 0;
+    transform: translateY(-14px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.fxp.left { right: auto; left: 20px; }
+.fxp.show { opacity: 1; transform: none; }
+/* dark arrow holding the icon, pointing at the name */
+.fxp-icon {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 82px;
+    padding-right: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fx);
+    background: var(--ink);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%);
+}
+.fxp-icon svg { width: 38px; height: 38px; filter: drop-shadow(0 0 6px var(--fx)); }
+.fxp-name {
+    display: flex;
+    align-items: center;
+    margin-left: -18px;
+    padding: 4px 24px 0 32px;
+    font-size: 34px;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--ink);
+    background: #f3f4f7;
+    border-bottom: 4px solid var(--fx);
+}
+/* on the draft overlay it sits centred just above the draft */
+.draft .fxp { right: auto; left: 50%; bottom: 100%; margin-bottom: 10px; transform: translate(-50%, 14px); }
+.draft .fxp.show { transform: translate(-50%, 0); }
 
 /* ====================================================================
    Announcement banner (scoreboard overlay): Turtle, Lord and friends.

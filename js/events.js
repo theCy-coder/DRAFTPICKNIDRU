@@ -2,7 +2,8 @@
 // panel. Each one plays a short animated banner on the scoreboard overlay.
 //
 // To add one: add a line to `list`. `team: true` gives it a blue and a red
-// button and shows that team's name under the title.
+// button and shows that team's name under the title. `count` also adds one to
+// that team's objective counter (towers, turtles or lords) on the scoreboard.
 // To use your own artwork instead of the built-in icon, put an image or
 // animated GIF in Assets/Events/ and set img, e.g. img: 'Assets/Events/turtle.gif'.
 (function (global) {
@@ -27,6 +28,21 @@
             '<path d="M32 12l15 11-4 24-11 11-11-11-4-24z"/>' +
             '<path d="M22 30l8 4-7 3zM42 30l-8 4 7 3z" fill="#0b0e14"/>' +
             '<path d="M27 46h10l-5 6z" fill="#0b0e14" opacity="0.6"/>'),
+        tower: svg('<path d="M16 6h7v6h5V6h8v6h5V6h7v15l-6 6v18l7 7v6H15v-6l7-7V27l-6-6z"/>'),
+        wisp: svg(
+            '<path d="M30 8c2 13 7 18 20 20-13 2-18 7-20 20-2-13-7-18-20-20 13-2 18-7 20-20z"/>' +
+            '<circle cx="52" cy="12" r="5"/><circle cx="50" cy="52" r="4"/><circle cx="10" cy="50" r="3"/>'),
+        heal: svg(
+            '<path d="M48 4h7v7h7v7h-7v7h-7v-7h-7v-7h7z"/>' +
+            '<rect x="12" y="50" width="8" height="10" rx="3.5"/><rect x="32" y="50" width="8" height="10" rx="3.5"/>' +
+            '<ellipse cx="50" cy="45" rx="6" ry="5"/>' +
+            '<path d="M5 52c0-13 9-22 21-22s21 9 21 22z"/>'),
+        coin: svg(
+            '<path d="M22 18h5v5h4v-5h6v5h4v-5h5v11l-4 4v14l5 5v5H17v-5l5-5V33l-4-4V18z"/>' +
+            '<path d="M32 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>'),
+        cloud: svg(
+            '<path d="M17 42a11 11 0 0 1 1-22 15 15 0 0 1 29-2 12 12 0 0 1-1 24z"/>' +
+            '<path d="M6 51h22M34 51h24M14 59h30" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>'),
         sword: svg(
             '<path d="M52 4l8 0 0 8-28 30-10-10z"/>' +
             '<path d="M14 30l20 20-5 5-20-20z"/>' +
@@ -43,8 +59,9 @@
         { id: 'turtle-spawn', label: 'Turtle spawned', title: 'Turtle has spawned', icon: 'turtle', color: '#3fe0c5', enter: 'walk' },
         { id: 'lord-spawn', label: 'Lord spawned', title: 'Lord has spawned', icon: 'lord', color: '#c58bff', enter: 'rise' },
         { id: 'lord-luminous', label: 'Luminous Lord', title: 'Luminous Lord has spawned', icon: 'lord', color: '#ffc94d', enter: 'rise' },
-        { id: 'turtle-kill', label: 'Turtle slain', title: 'Turtle slain', icon: 'turtle', team: true, enter: 'walk' },
-        { id: 'lord-kill', label: 'Lord slain', title: 'Lord slain', icon: 'lord', team: true, enter: 'rise' },
+        { id: 'turtle-kill', label: 'Turtle slain', title: 'Turtle slain', icon: 'turtle', team: true, enter: 'walk', count: 'turtles' },
+        { id: 'lord-kill', label: 'Lord slain', title: 'Lord slain', icon: 'lord', team: true, enter: 'rise', count: 'lords' },
+        { id: 'tower-kill', label: 'Turret destroyed', title: 'Turret destroyed', icon: 'tower', team: true, enter: 'rise', count: 'towers' },
         { id: 'first-blood', label: 'First blood', title: 'First blood', icon: 'sword', team: true, enter: 'slash' },
         { id: 'savage', label: 'Savage', title: 'Savage', icon: 'star', team: true, enter: 'rise' },
         { id: 'wipeout', label: 'Wipe out', title: 'Wipe out', icon: 'skull', team: true, enter: 'rise' }
@@ -53,8 +70,35 @@
     const byId = {};
     list.forEach(function (e) { byId[e.id] = e; });
 
+    // Objective counters shown under each team on the scoreboard.
+    const stats = [
+        { id: 'towers', label: 'Turrets', icon: 'tower' },
+        { id: 'turtles', label: 'Turtles', icon: 'turtle' },
+        { id: 'lords', label: 'Lords', icon: 'lord' }
+    ];
+
+    // Battlefield effects: the map rule drawn at random for each game. To add
+    // one, add a line here; a name typed by hand on the control panel that is
+    // not in this list still shows, with a star icon.
+    const effects = [
+        { name: 'Revealing Wisps', icon: 'wisp', color: '#6fd0ff' },
+        { name: 'Healing Turtle', icon: 'heal', color: '#5fe08a' },
+        { name: 'Golden Turret', icon: 'coin', color: '#ffc94d' },
+        { name: 'Flying Cloud', icon: 'cloud', color: '#b9c6ff' }
+    ];
+
+    function effect(name) {
+        const key = String(name || '').trim().toLowerCase();
+        if (!key) return null;
+        const known = effects.filter(function (e) { return e.name.toLowerCase() === key; })[0];
+        return known || { name: String(name).trim(), icon: 'star', color: '#ffc94d' };
+    }
+
     global.GameEvents = {
         list: list,
+        stats: stats,
+        effects: effects,
+        effect: effect,
         icons: icons,
         get: function (id) { return byId[id] || null; }
     };

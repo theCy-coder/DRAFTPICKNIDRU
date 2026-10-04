@@ -126,6 +126,7 @@
         if (Overlay.setText($('tour'), state.tournament.name)) Overlay.fitText($('tour'), 34, 16);
         if (Overlay.setText($('stage-name'), state.tournament.stage)) Overlay.fitText($('stage-name'), 18, 12);
         Overlay.setText($('meta'), Overlay.seriesText(state));
+        Overlay.renderEffect($('fxp'), state.tournament.effect, true);
 
         const logo = state.tournament.logo || Overlay.DEFAULT_TOURNAMENT_LOGO;
         if ($('tlogo').getAttribute('src') !== logo) $('tlogo').src = logo;

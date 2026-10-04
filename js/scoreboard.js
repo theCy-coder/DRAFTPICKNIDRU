@@ -40,6 +40,18 @@
         hideTimer = setTimeout(function () { box.classList.remove('show'); }, (Number(state.banner.seconds) || 5) * 1000);
     }
 
+    // Turrets / turtles / lords taken by a team this game.
+    function renderStats(box, stats) {
+        if (!box.children.length) {
+            GameEvents.stats.forEach(function (stat) {
+                const item = document.createElement('span');
+                item.innerHTML = GameEvents.icons[stat.icon] + '<b></b>';
+                box.appendChild(item);
+            });
+        }
+        GameEvents.stats.forEach(function (stat, i) { Overlay.setText(box.children[i].lastChild, String(stats[stat.id])); });
+    }
+
     function render(state) {
         const sb = state.scoreboard;
         const board = $('sb');
@@ -48,6 +60,7 @@
         board.classList.toggle('bar', !split);
         board.classList.toggle('hidden', !sb.visible);
         board.classList.toggle('no-info', !sb.showInfo);
+        board.classList.toggle('no-stats', !sb.showStats);
         const restyled = Overlay.applyDesign(board, sb.design);
         board.style.top = (Number(sb.top) || 0) + 'px';
         // In split mode the middle is an empty gap that the game's own
@@ -67,6 +80,7 @@
             Overlay.renderLogo($('logo-' + side), team);
             if (Overlay.setText($('name-' + side), team.name) || restyled) Overlay.fitText($('name-' + side), 38, 18);
             Overlay.renderPips($('pips-' + side), team.score, Store.winsNeeded(state));
+            renderStats($('stats-' + side), team.stats);
             const score = $('score-' + side);
             if (Overlay.setText(score, String(team.score)) && score.dataset.ready) {
                 score.classList.remove('bump');
@@ -82,6 +96,12 @@
         Overlay.setText($('tab-red'), Overlay.seriesText(state));
         if (Overlay.setText($('tour'), t.name) || restyled) Overlay.fitText($('tour'), 26, 14);
         Overlay.setText($('series'), (t.stage ? t.stage + ' · ' : '') + Overlay.seriesText(state));
+        // Its box changes with the layout and the design, so measure it every time.
+        Overlay.fitText($('series'), 18, 11);
+        const fxp = $('fxp');
+        fxp.classList.toggle('left', sb.effectSide === 'left');
+        fxp.style.top = (Number(sb.effectTop) || 0) + 'px';
+        Overlay.renderEffect(fxp, t.effect, sb.visible && sb.showEffect);
         renderEvent(state);
     }
 

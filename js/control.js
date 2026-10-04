@@ -34,9 +34,10 @@
         if (series) {
             snap.series = {
                 game: state.tournament.game,
+                effect: state.tournament.effect,
                 swapped: false,
-                blue: { score: state.teams.blue.score, played: state.teams.blue.played },
-                red: { score: state.teams.red.score, played: state.teams.red.played }
+                blue: { score: state.teams.blue.score, played: state.teams.blue.played, stats: state.teams.blue.stats },
+                red: { score: state.teams.red.score, played: state.teams.red.played, stats: state.teams.red.stats }
             };
         }
         history.push(JSON.stringify(snap));
@@ -57,9 +58,11 @@
         if (!snap.series) return;
         if (snap.series.swapped) swapSides(state);
         state.tournament.game = snap.series.game;
+        state.tournament.effect = snap.series.effect || '';
         SIDES.forEach(function (side) {
             state.teams[side].score = snap.series[side].score;
             state.teams[side].played = snap.series[side].played;
+            if (snap.series[side].stats) state.teams[side].stats = snap.series[side].stats;
         });
     }
 
@@ -157,10 +160,17 @@
     }
 
     // Move on to the next game. The caller has just taken a series snapshot.
+    // A new game starts with no objectives taken and its own battlefield effect.
+    function clearGame(s) {
+        s.tournament.effect = '';
+        SIDES.forEach(function (side) { s.teams[side].stats = { towers: 0, turtles: 0, lords: 0 }; });
+    }
+
     function advanceGame(s) {
         recordPlayed(s);
         s.tournament.game += 1;
         resetDraft(s);
+        clearGame(s);
         if ($('swap-on-next').checked) {
             swapSides(s);
             const snap = JSON.parse(history.pop());
@@ -210,8 +220,11 @@
                 s.teams[side].played = [];
             });
             resetDraft(s);
+            clearGame(s);
             selected = null;
         },
+        'stat-up': function (s, b) { s.teams[b.dataset.side].stats[b.dataset.stat] = clamp(s.teams[b.dataset.side].stats[b.dataset.stat] + 1, 0, 9); },
+        'stat-down': function (s, b) { s.teams[b.dataset.side].stats[b.dataset.stat] = clamp(s.teams[b.dataset.side].stats[b.dataset.stat] - 1, 0, 9); },
         'timer-toggle': toggleTimer,
         'timer-restart': function (s) {
             const dur = Store.stepDuration(s, Store.currentStep(s));
@@ -317,6 +330,41 @@
         });
     }
 
+    // Objective counters under each team's score on the Live tab.
+    function buildStats(side) {
+        const box = $('stats-' + side);
+        GameEvents.stats.forEach(function (stat) {
+            const row = document.createElement('div');
+            row.className = 'stat';
+            row.innerHTML = '<i>' + GameEvents.icons[stat.icon] + '</i><span></span>' +
+                '<div class="stepper">' +
+                '<button type="button" data-act="stat-down" aria-label="One fewer">\u2212</button>' +
+                '<output></output>' +
+                '<button type="button" data-act="stat-up" aria-label="One more">+</button>' +
+                '</div>';
+            row.querySelector('span').textContent = stat.label;
+            row.querySelector('output').id = 'stat-' + side + '-' + stat.id;
+            row.querySelectorAll('button').forEach(function (b) { b.dataset.side = side; b.dataset.stat = stat.id; });
+            box.appendChild(row);
+        });
+    }
+
+    // Battlefield effect picker: one chip per known effect, on Draft and Live.
+    function buildEffects() {
+        document.querySelectorAll('.effects').forEach(function (box) {
+            GameEvents.effects.forEach(function (def) {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'fxchip';
+                chip.dataset.effect = def.name;
+                chip.style.setProperty('--fx', def.color);
+                chip.innerHTML = '<i>' + GameEvents.icons[def.icon] + '</i><span></span>';
+                chip.querySelector('span').textContent = def.name;
+                box.appendChild(chip);
+            });
+        });
+    }
+
     let onAirTimer = null;
     function clearOnAir() {
         clearTimeout(onAirTimer);
@@ -324,8 +372,14 @@
     }
 
     function announce(btn) {
+        const def = GameEvents.get(btn.dataset.event);
         Store.update(function (s) {
             s.event = { id: btn.dataset.event, side: btn.dataset.side, at: Store.now() };
+            // Announcing an objective also counts it for that team.
+            if (def && def.count && btn.dataset.side) {
+                const stats = s.teams[btn.dataset.side].stats;
+                stats[def.count] = clamp(stats[def.count] + 1, 0, 9);
+            }
         });
         // Mark which one is on screen for as long as the banner stays up.
         clearOnAir();
@@ -535,11 +589,13 @@
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
             (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
         $('draft-done').hidden = !!step;
+        document.querySelectorAll('.fxchip').forEach(function (c) { c.classList.toggle('on', c.dataset.effect === state.tournament.effect); });
 
         SIDES.forEach(function (side) {
             const team = state.teams[side];
             $('score-' + side).textContent = team.score;
             $('live-name-' + side).textContent = team.name || side;
+            GameEvents.stats.forEach(function (stat) { $('stat-' + side + '-' + stat.id).textContent = team.stats[stat.id]; });
             $('ecol-title-' + side).textContent = team.name || side;
             renderLogoPreview($('logo-preview-' + side), team.logo, (team.tag || '?').toUpperCase());
             $('board-title-' + side).textContent = team.name || side;
@@ -638,6 +694,12 @@
             const eventBtn = e.target.closest('.ebtn');
             if (eventBtn) { announce(eventBtn); return; }
             if (e.target.closest('#event-hide')) { hideBanner(); return; }
+            const fx = e.target.closest('.fxchip');
+            if (fx) {
+                // Click the lit chip again to clear it.
+                Store.update(function (s) { s.tournament.effect = s.tournament.effect === fx.dataset.effect ? '' : fx.dataset.effect; });
+                return;
+            }
             const actBtn = e.target.closest('[data-act]');
             if (actBtn) {
                 const name = actBtn.dataset.act;
@@ -828,6 +890,8 @@
     SIDES.forEach(function (side) { buildTeamCard(side); buildBoard(side); });
     buildPicker();
     buildEvents();
+    buildEffects();
+    SIDES.forEach(buildStats);
     showTab(savedTab() || 'setup');
     bindEvents();
     Store.subscribe(render);

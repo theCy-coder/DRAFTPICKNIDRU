@@ -76,6 +76,18 @@
         return true;
     }
 
+    // Battlefield effect panel: icon plus name. Shown while `show` is true and
+    // the game has an effect set.
+    function renderEffect(el, name, show) {
+        const def = show && global.GameEvents ? global.GameEvents.effect(name) : null;
+        el.classList.toggle('show', !!def);
+        if (!def || el.dataset.name === def.name) return;
+        el.dataset.name = def.name;
+        el.style.setProperty('--fx', def.color);
+        el.innerHTML = '<div class="fxp-icon">' + (global.GameEvents.icons[def.icon] || '') + '</div><div class="fxp-name"></div>';
+        el.lastChild.textContent = def.name;
+    }
+
     function seriesText(state) {
         return 'Game ' + state.tournament.game + ' · Best of ' + state.tournament.bestOf;
     }
@@ -88,6 +100,7 @@
         renderLogo: renderLogo,
         renderPips: renderPips,
         applyDesign: applyDesign,
+        renderEffect: renderEffect,
         seriesText: seriesText
     };
 })(window);
