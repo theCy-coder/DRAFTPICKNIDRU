@@ -223,18 +223,82 @@
             '  <label class="field grow">Team name<input type="text" data-bind="teams.' + side + '.name" placeholder="Team name"></label>' +
             '  <label class="field tag">Tag<input type="text" maxlength="4" data-bind="teams.' + side + '.tag" placeholder="TAG"></label>' +
             '</div>' +
-            '<div class="inline">' +
-            '  <div class="field grow">Logo<div class="logo-row">' +
-            '    <div class="logo-preview" id="logo-preview-' + side + '"></div>' +
-            '    <label class="btn">Upload<input type="file" accept="image/*" data-logo="' + side + '" hidden></label>' +
-            '    <button type="button" class="btn ghost" data-act="logo-clear" data-side="' + side + '">Remove</button>' +
-            '  </div></div>' +
-            '  <div class="field fixed">Games won<div class="stepper big">' +
-            '    <button type="button" data-act="score-down" data-side="' + side + '" aria-label="Remove a win">−</button>' +
-            '    <output id="score-' + side + '">0</output>' +
-            '    <button type="button" data-act="score-up" data-side="' + side + '" aria-label="Add a win">+</button>' +
-            '  </div></div>' +
-            '</div>';
+            '<div class="field">Logo<div class="logo-row">' +
+            '  <div class="logo-preview" id="logo-preview-' + side + '"></div>' +
+            '  <label class="btn">Upload<input type="file" accept="image/*" data-logo="' + side + '" hidden></label>' +
+            '  <button type="button" class="btn ghost" data-act="logo-clear" data-side="' + side + '">Remove</button>' +
+            '</div></div>';
+    }
+
+    // ---- tabs ------------------------------------------------------------
+    // Each tab holds what one moment of the broadcast needs and nothing else.
+    const TABS = ['setup', 'draft', 'live', 'settings'];
+    const TAB_KEY = 'mlbb-overlay-tab';
+
+    function showTab(name) {
+        if (TABS.indexOf(name) < 0) name = 'draft';
+        document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== name; });
+        document.querySelectorAll('[data-tab]').forEach(function (t) {
+            t.classList.toggle('on', t.dataset.tab === name);
+            t.setAttribute('aria-selected', t.dataset.tab === name);
+        });
+        try { localStorage.setItem(TAB_KEY, name); } catch (e) { /* blocked */ }
+        window.scrollTo(0, 0);
+    }
+
+    function savedTab() {
+        try { return localStorage.getItem(TAB_KEY); } catch (e) { return null; }
+    }
+
+    // ---- announcements (Live tab) ----------------------------------------
+    function eventButton(def, side) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ebtn';
+        btn.dataset.event = def.id;
+        btn.dataset.side = side || '';
+        if (def.color) btn.style.setProperty('--team', def.color);
+        btn.innerHTML = '<i>' + GameEvents.icons[def.icon] + '</i><span></span>';
+        btn.querySelector('span').textContent = def.label;
+        return btn;
+    }
+
+    function buildEvents() {
+        const box = $('events');
+        ['blue', '', 'red'].forEach(function (side) {
+            const col = document.createElement('div');
+            col.className = 'ecol ' + (side || 'neutral');
+            const title = document.createElement('div');
+            title.className = 'ecol-title';
+            title.id = 'ecol-title-' + (side || 'neutral');
+            title.textContent = side ? side : 'Map';
+            col.appendChild(title);
+            GameEvents.list.forEach(function (def) {
+                if (!!def.team === !!side) col.appendChild(eventButton(def, side));
+            });
+            box.appendChild(col);
+        });
+    }
+
+    let onAirTimer = null;
+    function clearOnAir() {
+        clearTimeout(onAirTimer);
+        document.querySelectorAll('.ebtn.live').forEach(function (b) { b.classList.remove('live'); });
+    }
+
+    function announce(btn) {
+        Store.update(function (s) {
+            s.event = { id: btn.dataset.event, side: btn.dataset.side, at: Store.now() };
+        });
+        // Mark which one is on screen for as long as the banner stays up.
+        clearOnAir();
+        btn.classList.add('live');
+        onAirTimer = setTimeout(clearOnAir, (Number(Store.get().banner.seconds) || 5) * 1000);
+    }
+
+    function hideBanner() {
+        Store.update(function (s) { s.event = { id: '', side: '', at: Store.now() }; });
+        clearOnAir();
     }
 
     function slotButton(side, type, i) {
@@ -405,9 +469,16 @@
         $('next-game').title = lastGame ? 'This is the last game of a best of ' + state.tournament.bestOf + '.' : '';
         renderLogoPreview($('tour-logo-preview'), state.tournament.logo || 'Assets/Other/tournamentlogo.png', '');
 
+        $('series-label').textContent = 'Best of ' + state.tournament.bestOf;
+        $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
+            (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
+        $('draft-done').hidden = !!step;
+
         SIDES.forEach(function (side) {
             const team = state.teams[side];
             $('score-' + side).textContent = team.score;
+            $('live-name-' + side).textContent = team.name || side;
+            $('ecol-title-' + side).textContent = team.name || side;
             renderLogoPreview($('logo-preview-' + side), team.logo, (team.tag || '?').toUpperCase());
             $('board-title-' + side).textContent = team.name || side;
 
@@ -499,11 +570,19 @@
 
     function bindEvents() {
         document.addEventListener('click', function (e) {
+            const tab = e.target.closest('[data-tab], [data-goto]');
+            if (tab) { showTab(tab.dataset.tab || tab.dataset.goto); return; }
+            const eventBtn = e.target.closest('.ebtn');
+            if (eventBtn) { announce(eventBtn); return; }
+            if (e.target.closest('#event-hide')) { hideBanner(); return; }
             const actBtn = e.target.closest('[data-act]');
             if (actBtn) {
                 const name = actBtn.dataset.act;
                 if (needsConfirm[name] && !armed(actBtn)) return;
+                const game = Store.get().tournament.game;
                 Store.update(function (s) { actions[name](s, actBtn); });
+                // A new game starts with its draft.
+                if (name === 'next-game' && Store.get().tournament.game !== game) showTab('draft');
                 return;
             }
             const slot = e.target.closest('.slot');
@@ -640,7 +719,8 @@
         document.addEventListener('keydown', function (e) {
             const tag = (e.target.tagName || '').toLowerCase();
             if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
-            if (e.key === '/') { e.preventDefault(); search.focus(); }
+            if (e.key === '/') { e.preventDefault(); showTab('draft'); search.focus(); }
+            else if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.altKey && !e.metaKey) showTab(TABS[Number(e.key) - 1]);
         });
     }
 
@@ -672,6 +752,8 @@
 
     SIDES.forEach(function (side) { buildTeamCard(side); buildBoard(side); });
     buildPicker();
+    buildEvents();
+    showTab(savedTab() || 'setup');
     bindEvents();
     Store.subscribe(render);
     Store.onStatus(showStatus);

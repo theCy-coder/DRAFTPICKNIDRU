@@ -34,7 +34,11 @@
                 bans: { blue: [null, null, null, null, null], red: [null, null, null, null, null] },
                 timer: { running: false, endsAt: 0, remaining: 60000 }
             },
-            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true }
+            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true },
+            // Last announcement sent from the Live tab (see js/events.js). `at` is
+            // the moment it was pressed, so an overlay only plays a fresh one.
+            event: { id: '', side: '', at: 0 },
+            banner: { top: 110, seconds: 5 }
         };
     }
 

@@ -8,28 +8,33 @@
 </head>
 <body>
 <header class="topbar">
-    <h1>MLBB Overlay Control</h1>
+    <h1>MLBB Overlay</h1>
+    <!-- One tab per moment of the broadcast, so only what is needed right now is on screen. -->
+    <div class="tabs" role="tablist">
+        <button type="button" class="tab" role="tab" data-tab="setup"><kbd>1</kbd> Setup</button>
+        <button type="button" class="tab" role="tab" data-tab="draft"><kbd>2</kbd> Draft</button>
+        <button type="button" class="tab" role="tab" data-tab="live"><kbd>3</kbd> Live game</button>
+        <button type="button" class="tab" role="tab" data-tab="settings"><kbd>4</kbd> Settings</button>
+    </div>
+    <div class="summary" id="summary"></div>
     <span class="status" id="status">Connecting…</span>
-    <nav>
-        <a href="draft.html" target="_blank">Open draft overlay</a>
-        <a href="scoreboard.html" target="_blank">Open scoreboard</a>
-        <a href="index.html">OBS setup</a>
-    </nav>
 </header>
 
 <main>
-    <section class="row3">
-        <div class="card team blue" id="team-blue"></div>
+    <!-- ================= SETUP: who is playing ================= -->
+    <section class="panel" data-panel="setup">
+        <p class="lead">Before the series: who is playing and what is it called.</p>
+        <div class="row3">
+            <div class="card team blue" id="team-blue"></div>
 
-        <div class="card match">
-            <h2>Match</h2>
-            <label class="field">Tournament name
-                <input type="text" data-bind="tournament.name" placeholder="Tournament name">
-            </label>
-            <label class="field">Stage / round
-                <input type="text" data-bind="tournament.stage" placeholder="e.g. Grand Final">
-            </label>
-            <div class="inline">
+            <div class="card match">
+                <h2>Match</h2>
+                <label class="field">Tournament name
+                    <input type="text" data-bind="tournament.name" placeholder="Tournament name">
+                </label>
+                <label class="field">Stage / round
+                    <input type="text" data-bind="tournament.stage" placeholder="e.g. Grand Final">
+                </label>
                 <label class="field">Series
                     <select data-bind="tournament.bestOf" data-num>
                         <option value="1">Best of 1</option>
@@ -38,147 +43,210 @@
                         <option value="7">Best of 7</option>
                     </select>
                 </label>
-                <div class="field">Game
-                    <div class="stepper">
-                        <button type="button" data-act="game-down" aria-label="Previous game">−</button>
-                        <output id="game-no">1</output>
-                        <button type="button" id="game-up" data-act="game-up" aria-label="Next game number">+</button>
+                <div class="field">Tournament logo
+                    <div class="logo-row">
+                        <div class="logo-preview wide" id="tour-logo-preview"></div>
+                        <label class="btn">Upload<input type="file" accept="image/*" id="tour-logo-file" hidden></label>
+                        <button type="button" class="btn ghost" data-act="tour-logo-clear">Use default</button>
                     </div>
                 </div>
             </div>
-            <div class="field">Tournament logo
-                <div class="logo-row">
-                    <div class="logo-preview wide" id="tour-logo-preview"></div>
-                    <label class="btn">Upload<input type="file" accept="image/*" id="tour-logo-file" hidden></label>
-                    <button type="button" class="btn ghost" data-act="tour-logo-clear">Use default</button>
+
+            <div class="card team red" id="team-red"></div>
+        </div>
+        <div class="next-step">
+            <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides</button>
+            <button type="button" class="btn primary big" data-goto="draft">Go to draft ▶</button>
+        </div>
+    </section>
+
+    <!-- ================= DRAFT: picks and bans only ================= -->
+    <section class="panel" data-panel="draft">
+        <div class="card draft">
+            <div class="draft-head">
+                <div class="phase-box" id="phase-box">
+                    <span class="phase-step" id="phase-step"></span>
+                    <span class="phase-name" id="phase-name"></span>
+                </div>
+                <div class="timer-box" id="timer-box">60</div>
+                <div class="actions">
+                    <button type="button" class="btn primary" data-act="timer-toggle" id="timer-toggle">Start timer</button>
+                    <button type="button" class="btn" data-act="timer-restart">Restart timer</button>
+                    <button type="button" class="btn" data-act="step-prev">◀ Previous phase</button>
+                    <button type="button" class="btn" data-act="step-next">Next phase ▶</button>
+                    <button type="button" class="btn" data-act="undo" id="undo">Undo</button>
+                    <button type="button" class="btn ghost danger" data-act="reset-draft">Reset draft</button>
+                </div>
+                <label class="check onair"><input type="checkbox" data-bind="draft.visible"> Draft overlay on screen</label>
+            </div>
+
+            <div class="board">
+                <div class="board-side blue" id="board-blue"></div>
+                <div class="board-side red" id="board-red"></div>
+            </div>
+            <p class="hint" id="target-hint"></p>
+            <div class="played" id="played" hidden>
+                <div class="played-side blue" id="played-blue"></div>
+                <div class="played-side red" id="played-red"></div>
+            </div>
+
+            <div class="picker">
+                <div class="picker-head">
+                    <input type="search" id="search" placeholder="Search hero…  (press / to focus, Enter to lock the first result)" autocomplete="off">
+                    <div class="roles" id="roles"></div>
+                </div>
+                <div class="hero-grid" id="hero-grid"></div>
+            </div>
+        </div>
+        <div class="next-step" id="draft-done" hidden>
+            <span>Draft complete.</span>
+            <button type="button" class="btn primary big" data-goto="live">Go to live game ▶</button>
+        </div>
+    </section>
+
+    <!-- ================= LIVE: the game is being played ================= -->
+    <section class="panel" data-panel="live">
+        <div class="card scorecard">
+            <div class="score-side blue">
+                <div class="score-name" id="live-name-blue"></div>
+                <div class="stepper huge">
+                    <button type="button" data-act="score-down" data-side="blue" aria-label="Remove a blue win">−</button>
+                    <output id="score-blue">0</output>
+                    <button type="button" data-act="score-up" data-side="blue" aria-label="Add a blue win">+</button>
                 </div>
             </div>
-            <hr>
+            <div class="score-mid">
+                <div class="score-label">Game</div>
+                <div class="stepper">
+                    <button type="button" data-act="game-down" aria-label="Previous game">−</button>
+                    <output id="game-no">1</output>
+                    <button type="button" id="game-up" data-act="game-up" aria-label="Next game number">+</button>
+                </div>
+                <div class="score-label" id="series-label"></div>
+                <label class="check onair"><input type="checkbox" data-bind="scoreboard.visible"> Scoreboard on screen</label>
+            </div>
+            <div class="score-side red">
+                <div class="score-name" id="live-name-red"></div>
+                <div class="stepper huge">
+                    <button type="button" data-act="score-down" data-side="red" aria-label="Remove a red win">−</button>
+                    <output id="score-red">0</output>
+                    <button type="button" data-act="score-up" data-side="red" aria-label="Add a red win">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h2>Announce on screen</h2>
+                <button type="button" class="btn ghost" id="event-hide">Hide banner now</button>
+            </div>
+            <div class="events" id="events"></div>
+            <p class="hint">One press plays the animation once on the scoreboard overlay. Nothing plays by itself.</p>
+        </div>
+
+        <div class="card">
+            <h2>Game finished</h2>
             <div class="actions">
-                <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides</button>
-                <button type="button" class="btn primary" id="next-game" data-act="next-game">Next game</button>
+                <button type="button" class="btn primary big" id="next-game" data-act="next-game">Next game ▶</button>
+                <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides for the next game</label>
+                <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides now</button>
                 <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
             </div>
-            <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides when starting the next game</label>
-            <p class="hint">“Next game” adds 1 to the game number and clears the draft. Team names, logos, scores and nicknames stay. The picks of the finished game are remembered for Fearless draft. It switches off on the last game of the series.</p>
-        </div>
-
-        <div class="card team red" id="team-red"></div>
-    </section>
-
-    <section class="card draft">
-        <div class="draft-head">
-            <h2>Draft</h2>
-            <div class="phase-box" id="phase-box">
-                <span class="phase-step" id="phase-step"></span>
-                <span class="phase-name" id="phase-name"></span>
-            </div>
-            <div class="timer-box" id="timer-box">60</div>
-            <div class="actions">
-                <button type="button" class="btn primary" data-act="timer-toggle" id="timer-toggle">Start timer</button>
-                <button type="button" class="btn" data-act="timer-restart">Restart timer</button>
-                <button type="button" class="btn" data-act="step-prev">◀ Previous phase</button>
-                <button type="button" class="btn" data-act="step-next">Next phase ▶</button>
-                <button type="button" class="btn" data-act="undo" id="undo">Undo</button>
-                <button type="button" class="btn ghost danger" data-act="reset-draft">Reset draft</button>
-            </div>
-        </div>
-
-        <div class="options">
-            <label class="field small">Overlay design
-                <select data-bind="draft.design">
-                    <option value="classic">Classic</option>
-                    <option value="slant">Slant</option>
-                    <option value="glass">Glass</option>
-                    <option value="towers">Towers</option>
-                    <option value="neon">Neon</option>
-                    <option value="prestige">Prestige</option>
-                </select>
-            </label>
-            <label class="field small">Draft mode
-                <select data-bind="draft.mode">
-                    <option value="normal">Normal</option>
-                    <option value="fearless">Fearless</option>
-                </select>
-            </label>
-            <label class="field medium" id="scope-field" hidden>Played heroes are locked for
-                <select data-bind="draft.fearlessScope">
-                    <option value="both">Both teams</option>
-                    <option value="team">Only the team that picked them</option>
-                </select>
-            </label>
-            <label class="check"><input type="checkbox" data-bind="draft.visible"> Show draft overlay</label>
-            <label class="check"><input type="checkbox" data-bind="draft.autoTimer"> Start the timer automatically on each new phase</label>
-            <label class="check"><input type="checkbox" data-bind="draft.autoAdvance"> Skip to the next phase when the timer hits 0</label>
-            <label class="field small">Ban time (s)<input type="number" min="5" max="300" data-bind="draft.banTime" data-num></label>
-            <label class="field small">Pick time (s)<input type="number" min="5" max="300" data-bind="draft.pickTime" data-num></label>
-            <label class="field small">Bans per team
-                <select data-bind="draft.banCount" data-num id="ban-count">
-                    <option value="5">5</option>
-                    <option value="3">3</option>
-                </select>
-            </label>
-        </div>
-
-        <div class="board">
-            <div class="board-side blue" id="board-blue"></div>
-            <div class="board-side red" id="board-red"></div>
-        </div>
-        <p class="hint" id="target-hint"></p>
-        <div class="played" id="played" hidden>
-            <div class="played-side blue" id="played-blue"></div>
-            <div class="played-side red" id="played-red"></div>
-        </div>
-
-        <div class="picker">
-            <div class="picker-head">
-                <input type="search" id="search" placeholder="Search hero…  (press / to focus, Enter to lock the first result)" autocomplete="off">
-                <div class="roles" id="roles"></div>
-            </div>
-            <div class="hero-grid" id="hero-grid"></div>
+            <p class="hint">Add the win above first. “Next game” then bumps the game number, clears the draft and takes you back to the Draft tab. It switches off on the last game of the series.</p>
         </div>
     </section>
 
-    <section class="row2">
-        <div class="card">
-            <h2>Scoreboard overlay</h2>
-            <div class="options">
-                <label class="check"><input type="checkbox" data-bind="scoreboard.visible"> Show scoreboard overlay</label>
+    <!-- ================= SETTINGS: set once, then leave alone ================= -->
+    <section class="panel" data-panel="settings">
+        <div class="row2">
+            <div class="card">
+                <h2>Draft overlay</h2>
+                <div class="options">
+                    <label class="field small">Design
+                        <select data-bind="draft.design">
+                            <option value="classic">Classic</option>
+                            <option value="slant">Slant</option>
+                            <option value="glass">Glass</option>
+                            <option value="towers">Towers</option>
+                            <option value="neon">Neon</option>
+                            <option value="prestige">Prestige</option>
+                        </select>
+                    </label>
+                    <label class="field small">Draft mode
+                        <select data-bind="draft.mode">
+                            <option value="normal">Normal</option>
+                            <option value="fearless">Fearless</option>
+                        </select>
+                    </label>
+                    <label class="field medium" id="scope-field" hidden>Played heroes are locked for
+                        <select data-bind="draft.fearlessScope">
+                            <option value="both">Both teams</option>
+                            <option value="team">Only the team that picked them</option>
+                        </select>
+                    </label>
+                    <label class="field small">Bans per team
+                        <select data-bind="draft.banCount" data-num id="ban-count">
+                            <option value="5">5</option>
+                            <option value="3">3</option>
+                        </select>
+                    </label>
+                    <label class="field small">Ban time (s)<input type="number" min="5" max="300" data-bind="draft.banTime" data-num></label>
+                    <label class="field small">Pick time (s)<input type="number" min="5" max="300" data-bind="draft.pickTime" data-num></label>
+                </div>
+                <label class="check"><input type="checkbox" data-bind="draft.autoTimer"> Start the timer automatically on each new phase</label>
+                <label class="check"><input type="checkbox" data-bind="draft.autoAdvance"> Skip to the next phase when the timer hits 0</label>
+                <p class="hint">Bans per team can only be changed before the draft starts.</p>
+            </div>
+
+            <div class="card">
+                <h2>Scoreboard overlay</h2>
+                <div class="options">
+                    <label class="field small">Design
+                        <select data-bind="scoreboard.design">
+                            <option value="classic">Classic</option>
+                            <option value="slant">Slant</option>
+                            <option value="glass">Glass</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="neon">Neon</option>
+                            <option value="prestige">Prestige</option>
+                        </select>
+                    </label>
+                    <label class="field medium">Layout
+                        <select data-bind="scoreboard.layout">
+                            <option value="split">Split – either side of the in-game score</option>
+                            <option value="bar">Bar – one solid strip</option>
+                        </select>
+                    </label>
+                    <label class="field small">Centre gap (px)<input type="number" min="0" max="1200" step="10" data-bind="scoreboard.gap" data-num></label>
+                    <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
+                </div>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Show tournament / game info</label>
+                <p class="hint">In Split layout, widen the centre gap until the two plates clear the game’s own kill / gold display.</p>
             </div>
-            <div class="inline">
-                <label class="field small">Design
-                    <select data-bind="scoreboard.design">
-                        <option value="classic">Classic</option>
-                        <option value="slant">Slant</option>
-                        <option value="glass">Glass</option>
-                        <option value="minimal">Minimal</option>
-                        <option value="neon">Neon</option>
-                        <option value="prestige">Prestige</option>
-                    </select>
-                </label>
-                <label class="field">Layout
-                    <select data-bind="scoreboard.layout">
-                        <option value="split">Split – sits either side of the in-game score</option>
-                        <option value="bar">Bar – one solid strip</option>
-                    </select>
-                </label>
-                <label class="field small">Centre gap (px)<input type="number" min="0" max="1200" step="10" data-bind="scoreboard.gap" data-num></label>
-                <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
-            </div>
-            <p class="hint">In Split layout, widen the centre gap until the two plates clear the game’s own kill / gold display.</p>
         </div>
 
-        <div class="card">
-            <h2>OBS browser sources</h2>
-            <div class="url-row"><span>Draft</span><code id="url-draft"></code><button type="button" class="btn" data-copy="url-draft">Copy</button></div>
-            <div class="url-row"><span>Scoreboard</span><code id="url-scoreboard"></code><button type="button" class="btn" data-copy="url-scoreboard">Copy</button></div>
-            <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS.</p>
+        <div class="row2">
+            <div class="card">
+                <h2>Announcement banner</h2>
+                <div class="options">
+                    <label class="field small">Top offset (px)<input type="number" min="0" max="900" step="10" data-bind="banner.top" data-num></label>
+                    <label class="field small">Stays for (s)<input type="number" min="2" max="20" data-bind="banner.seconds" data-num></label>
+                </div>
+                <p class="hint">Where the Turtle / Lord banners appear on the scoreboard overlay and how long they stay.</p>
+            </div>
+
+            <div class="card">
+                <h2>OBS browser sources</h2>
+                <div class="url-row"><span>Draft</span><code id="url-draft"></code><button type="button" class="btn" data-copy="url-draft">Copy</button><a class="btn ghost" href="draft.html" target="_blank">Open</a></div>
+                <div class="url-row"><span>Scoreboard</span><code id="url-scoreboard"></code><button type="button" class="btn" data-copy="url-scoreboard">Copy</button><a class="btn ghost" href="scoreboard.html" target="_blank">Open</a></div>
+                <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS. <a href="index.html">Setup guide</a></p>
+            </div>
         </div>
     </section>
 </main>
 
 <script src="js/heroes.js"></script>
+<script src="js/events.js"></script>
 <script src="js/store.js"></script>
 <script src="js/control.js"></script>
 </body>

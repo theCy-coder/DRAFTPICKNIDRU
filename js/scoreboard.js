@@ -4,6 +4,42 @@
 
     const $ = function (id) { return document.getElementById(id); };
 
+    // Announcement banner. It plays when a new event arrives and ignores one
+    // that is already old, so reloading the page never replays the last one.
+    let lastEventAt = null;
+    let hideTimer = null;
+
+    function renderEvent(state) {
+        const box = $('evt');
+        box.style.top = (Number(state.banner.top) || 0) + 'px';
+        const e = state.event;
+        if (e.at === lastEventAt) return;
+        lastEventAt = e.at;
+        clearTimeout(hideTimer);
+        const def = GameEvents.get(e.id);
+        if (!def || Store.now() - e.at > 3000) { box.classList.remove('show'); return; }
+
+        const team = def.team && state.teams[e.side];
+        const icon = $('evt-icon');
+        if (def.img) {
+            icon.textContent = '';
+            const img = document.createElement('img');
+            img.src = def.img;
+            img.alt = '';
+            icon.appendChild(img);
+        } else {
+            icon.innerHTML = GameEvents.icons[def.icon] || '';
+        }
+        $('evt-title').textContent = def.title;
+        $('evt-sub').textContent = team ? team.name : '';
+        box.className = 'evt enter-' + (def.enter || 'rise') + (team ? ' ' + e.side : '');
+        if (!team && def.color) box.style.setProperty('--team', def.color);
+        else box.style.removeProperty('--team');
+        void box.offsetWidth; // restart the animations
+        box.classList.add('show');
+        hideTimer = setTimeout(function () { box.classList.remove('show'); }, (Number(state.banner.seconds) || 5) * 1000);
+    }
+
     function render(state) {
         const sb = state.scoreboard;
         const board = $('sb');
@@ -38,6 +74,7 @@
         Overlay.setText($('tab-red'), Overlay.seriesText(state));
         if (Overlay.setText($('tour'), t.name) || restyled) Overlay.fitText($('tour'), 26, 14);
         Overlay.setText($('series'), (t.stage ? t.stage + ' · ' : '') + Overlay.seriesText(state));
+        renderEvent(state);
     }
 
     Overlay.setupStage($('stage'));
