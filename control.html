@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLBB Overlay Control</title>
+    <link rel="stylesheet" href="css/control.css">
+</head>
+<body>
+<header class="topbar">
+    <h1>MLBB Overlay Control</h1>
+    <span class="status" id="status">Connecting…</span>
+    <nav>
+        <a href="draft.html" target="_blank">Open draft overlay</a>
+        <a href="scoreboard.html" target="_blank">Open scoreboard</a>
+        <a href="index.html">OBS setup</a>
+    </nav>
+</header>
+
+<main>
+    <section class="row3">
+        <div class="card team blue" id="team-blue"></div>
+
+        <div class="card match">
+            <h2>Match</h2>
+            <label class="field">Tournament name
+                <input type="text" data-bind="tournament.name" placeholder="Tournament name">
+            </label>
+            <label class="field">Stage / round
+                <input type="text" data-bind="tournament.stage" placeholder="e.g. Grand Final">
+            </label>
+            <div class="inline">
+                <label class="field">Series
+                    <select data-bind="tournament.bestOf" data-num>
+                        <option value="1">Best of 1</option>
+                        <option value="3">Best of 3</option>
+                        <option value="5">Best of 5</option>
+                        <option value="7">Best of 7</option>
+                    </select>
+                </label>
+                <div class="field">Game
+                    <div class="stepper">
+                        <button type="button" data-act="game-down" aria-label="Previous game">−</button>
+                        <output id="game-no">1</output>
+                        <button type="button" data-act="game-up" aria-label="Next game number">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="field">Tournament logo
+                <div class="logo-row">
+                    <div class="logo-preview wide" id="tour-logo-preview"></div>
+                    <label class="btn">Upload<input type="file" accept="image/*" id="tour-logo-file" hidden></label>
+                    <button type="button" class="btn ghost" data-act="tour-logo-clear">Use default</button>
+                </div>
+            </div>
+            <hr>
+            <div class="actions">
+                <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides</button>
+                <button type="button" class="btn primary" data-act="next-game">Next game</button>
+                <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
+            </div>
+            <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides when starting the next game</label>
+            <p class="hint">“Next game” adds 1 to the game number and clears the draft. Team names, logos, scores and nicknames stay. The picks of the finished game are remembered for Fearless draft.</p>
+        </div>
+
+        <div class="card team red" id="team-red"></div>
+    </section>
+
+    <section class="card draft">
+        <div class="draft-head">
+            <h2>Draft</h2>
+            <div class="phase-box" id="phase-box">
+                <span class="phase-step" id="phase-step"></span>
+                <span class="phase-name" id="phase-name"></span>
+            </div>
+            <div class="timer-box" id="timer-box">60</div>
+            <div class="actions">
+                <button type="button" class="btn primary" data-act="timer-toggle" id="timer-toggle">Start timer</button>
+                <button type="button" class="btn" data-act="timer-restart">Restart timer</button>
+                <button type="button" class="btn" data-act="step-prev">◀ Previous phase</button>
+                <button type="button" class="btn" data-act="step-next">Next phase ▶</button>
+                <button type="button" class="btn" data-act="undo" id="undo">Undo</button>
+                <button type="button" class="btn ghost danger" data-act="reset-draft">Reset draft</button>
+            </div>
+        </div>
+
+        <div class="options">
+            <label class="field small">Draft mode
+                <select data-bind="draft.mode">
+                    <option value="normal">Normal</option>
+                    <option value="fearless">Fearless</option>
+                </select>
+            </label>
+            <label class="field medium" id="scope-field" hidden>Played heroes are locked for
+                <select data-bind="draft.fearlessScope">
+                    <option value="both">Both teams</option>
+                    <option value="team">Only the team that picked them</option>
+                </select>
+            </label>
+            <label class="check"><input type="checkbox" data-bind="draft.visible"> Show draft overlay</label>
+            <label class="check"><input type="checkbox" data-bind="draft.autoTimer"> Start the timer automatically on each new phase</label>
+            <label class="check"><input type="checkbox" data-bind="draft.autoAdvance"> Skip to the next phase when the timer hits 0</label>
+            <label class="field small">Ban time (s)<input type="number" min="5" max="300" data-bind="draft.banTime" data-num></label>
+            <label class="field small">Pick time (s)<input type="number" min="5" max="300" data-bind="draft.pickTime" data-num></label>
+            <label class="field small">Bans per team
+                <select data-bind="draft.banCount" data-num id="ban-count">
+                    <option value="5">5</option>
+                    <option value="3">3</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="board">
+            <div class="board-side blue" id="board-blue"></div>
+            <div class="board-side red" id="board-red"></div>
+        </div>
+        <p class="hint" id="target-hint"></p>
+        <div class="played" id="played" hidden>
+            <div class="played-side blue" id="played-blue"></div>
+            <div class="played-side red" id="played-red"></div>
+        </div>
+
+        <div class="picker">
+            <div class="picker-head">
+                <input type="search" id="search" placeholder="Search hero…  (press / to focus, Enter to lock the first result)" autocomplete="off">
+                <div class="roles" id="roles"></div>
+            </div>
+            <div class="hero-grid" id="hero-grid"></div>
+        </div>
+    </section>
+
+    <section class="row2">
+        <div class="card">
+            <h2>Scoreboard overlay</h2>
+            <div class="options">
+                <label class="check"><input type="checkbox" data-bind="scoreboard.visible"> Show scoreboard overlay</label>
+                <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Show tournament / game info</label>
+            </div>
+            <div class="inline">
+                <label class="field">Layout
+                    <select data-bind="scoreboard.layout">
+                        <option value="split">Split – sits either side of the in-game score</option>
+                        <option value="bar">Bar – one solid strip</option>
+                    </select>
+                </label>
+                <label class="field small">Centre gap (px)<input type="number" min="0" max="1200" step="10" data-bind="scoreboard.gap" data-num></label>
+                <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
+            </div>
+            <p class="hint">In Split layout, widen the centre gap until the two plates clear the game’s own kill / gold display.</p>
+        </div>
+
+        <div class="card">
+            <h2>OBS browser sources</h2>
+            <div class="url-row"><span>Draft</span><code id="url-draft"></code><button type="button" class="btn" data-copy="url-draft">Copy</button></div>
+            <div class="url-row"><span>Scoreboard</span><code id="url-scoreboard"></code><button type="button" class="btn" data-copy="url-scoreboard">Copy</button></div>
+            <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS.</p>
+        </div>
+    </section>
+</main>
+
+<script src="js/heroes.js"></script>
+<script src="js/store.js"></script>
+<script src="js/control.js"></script>
+</body>
+</html>

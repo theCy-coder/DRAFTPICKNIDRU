@@ -1,0 +1,444 @@
+/* Shared by draft.html and scoreboard.html. Both are drawn on a fixed
+   1920x1080 stage so they line up with a 1080p OBS canvas. */
+@font-face {
+    font-family: 'Bebas Neue';
+    src: url('../Assets/Font/BebasNeue-Regular.woff2') format('woff2'),
+         url('../Assets/Font/BebasNeue-Regular.woff') format('woff');
+    font-display: block;
+}
+
+:root {
+    --blue: #2f8fff;
+    --blue-deep: #0b3f8f;
+    --red: #ff3d55;
+    --red-deep: #8f0b22;
+    --gold: #ffc94d;
+    --ink: #0b0e14;
+    --panel: rgba(13, 16, 23, 0.94);
+    --line: rgba(255, 255, 255, 0.12);
+    --text: #ffffff;
+    --muted: rgba(255, 255, 255, 0.62);
+    --display: 'Bebas Neue', 'Arial Narrow', Impact, sans-serif;
+    --ui: 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+/* Outside OBS there is nothing behind the overlay, so show a backdrop. */
+body.preview { background: #1b2030 linear-gradient(160deg, #27304a, #12151f); }
+body.bg-green { background: #00ff00; }
+
+.stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: 0 0;
+    color: var(--text);
+    font-family: var(--display);
+    letter-spacing: 0.5px;
+}
+
+.blue { --team: var(--blue); --team-deep: var(--blue-deep); }
+.red { --team: var(--red); --team-deep: var(--red-deep); }
+
+.fit { white-space: nowrap; overflow: hidden; }
+
+/* Team logo with a fallback to the team tag */
+.logo {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+.logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.logo span { font-size: 26px; color: var(--team); }
+
+.pips { display: flex; gap: 5px; }
+.pip {
+    width: 26px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.18);
+    transform: skewX(-20deg);
+    transition: background 0.3s, box-shadow 0.3s;
+}
+.pip.on { background: var(--gold); box-shadow: 0 0 10px rgba(255, 201, 77, 0.7); }
+
+/* ====================================================================
+   Draft overlay
+   ==================================================================== */
+.draft {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.draft.hidden { opacity: 0; transform: translateY(60px); }
+
+.draft .row { display: flex; gap: 10px; }
+.draft .half { flex: 1 1 0; min-width: 0; display: flex; gap: 8px; }
+.draft .half.red { flex-direction: row-reverse; }
+.draft .mid { flex: none; width: 264px; }
+
+/* --- fearless row: heroes each team already played this series --- */
+.draft .fearless { height: 46px; }
+.draft .fearless.off { display: none; }
+.draft .fearless .half { gap: 3px; }
+.flabel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    line-height: 1;
+    padding-top: 2px;
+    color: var(--ink);
+    background: var(--gold);
+}
+.ptile {
+    position: relative;
+    flex: 0 1 40px;
+    min-width: 0;
+    height: 46px;
+    overflow: hidden;
+    background: var(--panel);
+    box-shadow: inset 0 -3px 0 var(--team);
+}
+.ptile img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 10%;
+    filter: grayscale(0.85) brightness(0.8);
+}
+.ptile .fallback { font-size: 11px; }
+.pgame {
+    flex: none;
+    width: 30px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--gold);
+    background: var(--panel);
+}
+.pgame:not(:first-child) { margin-left: 6px; }
+.red .pgame:not(:first-child) { margin-left: 0; margin-right: 6px; }
+
+/* --- top row: team plate + bans --- */
+.draft .top { height: 76px; }
+
+.plate {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 16px;
+    background: linear-gradient(90deg, var(--team-deep), var(--team));
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+.red .plate { flex-direction: row-reverse; padding: 0 0 0 16px; background: linear-gradient(270deg, var(--team-deep), var(--team)); }
+.plate .logo { width: 76px; height: 76px; }
+.plate .logo span { color: #fff; }
+.plate .who { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.red .plate .who { align-items: flex-end; }
+.plate .tname { font-size: 44px; line-height: 40px; max-width: 100%; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }
+
+.bans { flex: none; display: flex; gap: 6px; }
+.red .bans { flex-direction: row-reverse; }
+
+.ban {
+    position: relative;
+    width: 72px;
+    height: 76px;
+    background: var(--panel);
+    overflow: hidden;
+    box-shadow: inset 0 -4px 0 var(--team);
+}
+.ban::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../Assets/Other/ban.png') center / 46% no-repeat;
+    opacity: 0.22;
+    filter: grayscale(1) brightness(3);
+}
+.ban img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 12%;
+    filter: grayscale(1) brightness(0.72);
+    animation: ban-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ban.filled::before { opacity: 0; }
+.ban.filled::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top right, transparent calc(50% - 3px), var(--red) calc(50% - 3px), var(--red) calc(50% + 3px), transparent calc(50% + 3px));
+    box-shadow: inset 0 -4px 0 var(--team);
+}
+.ban .fallback, .pick .fallback, .ptile .fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px;
+    font-size: 17px;
+    line-height: 1;
+    color: var(--muted);
+}
+.noimg > img { display: none; }
+.noimg > .fallback { display: flex; }
+
+.title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    background: var(--panel);
+    box-shadow: inset 0 -4px 0 var(--gold);
+}
+.title .tour { font-size: 34px; line-height: 34px; max-width: 100%; }
+.title .stage-name { font-size: 18px; line-height: 20px; color: var(--gold); max-width: 100%; }
+.title .stage-name:empty { display: none; }
+
+/* --- main row: picks + centre --- */
+.draft .main { height: 252px; }
+.draft .main .half { gap: 6px; }
+
+.pick {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    background: #15171d url('../Assets/Other/Pickbg.jpg') center / cover;
+    box-shadow: inset 0 -4px 0 var(--team);
+}
+.pick > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0;
+    animation: pick-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pick.noimg > .fallback { display: none; } /* the label already names the hero */
+.pick .order {
+    position: absolute;
+    inset: 0 0 34px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 84px;
+    color: rgba(255, 255, 255, 0.07);
+}
+.pick.filled .order { display: none; }
+.pick .label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 34px 8px 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 34px, rgba(0, 0, 0, 0));
+    text-align: center;
+}
+.pick .hero { font-size: 26px; line-height: 26px; text-shadow: 0 2px 4px #000; min-height: 4px; }
+.pick .nick {
+    height: 30px;
+    margin: 4px -8px 0;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ui);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0;
+    background: var(--ink);
+    border-top: 2px solid var(--team);
+}
+.pick .nick span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick::after, .ban.active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.pick.flash::after { animation: flash 0.7s ease-out; }
+.pick.active::after, .ban.active::after {
+    border: 3px solid var(--team);
+    background: linear-gradient(to top, color-mix(in srgb, var(--team) 45%, transparent), transparent 70%);
+    animation: pulse 1.1s ease-in-out infinite;
+}
+.pick.active .order { color: rgba(255, 255, 255, 0.5); }
+
+.center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 14px 12px;
+    background: #15171d url('../Assets/Other/Tounamentinfobg.jpg') center / cover;
+    box-shadow: inset 0 -4px 0 var(--gold);
+}
+.center .tlogo { height: 62px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6)); }
+.center .phase {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 32px;
+    line-height: 32px;
+    color: var(--team, var(--gold));
+}
+.center .phase span { white-space: nowrap; }
+.center .arrow { width: 26px; display: none; visibility: hidden; }
+.center.blue .arrow, .center.red .arrow { display: flex; }
+.center .arrow i {
+    width: 9px;
+    height: 16px;
+    margin-right: -1px;
+    background: currentColor;
+    clip-path: polygon(100% 0, 45% 50%, 100% 100%, 55% 100%, 0 50%, 55% 0);
+    animation: chevron 0.9s linear infinite;
+}
+.center .arrow.right { transform: scaleX(-1); }
+.center .arrow i:nth-child(1) { animation-delay: 0.3s; }
+.center .arrow i:nth-child(2) { animation-delay: 0.15s; }
+.center.blue .arrow.left, .center.red .arrow.right { visibility: visible; }
+.center .timer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    font-size: 104px;
+    line-height: 88px;
+    text-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    font-variant-numeric: tabular-nums;
+}
+.center .timer.low { color: var(--red); animation: tick 1s ease-in-out infinite; }
+.center .bar { width: 100%; height: 5px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.center .bar i { display: block; height: 100%; width: 100%; background: var(--team, var(--gold)); transform-origin: 50% 50%; }
+.center .meta { margin-top: 7px; font-size: 20px; line-height: 20px; color: var(--muted); }
+
+@keyframes pick-in { from { transform: translateY(100%) scale(1.15); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ban-in { from { transform: scale(1.5); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes flash { from { background: rgba(255, 255, 255, 0.85); } to { background: rgba(255, 255, 255, 0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes tick { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes chevron { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+/* ====================================================================
+   Scoreboard overlay
+   ==================================================================== */
+.sb {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.sb.hidden { opacity: 0; transform: translateY(-80px); }
+
+.sb .team {
+    display: flex;
+    align-items: stretch;
+    height: 64px;
+    width: 440px;
+    background: var(--panel);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.sb .team.red { flex-direction: row-reverse; }
+.sb .team .logo { width: 64px; height: 64px; background: linear-gradient(135deg, var(--team), var(--team-deep)); }
+.sb .team .logo span { color: #fff; }
+.sb .team .who {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 14px;
+    border-bottom: 4px solid var(--team);
+}
+.sb .team.red .who { align-items: flex-end; }
+.sb .team .tname { font-size: 38px; line-height: 34px; max-width: 100%; }
+.sb .team .pips { margin-top: 5px; }
+.sb .team .pip { width: 22px; height: 6px; }
+.sb .team .score {
+    flex: none;
+    width: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    line-height: 1;
+    padding-top: 4px;
+    background: linear-gradient(180deg, var(--team), var(--team-deep));
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.sb .team .score.bump { animation: bump 0.6s ease-out; }
+
+/* split: the two plates sit either side of the in-game score HUD */
+.sb .middle { flex: none; display: flex; flex-direction: column; align-items: center; }
+.sb.split .info { display: none; }
+.sb.split .tab {
+    position: absolute;
+    top: 64px;
+    height: 26px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--muted);
+    background: rgba(13, 16, 23, 0.86);
+}
+.sb .team { position: relative; }
+.sb.split .team.blue .tab { left: 0; }
+.sb.split .team.red .tab { right: 0; }
+.sb .tab:empty, .sb.no-info .tab, .sb.no-info .info { display: none; }
+
+/* bar: one solid strip with the series info in the middle */
+.sb.bar .tab { display: none; }
+.sb.bar .middle {
+    height: 64px;
+    min-width: 250px;
+    max-width: 420px;
+    padding: 0 22px;
+    justify-content: center;
+    background: var(--ink);
+    border-bottom: 4px solid var(--gold);
+}
+.sb.bar .info .tour { font-size: 26px; line-height: 26px; text-align: center; max-width: 376px; }
+.sb.bar .info .series { font-size: 18px; line-height: 20px; color: var(--gold); text-align: center; }
+
+@keyframes bump { 0% { transform: scale(1.6); filter: brightness(2); } 100% { transform: none; filter: none; } }

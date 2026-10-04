@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick and Ban Phase Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: aqua;
+        }
+        .phase {
+            font-size: 24px;
+            margin: 20px;
+        }
+        .direction img {
+            width: 100px;
+            height: auto;
+            margin: 20px;
+        }
+        .timer {
+            font-size: 48px;
+            color: #333;
+            margin: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phase" id="phase">Phase: Ban Phase</div>
+    <div class="direction" id="direction">
+        <img id="arrow" src="/Assets/Other/Adjustment.gif" alt="Arrow">
+    </div>
+    <div class="timer" id="timer">60</div>
+    <button id="nextPhase">Next Phase</button>
+    <button id="reset">Reset</button>
+
+    <script>
+        const phases = [
+            { type: "Blue Ban Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Ban Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Ban Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Ban Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Ban Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Ban Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Pick Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Pick Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Pick Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Pick Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Red Ban Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Ban Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Ban Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Ban Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Pick Phase", direction: "/Assets/Other/Right.gif" },
+            { type: "Blue Pick Phase", direction: "/Assets/Other/Left.gif" },
+            { type: "Red Pick Phase", direction: "/Assets/Other/Right.gif" },
+        ];
+
+        let currentPhaseIndex = 0; // Track the current phase
+        let timer = 60; // Timer duration in seconds
+        let timerInterval; // Store the interval for the timer
+
+        const phaseElement = document.getElementById('phase');
+        const arrowElement = document.getElementById('arrow');
+        const timerElement = document.getElementById('timer');
+        const nextPhaseButton = document.getElementById('nextPhase');
+        const resetButton = document.getElementById('reset');
+
+        // Update the UI based on the current phase
+        function updateUI() {
+            if (currentPhaseIndex < phases.length) {
+                const currentPhase = phases[currentPhaseIndex];
+                phaseElement.textContent = `Phase: ${currentPhase.type}`;
+                arrowElement.src = currentPhase.direction; // Update arrow image
+                timerElement.textContent = timer;
+                nextPhaseButton.disabled = false; // Enable "Next Phase" button
+            } else {
+                // When all phases are completed
+                phaseElement.textContent = "Phase: Adjustment";
+                arrowElement.src = "/Assets/Other/Adjustment.gif"; // Remove arrow image
+                timerElement.textContent = "Adjustment";
+                nextPhaseButton.disabled = true; // Disable the button
+            }
+        }
+
+        // Reset and start the timer
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            timer = 60; // Reset timer
+            timerElement.textContent = timer;
+
+            timerInterval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    timerElement.textContent = timer;
+                } else {
+                    clearInterval(timerInterval); // Stop timer when it reaches 0
+                    moveToNextPhase(); // Automatically move to the next phase
+                }
+            }, 1000);
+        }
+
+        // Move to the next phase
+        function moveToNextPhase() {
+            if (currentPhaseIndex < phases.length) {
+                currentPhaseIndex++;
+                updateUI();
+                if (currentPhaseIndex < phases.length) {
+                    startTimer();
+                }
+            }
+        }
+
+        // Reset the entire process
+        function reset() {
+            clearInterval(timerInterval); // Stop the timer
+            currentPhaseIndex = 0; // Reset phase index
+            updateUI(); // Reset UI
+            startTimer(); // Start timer from the beginning
+        }
+
+        // Button event listeners
+        nextPhaseButton.addEventListener('click', () => {
+            clearInterval(timerInterval); // Stop the current timer
+            moveToNextPhase(); // Go to the next phase
+        });
+
+        resetButton.addEventListener('click', reset);
+
+        // Initialize the first phase and start the timer
+        updateUI();
+        startTimer();
+    </script>
+</body>
+</html>

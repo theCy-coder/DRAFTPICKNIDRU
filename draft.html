@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLBB Draft Overlay</title>
+    <link rel="stylesheet" href="css/overlay.css">
+</head>
+<body>
+<div class="stage" id="stage">
+    <div class="draft" id="draft">
+        <div class="row fearless" id="fearless">
+            <div class="half blue" id="played-blue"></div>
+            <div class="mid flabel">Fearless draft</div>
+            <div class="half red" id="played-red"></div>
+        </div>
+        <div class="row top">
+            <div class="half blue">
+                <div class="plate">
+                    <div class="logo" id="logo-blue"></div>
+                    <div class="who">
+                        <div class="tname fit" id="name-blue"></div>
+                        <div class="pips" id="pips-blue"></div>
+                    </div>
+                </div>
+                <div class="bans" id="bans-blue"></div>
+            </div>
+            <div class="mid title">
+                <div class="tour fit" id="tour"></div>
+                <div class="stage-name fit" id="stage-name"></div>
+            </div>
+            <div class="half red">
+                <div class="plate">
+                    <div class="logo" id="logo-red"></div>
+                    <div class="who">
+                        <div class="tname fit" id="name-red"></div>
+                        <div class="pips" id="pips-red"></div>
+                    </div>
+                </div>
+                <div class="bans" id="bans-red"></div>
+            </div>
+        </div>
+        <div class="row main">
+            <div class="half blue" id="picks-blue"></div>
+            <div class="mid center" id="center">
+                <img class="tlogo" id="tlogo" alt="">
+                <div class="phase">
+                    <span class="arrow left"><i></i><i></i><i></i></span>
+                    <span id="phase"></span>
+                    <span class="arrow right"><i></i><i></i><i></i></span>
+                </div>
+                <div class="timer" id="timer"></div>
+                <div class="bar"><i id="bar"></i></div>
+                <div class="meta" id="meta"></div>
+            </div>
+            <div class="half red" id="picks-red"></div>
+        </div>
+    </div>
+</div>
+<script src="js/heroes.js"></script>
+<script src="js/store.js"></script>
+<script src="js/overlay-common.js"></script>
+<script src="js/draft.js"></script>
+</body>
+</html>
