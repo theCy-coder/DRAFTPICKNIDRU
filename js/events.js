@@ -43,6 +43,13 @@
         cloud: svg(
             '<path d="M17 42a11 11 0 0 1 1-22 15 15 0 0 1 29-2 12 12 0 0 1-1 24z"/>' +
             '<path d="M6 51h22M34 51h24M14 59h30" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>'),
+        grass: svg(
+            '<path d="M30 58C28 40 22 26 10 14c14 6 22 18 24 30 2-16 8-28 20-38-8 14-12 30-12 52z"/>' +
+            '<path d="M14 58c0-10-3-18-10-24 10 3 16 12 17 24zM50 58c1-9 4-15 10-20-3 7-4 13-4 20z"/>'),
+        wall: svg('<path d="M4 12h24l-4 8 6 6-4 8H4zM36 12h24v22H38l-4-8 6-6zM4 38h20l4 6-4 10H4zM32 38h28v16H30l4-10z"/>'),
+        river: svg(
+            '<path d="M4 20c7-8 14-8 21 0s14 8 21 0 10-6 14-2v9c-4-4-9-4-14 2-7 8-14 8-21 0s-14-8-21 0z"/>' +
+            '<path d="M4 40c7-8 14-8 21 0s14 8 21 0 10-6 14-2v9c-4-4-9-4-14 2-7 8-14 8-21 0s-14-8-21 0z"/>'),
         sword: svg(
             '<path d="M52 4l8 0 0 8-28 30-10-10z"/>' +
             '<path d="M14 30l20 20-5 5-20-20z"/>' +
@@ -79,18 +86,30 @@
 
     // Battlefield effects: the map rule drawn at random for each game. To add
     // one, add a line here; a name typed by hand on the control panel that is
-    // not in this list still shows, with a star icon.
+    // not in this list still shows, with a star icon. `group` is the heading
+    // it sits under in the control panel's dropdown.
+    const CURRENT = 'Season 42 (current)';
+    const EARLIER = '2025 set';
     const effects = [
-        { name: 'Revealing Wisps', icon: 'wisp', color: '#6fd0ff' },
-        { name: 'Healing Turtle', icon: 'heal', color: '#5fe08a' },
-        { name: 'Golden Turret', icon: 'coin', color: '#ffc94d' },
-        { name: 'Flying Cloud', icon: 'cloud', color: '#b9c6ff' }
+        { name: 'Revealing Wisps', icon: 'wisp', color: '#6fd0ff', group: CURRENT },
+        { name: 'Healing Turtle', icon: 'heal', color: '#5fe08a', group: CURRENT },
+        { name: 'Golden Turret', icon: 'coin', color: '#ffc94d', group: CURRENT },
+        { name: 'Flying Cloud', icon: 'cloud', color: '#b9c6ff', group: CURRENT },
+        { name: 'Dangerous Grass', icon: 'grass', color: '#7ddc5a', group: EARLIER },
+        { name: 'Broken Walls', icon: 'wall', color: '#e0a070', group: EARLIER },
+        { name: 'Expanding Rivers', icon: 'river', color: '#4fb6ff', group: EARLIER }
     ];
 
+    // A typed name still finds its effect if only the case, spacing or a
+    // final "s" differs ("expanding river" is Expanding Rivers).
+    function effectKey(name) {
+        return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/s$/, '');
+    }
+
     function effect(name) {
-        const key = String(name || '').trim().toLowerCase();
+        const key = effectKey(name);
         if (!key) return null;
-        const known = effects.filter(function (e) { return e.name.toLowerCase() === key; })[0];
+        const known = effects.filter(function (e) { return effectKey(e.name) === key; })[0];
         return known || { name: String(name).trim(), icon: 'star', color: '#ffc94d' };
     }
 

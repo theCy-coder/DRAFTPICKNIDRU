@@ -349,19 +349,25 @@
         });
     }
 
-    // Battlefield effect picker: one chip per known effect, on Draft and Live.
+    // Battlefield effect picker: a dropdown of the known effects, on Draft and
+    // Live. "None" is the default; a name typed by hand shows as "Other".
+    const OTHER_EFFECT = '__other';
+
     function buildEffects() {
-        document.querySelectorAll('.effects').forEach(function (box) {
+        document.querySelectorAll('.effect-select').forEach(function (select) {
+            select.add(new Option('None', ''));
+            const groups = {};
             GameEvents.effects.forEach(function (def) {
-                const chip = document.createElement('button');
-                chip.type = 'button';
-                chip.className = 'fxchip';
-                chip.dataset.effect = def.name;
-                chip.style.setProperty('--fx', def.color);
-                chip.innerHTML = '<i>' + GameEvents.icons[def.icon] + '</i><span></span>';
-                chip.querySelector('span').textContent = def.name;
-                box.appendChild(chip);
+                if (!groups[def.group]) {
+                    groups[def.group] = document.createElement('optgroup');
+                    groups[def.group].label = def.group;
+                    select.appendChild(groups[def.group]);
+                }
+                groups[def.group].appendChild(new Option(def.name, def.name));
             });
+            const other = new Option('Other (typed)', OTHER_EFFECT);
+            other.hidden = true;
+            select.add(other);
         });
     }
 
@@ -589,7 +595,11 @@
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
             (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
         $('draft-done').hidden = !!step;
-        document.querySelectorAll('.fxchip').forEach(function (c) { c.classList.toggle('on', c.dataset.effect === state.tournament.effect); });
+        const effect = state.tournament.effect || '';
+        const known = GameEvents.effect(effect);
+        document.querySelectorAll('.effect-select').forEach(function (select) {
+            select.value = !known ? '' : known.group ? known.name : OTHER_EFFECT;
+        });
 
         SIDES.forEach(function (side) {
             const team = state.teams[side];
@@ -694,12 +704,6 @@
             const eventBtn = e.target.closest('.ebtn');
             if (eventBtn) { announce(eventBtn); return; }
             if (e.target.closest('#event-hide')) { hideBanner(); return; }
-            const fx = e.target.closest('.fxchip');
-            if (fx) {
-                // Click the lit chip again to clear it.
-                Store.update(function (s) { s.tournament.effect = s.tournament.effect === fx.dataset.effect ? '' : fx.dataset.effect; });
-                return;
-            }
             const actBtn = e.target.closest('[data-act]');
             if (actBtn) {
                 const name = actBtn.dataset.act;
@@ -789,6 +793,11 @@
         }
         document.addEventListener('input', onField);
         document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('effect-select')) {
+                const name = e.target.value;
+                if (name !== OTHER_EFFECT) Store.update(function (s) { s.tournament.effect = name; });
+                return;
+            }
             if (e.target.type === 'file') {
                 const file = e.target.files[0];
                 const side = e.target.dataset.logo;
