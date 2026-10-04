@@ -174,7 +174,12 @@
     const actions = {
         'game-up': function (s) { s.tournament.game = clamp(s.tournament.game + 1, 1, s.tournament.bestOf); },
         'game-down': function (s) { s.tournament.game = clamp(s.tournament.game - 1, 1, 99); },
-        'score-up': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score + 1, 0, Store.winsNeeded(s)); },
+        // Once a team has the wins it needs the series is over, so neither
+        // score can go up: the two can never add up to more than the series length.
+        'score-up': function (s, b) {
+            if (seriesWinner(s)) return;
+            s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score + 1, 0, Store.winsNeeded(s));
+        },
         'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, Store.winsNeeded(s)); },
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
@@ -220,9 +225,14 @@
             restore(s, JSON.parse(history.pop()));
             selected = null;
         },
-        'reset-draft': function (s) { snapshot(s); resetDraft(s); selected = null; }
+        'reset-draft': function (s) { snapshot(s); resetDraft(s); selected = null; },
+        // Unlock every hero played earlier in the series (fearless).
+        'clear-played': function (s) {
+            snapshot(s, true);
+            SIDES.forEach(function (side) { s.teams[side].played = []; });
+        }
     };
-    const needsConfirm = { 'reset-draft': true, 'reset-series': true };
+    const needsConfirm = { 'reset-draft': true, 'reset-series': true, 'clear-played': true };
 
     // Destructive buttons need a second click within 3 seconds.
     function armed(btn) {
@@ -506,7 +516,7 @@
         $('next-game').disabled = seriesOver(state);
         $('next-game').title = winner ? state.teams[winner].name + ' already won the series.'
             : lastGame ? 'This is the last game of a best of ' + state.tournament.bestOf + '.' : '';
-        document.querySelectorAll('[data-act="score-up"]').forEach(function (b) { b.disabled = state.teams[b.dataset.side].score >= need; });
+        document.querySelectorAll('[data-act="score-up"]').forEach(function (b) { b.disabled = !!winner; });
         document.querySelectorAll('[data-act="score-down"]').forEach(function (b) { b.disabled = state.teams[b.dataset.side].score <= 0; });
         document.querySelector('[data-act="game-down"]').disabled = state.tournament.game <= 1;
         document.querySelector('[data-act="step-prev"]').disabled = d.step <= 0;
@@ -562,6 +572,7 @@
             btn.querySelector('em').textContent = locked[hero.id] ? 'Played ' + playedIn[hero.id] : '';
         });
         $('scope-field').hidden = !fearless;
+        $('clear-played').disabled = !state.teams.blue.played.length && !state.teams.red.played.length;
         renderPlayed(state, fearless);
 
         const box = $('phase-box');
@@ -696,7 +707,10 @@
                 // A shorter series cannot be on a game, or a score, past its end.
                 else if (input.dataset.bind === 'tournament.bestOf') {
                     s.tournament.game = clamp(s.tournament.game, 1, value);
-                    SIDES.forEach(function (side) { s.teams[side].score = clamp(s.teams[side].score, 0, Store.winsNeeded(s)); });
+                    const need = Store.winsNeeded(s);
+                    SIDES.forEach(function (side) { s.teams[side].score = clamp(s.teams[side].score, 0, need); });
+                    // Both cannot have won the shorter series.
+                    if (s.teams.blue.score >= need && s.teams.red.score >= need) s.teams.red.score = need - 1;
                 }
                 else if (/draft\.(banTime|pickTime)$/.test(input.dataset.bind) && !s.draft.timer.running) {
                     s.draft.timer.remaining = Store.stepDuration(s, Store.currentStep(s));
