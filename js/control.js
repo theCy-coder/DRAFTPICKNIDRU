@@ -183,6 +183,7 @@
         'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, Store.winsNeeded(s)); },
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
+        'sb-image-clear': function (s) { s.scoreboard.image = ''; },
         'swap-sides': function (s) {
             swapSides(s);
             // Older snapshots are tied to the sides as they were.
@@ -522,6 +523,13 @@
         document.querySelector('[data-act="step-prev"]').disabled = d.step <= 0;
         document.querySelector('[data-act="step-next"]').disabled = !step;
         renderLogoPreview($('tour-logo-preview'), state.tournament.logo || 'Assets/Other/tournamentlogo.png', '');
+        const sb = state.scoreboard;
+        $('sb-image-field').hidden = sb.middle !== 'image';
+        renderLogoPreview($('sb-image-preview'), sb.image, 'None');
+        $('sb-middle-hint').textContent = sb.layout !== 'bar' ? 'The centre only shows in the Bar layout. Split leaves it empty for the in-game score.'
+            : sb.middle === 'image' && !sb.image ? 'Upload an image to show it in the centre of the bar.'
+            : sb.middle === 'logo' ? 'Uses the tournament logo from the Setup tab.' : '';
+        $('sb-middle-hint').hidden = !$('sb-middle-hint').textContent;
 
         $('series-label').textContent = 'Best of ' + state.tournament.bestOf;
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
@@ -722,10 +730,12 @@
             if (e.target.type === 'file') {
                 const file = e.target.files[0];
                 const side = e.target.dataset.logo;
+                const forBar = e.target.dataset.image === 'scoreboard';
                 if (!file) return;
                 readImage(file, side ? 320 : 480, function (dataUrl) {
                     Store.update(function (s) {
-                        if (side) s.teams[side].logo = dataUrl;
+                        if (forBar) s.scoreboard.image = dataUrl;
+                        else if (side) s.teams[side].logo = dataUrl;
                         else s.tournament.logo = dataUrl;
                     });
                 });

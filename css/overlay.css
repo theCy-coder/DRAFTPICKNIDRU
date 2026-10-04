@@ -441,6 +441,8 @@ body.bg-green { background: #00ff00; }
     background: var(--ink);
     border-bottom: 4px solid var(--gold);
 }
+.sb .mid-img { max-height: 84%; max-width: 320px; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5)); }
+.sb .mid-img[hidden], .sb.bar.mid-image .middle .info { display: none; }
 .sb.bar .info .tour { font-size: 26px; line-height: 26px; text-align: center; max-width: 376px; }
 .sb.bar .info .series { font-size: 18px; line-height: 20px; color: var(--gold); text-align: center; }
 

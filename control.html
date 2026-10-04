@@ -229,6 +229,24 @@
                     <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
                 </div>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Show tournament / game info</label>
+                <hr>
+                <div class="options">
+                    <label class="field medium">Centre of the bar
+                        <select data-bind="scoreboard.middle" id="sb-middle">
+                            <option value="info">Tournament / game text</option>
+                            <option value="logo">Tournament logo</option>
+                            <option value="image">Custom image</option>
+                        </select>
+                    </label>
+                    <div class="field" id="sb-image-field" hidden>Custom image
+                        <div class="logo-row">
+                            <div class="logo-preview wide" id="sb-image-preview"></div>
+                            <label class="btn">Upload<input type="file" accept="image/*" data-image="scoreboard" hidden></label>
+                            <button type="button" class="btn ghost" data-act="sb-image-clear">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="hint" id="sb-middle-hint"></p>
                 <p class="hint">In Split layout, widen the centre gap until the two plates clear the game’s own kill / gold display.</p>
             </div>
         </div>

@@ -53,6 +53,14 @@
         // In split mode the middle is an empty gap that the game's own
         // kill/gold HUD shows through.
         $('middle').style.width = split ? (Number(sb.gap) || 0) + 'px' : '';
+        // The Bar layout can show the tournament logo or a custom image in
+        // its centre instead of the text.
+        const src = split ? '' : sb.middle === 'logo' ? (state.tournament.logo || Overlay.DEFAULT_TOURNAMENT_LOGO)
+            : sb.middle === 'image' ? sb.image : '';
+        const img = $('mid-img');
+        img.hidden = !src;
+        if (src && img.getAttribute('src') !== src) img.src = src;
+        board.classList.toggle('mid-image', !!src);
 
         Store.SIDES.forEach(function (side) {
             const team = state.teams[side];
