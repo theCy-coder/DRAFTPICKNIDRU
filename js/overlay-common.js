@@ -66,6 +66,16 @@
         for (let i = 0; i < needed; i++) el.children[i].classList.toggle('on', i < score);
     }
 
+    // Put the chosen design on the overlay root. Adding ?design=name to the
+    // page URL overrides the control panel, e.g. to preview a design or to
+    // give one OBS scene its own look. Returns true when the design changed.
+    function applyDesign(root, design) {
+        const name = new URLSearchParams(location.search).get('design') || design || 'classic';
+        if (root.dataset.design === name) return false;
+        root.dataset.design = name;
+        return true;
+    }
+
     function seriesText(state) {
         return 'Game ' + state.tournament.game + ' · Best of ' + state.tournament.bestOf;
     }
@@ -77,6 +87,7 @@
         setText: setText,
         renderLogo: renderLogo,
         renderPips: renderPips,
+        applyDesign: applyDesign,
         seriesText: seriesText
     };
 })(window);

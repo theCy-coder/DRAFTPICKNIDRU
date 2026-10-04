@@ -144,7 +144,7 @@
 
     // ---- actions (buttons with data-act) ---------------------------------
     const actions = {
-        'game-up': function (s) { s.tournament.game = clamp(s.tournament.game + 1, 1, 99); },
+        'game-up': function (s) { s.tournament.game = clamp(s.tournament.game + 1, 1, s.tournament.bestOf); },
         'game-down': function (s) { s.tournament.game = clamp(s.tournament.game - 1, 1, 99); },
         'score-up': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score + 1, 0, 9); },
         'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, 9); },
@@ -156,9 +156,11 @@
             history.length = 0;
         },
         'next-game': function (s) {
+            // A best-of-N series has no game N + 1.
+            if (s.tournament.game >= s.tournament.bestOf) return;
             snapshot(s, true);
             recordPlayed(s);
-            s.tournament.game = clamp(s.tournament.game + 1, 1, 99);
+            s.tournament.game += 1;
             resetDraft(s);
             if ($('swap-on-next').checked) {
                 swapSides(s);
@@ -397,6 +399,10 @@
         });
 
         $('game-no').textContent = state.tournament.game;
+        const lastGame = state.tournament.game >= state.tournament.bestOf;
+        $('game-up').disabled = lastGame;
+        $('next-game').disabled = lastGame;
+        $('next-game').title = lastGame ? 'This is the last game of a best of ' + state.tournament.bestOf + '.' : '';
         renderLogoPreview($('tour-logo-preview'), state.tournament.logo || 'Assets/Other/tournamentlogo.png', '');
 
         SIDES.forEach(function (side) {
@@ -560,6 +566,8 @@
                 setPath(s, input.dataset.bind, value);
                 // A stopped timer follows the configured phase length.
                 if (input.dataset.bind === 'draft.banCount') resetDraft(s);
+                // A shorter series cannot be on a game past its last one.
+                else if (input.dataset.bind === 'tournament.bestOf') s.tournament.game = clamp(s.tournament.game, 1, value);
                 else if (/draft\.(banTime|pickTime)$/.test(input.dataset.bind) && !s.draft.timer.running) {
                     s.draft.timer.remaining = Store.stepDuration(s, Store.currentStep(s));
                 }

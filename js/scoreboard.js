@@ -12,6 +12,7 @@
         board.classList.toggle('bar', !split);
         board.classList.toggle('hidden', !sb.visible);
         board.classList.toggle('no-info', !sb.showInfo);
+        const restyled = Overlay.applyDesign(board, sb.design);
         board.style.top = (Number(sb.top) || 0) + 'px';
         // In split mode the middle is an empty gap that the game's own
         // kill/gold HUD shows through.
@@ -20,7 +21,7 @@
         Store.SIDES.forEach(function (side) {
             const team = state.teams[side];
             Overlay.renderLogo($('logo-' + side), team);
-            if (Overlay.setText($('name-' + side), team.name)) Overlay.fitText($('name-' + side), 38, 18);
+            if (Overlay.setText($('name-' + side), team.name) || restyled) Overlay.fitText($('name-' + side), 38, 18);
             Overlay.renderPips($('pips-' + side), team.score, Store.winsNeeded(state));
             const score = $('score-' + side);
             if (Overlay.setText(score, String(team.score)) && score.dataset.ready) {
@@ -35,7 +36,7 @@
         const title = t.stage ? t.name + ' · ' + t.stage : t.name;
         Overlay.setText($('tab-blue'), title);
         Overlay.setText($('tab-red'), Overlay.seriesText(state));
-        if (Overlay.setText($('tour'), t.name)) Overlay.fitText($('tour'), 26, 14);
+        if (Overlay.setText($('tour'), t.name) || restyled) Overlay.fitText($('tour'), 26, 14);
         Overlay.setText($('series'), (t.stage ? t.stage + ' · ' : '') + Overlay.seriesText(state));
     }
 

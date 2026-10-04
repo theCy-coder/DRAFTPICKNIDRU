@@ -21,6 +21,7 @@
             teams: { blue: emptyTeam('Blue Team', 'BLU'), red: emptyTeam('Red Team', 'RED') },
             draft: {
                 visible: true,
+                design: 'classic',       // look of the draft overlay, see css/overlay-designs.css
                 mode: 'normal',          // 'normal' | 'fearless'
                 fearlessScope: 'both',   // 'both' | 'team'
                 step: 0,
@@ -33,7 +34,7 @@
                 bans: { blue: [null, null, null, null, null], red: [null, null, null, null, null] },
                 timer: { running: false, endsAt: 0, remaining: 60000 }
             },
-            scoreboard: { visible: true, layout: 'split', gap: 640, top: 0, showInfo: true }
+            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true }
         };
     }
 

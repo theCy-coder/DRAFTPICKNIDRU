@@ -42,7 +42,7 @@
                     <div class="stepper">
                         <button type="button" data-act="game-down" aria-label="Previous game">−</button>
                         <output id="game-no">1</output>
-                        <button type="button" data-act="game-up" aria-label="Next game number">+</button>
+                        <button type="button" id="game-up" data-act="game-up" aria-label="Next game number">+</button>
                     </div>
                 </div>
             </div>
@@ -56,11 +56,11 @@
             <hr>
             <div class="actions">
                 <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides</button>
-                <button type="button" class="btn primary" data-act="next-game">Next game</button>
+                <button type="button" class="btn primary" id="next-game" data-act="next-game">Next game</button>
                 <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
             </div>
             <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides when starting the next game</label>
-            <p class="hint">“Next game” adds 1 to the game number and clears the draft. Team names, logos, scores and nicknames stay. The picks of the finished game are remembered for Fearless draft.</p>
+            <p class="hint">“Next game” adds 1 to the game number and clears the draft. Team names, logos, scores and nicknames stay. The picks of the finished game are remembered for Fearless draft. It switches off on the last game of the series.</p>
         </div>
 
         <div class="card team red" id="team-red"></div>
@@ -85,6 +85,16 @@
         </div>
 
         <div class="options">
+            <label class="field small">Overlay design
+                <select data-bind="draft.design">
+                    <option value="classic">Classic</option>
+                    <option value="slant">Slant</option>
+                    <option value="glass">Glass</option>
+                    <option value="towers">Towers</option>
+                    <option value="neon">Neon</option>
+                    <option value="prestige">Prestige</option>
+                </select>
+            </label>
             <label class="field small">Draft mode
                 <select data-bind="draft.mode">
                     <option value="normal">Normal</option>
@@ -137,6 +147,16 @@
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Show tournament / game info</label>
             </div>
             <div class="inline">
+                <label class="field small">Design
+                    <select data-bind="scoreboard.design">
+                        <option value="classic">Classic</option>
+                        <option value="slant">Slant</option>
+                        <option value="glass">Glass</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="neon">Neon</option>
+                        <option value="prestige">Prestige</option>
+                    </select>
+                </label>
                 <label class="field">Layout
                     <select data-bind="scoreboard.layout">
                         <option value="split">Split – sits either side of the in-game score</option>

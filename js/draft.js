@@ -65,7 +65,8 @@
         }
     }
 
-    // Fearless row: one small tile per hero the team played in earlier games.
+    // Fearless row: one small tile per hero the team played in earlier games,
+    // grouped by game so a game never splits across two lines.
     function renderPlayed(side, team) {
         const box = $('played-' + side);
         const key = JSON.stringify(team.played);
@@ -73,9 +74,11 @@
         box.dataset.key = key;
         box.textContent = '';
         team.played.forEach(function (entry) {
+            const group = el('div', 'pgroup');
             const label = el('div', 'pgame');
             label.textContent = 'G' + entry.game;
-            box.appendChild(label);
+            group.appendChild(label);
+            box.appendChild(group);
             entry.heroes.forEach(function (id) {
                 const hero = Heroes.get(id);
                 if (!hero) return;
@@ -88,7 +91,7 @@
                 fallback.textContent = hero.name;
                 tile.appendChild(img);
                 tile.appendChild(fallback);
-                box.appendChild(tile);
+                group.appendChild(tile);
             });
         });
     }
@@ -97,6 +100,7 @@
         const d = state.draft;
         const step = Store.currentStep(state);
         $('draft').classList.toggle('hidden', !d.visible);
+        const restyled = Overlay.applyDesign($('draft'), d.design);
         $('fearless').classList.toggle('off', d.mode !== 'fearless');
         Store.SIDES.forEach(function (side) { renderPlayed(side, state.teams[side]); });
 
@@ -130,7 +134,18 @@
         center.classList.toggle('blue', !!step && step.side === 'blue');
         center.classList.toggle('red', !!step && step.side === 'red');
         Overlay.setText($('phase'), step ? (step.side + ' ' + step.type) : 'Draft complete');
+        // Each design has different box widths, so measure the text again.
+        if (restyled) refit();
         tick();
+    }
+
+    function refit() {
+        ['name-blue', 'name-red'].forEach(function (id) { Overlay.fitText($(id), 44, 20); });
+        Overlay.fitText($('tour'), 34, 16);
+        Overlay.fitText($('stage-name'), 18, 12);
+        Store.SIDES.forEach(function (side) {
+            slots.pick[side].forEach(function (pick) { Overlay.fitText(pick.querySelector('.hero'), 26, 14); });
+        });
     }
 
     function tick() {
@@ -156,10 +171,7 @@
     Store.init().then(function () {
         // Re-fit once the display font is in so widths are measured correctly.
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function () {
-                ['name-blue', 'name-red'].forEach(function (id) { Overlay.fitText($(id), 44, 20); });
-                Overlay.fitText($('tour'), 34, 16);
-            });
+            document.fonts.ready.then(refit);
         }
     });
     setInterval(tick, 100);

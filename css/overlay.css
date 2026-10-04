@@ -97,9 +97,14 @@ body.bg-green { background: #00ff00; }
 .draft .mid { flex: none; width: 264px; }
 
 /* --- fearless row: heroes each team already played this series --- */
-.draft .fearless { height: 46px; }
+/* Three games fit on one line at full tile size; later games stack on a
+   second line above it, so the full line stays against the team plate and
+   the row grows upwards instead of squeezing the portraits. */
+.draft .fearless { min-height: 46px; }
 .draft .fearless.off { display: none; }
-.draft .fearless .half { gap: 3px; }
+.draft .fearless .half { flex-wrap: wrap-reverse; align-content: flex-start; gap: 6px 9px; }
+.pgroup { flex: none; display: flex; gap: 3px; }
+.red .pgroup { flex-direction: row-reverse; }
 .flabel {
     display: flex;
     align-items: center;
@@ -112,8 +117,8 @@ body.bg-green { background: #00ff00; }
 }
 .ptile {
     position: relative;
-    flex: 0 1 40px;
-    min-width: 0;
+    flex: none;
+    width: 42px;
     height: 46px;
     overflow: hidden;
     background: var(--panel);
@@ -140,8 +145,6 @@ body.bg-green { background: #00ff00; }
     color: var(--gold);
     background: var(--panel);
 }
-.pgame:not(:first-child) { margin-left: 6px; }
-.red .pgame:not(:first-child) { margin-left: 0; margin-right: 6px; }
 
 /* --- top row: team plate + bans --- */
 .draft .top { height: 76px; }
