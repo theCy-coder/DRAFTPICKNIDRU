@@ -61,7 +61,7 @@
         board.classList.toggle('hidden', !sb.visible);
         board.classList.toggle('no-info', !sb.showInfo);
         board.classList.toggle('no-stats', !sb.showStats);
-        const restyled = Overlay.applyDesign(board, sb.design);
+        const restyled = Overlay.applyDesign(board, state.design, 'scoreboard');
         board.style.top = (Number(sb.top) || 0) + 'px';
         // In split mode the middle is an empty gap that the game's own
         // kill/gold HUD shows through.

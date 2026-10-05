@@ -100,7 +100,7 @@
         const d = state.draft;
         const step = Store.currentStep(state);
         $('draft').classList.toggle('hidden', !d.visible);
-        const restyled = Overlay.applyDesign($('draft'), d.design);
+        const restyled = Overlay.applyDesign($('draft'), state.design, 'draft');
         $('fearless').classList.toggle('off', d.mode !== 'fearless');
         Store.SIDES.forEach(function (side) { renderPlayed(side, state.teams[side]); });
 

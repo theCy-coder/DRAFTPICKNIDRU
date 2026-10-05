@@ -69,10 +69,22 @@
     // Put the chosen design on the overlay root. Adding ?design=name to the
     // page URL overrides the control panel, e.g. to preview a design or to
     // give one OBS scene its own look. Returns true when the design changed.
-    function applyDesign(root, design) {
-        const name = new URLSearchParams(location.search).get('design') || design || 'classic';
-        if (root.dataset.design === name) return false;
-        root.dataset.design = name;
+    // `kind` is 'draft', 'scoreboard' or 'mvp'. A show design can use a
+    // differently named look on one overlay: Studio is the side-column draft
+    // ("towers") with the thin scoreboard ("minimal").
+    const DESIGNS = {
+        classic: {}, slant: {}, glass: {}, neon: {}, prestige: {}, championship: {},
+        studio: { draft: 'towers', scoreboard: 'minimal' }
+    };
+    const OLD_NAMES = { towers: 'studio', minimal: 'studio' };
+
+    function applyDesign(root, design, kind) {
+        let name = new URLSearchParams(location.search).get('design') || design || 'classic';
+        name = OLD_NAMES[name] || name;
+        if (!DESIGNS[name]) name = 'classic';
+        const look = DESIGNS[name][kind] || name;
+        if (root.dataset.design === look) return false;
+        root.dataset.design = look;
         return true;
     }
 

@@ -31,11 +31,13 @@
         <h2>Start</h2>
         <ol>
             <li>Double-click <code>Start Overlay Server.bat</code> and leave its window open while you stream. The control panel opens in your browser.</li>
-            <li>In OBS add two <b>Browser</b> sources, both 1920 × 1080:
+            <li>In OBS add a <b>Browser</b> source for each overlay, all 1920 × 1080:
                 <table>
                     <tr><th>Source</th><th>URL</th><th>Use it in</th></tr>
                     <tr><td>Draft</td><td><code>http://localhost:8777/draft.html</code></td><td>Your draft / pick-ban scene</td></tr>
                     <tr><td>Scoreboard</td><td><code>http://localhost:8777/scoreboard.html</code></td><td>Your in-game scene</td></tr>
+                    <tr><td>MVP</td><td><code>http://localhost:8777/mvp.html</code></td><td>Your post-game scene (full screen)</td></tr>
+                    <tr><td>Waiting</td><td><code>http://localhost:8777/idle.html</code></td><td>Your starting-soon / break scene (full screen)</td></tr>
                 </table>
             </li>
             <li>Run everything from the control panel. The overlays update on their own.</li>
@@ -54,6 +56,8 @@
             <li><b>Announcements</b>: on the Live game tab, buttons such as “Turtle spawned” or “Lord slain” play a short animated banner on the scoreboard overlay. To use your own artwork, see the note at the top of <code>js/events.js</code>.</li>
             <li><b>Objectives</b>: the Live game tab counts turrets, turtles and lords for each team and shows them under the team plates on the scoreboard. The “Turtle slain”, “Lord slain” and “Turret destroyed” announcements add one automatically. They reset with each new game.</li>
             <li><b>Battlefield effect</b>: pick this game’s effect from the dropdown on the Draft or Live game tab (it starts on None), or type one that is not listed. It shows as an icon panel above the draft and in a top corner of the scoreboard overlay (corner and height are in Settings). The list is in <code>js/events.js</code>.</li>
+            <li><b>Waiting screen</b>: shows both teams, their players, the series score and a countdown. Set the headline and the minutes on the Setup tab and press “Start countdown”.</li>
+            <li><b>MVP</b>: on the Live game tab, click the MVP’s hero, type the kills, deaths and assists (and gold, damage and rating unless “KDA only” is ticked), then switch the MVP screen on. Choose the MVP before pressing who won.</li>
             <li><b>Swap sides</b> moves each team (name, logo, score, nicknames) to the other side.</li>
         </ul>
     </div>
@@ -62,7 +66,7 @@
         <h2>Good to know</h2>
         <ul>
             <li>The overlays are transparent in OBS. Opened in a normal browser they show a dark backdrop so you can preview them; add <code>?bg=green</code> to the URL for a chroma-key green background instead.</li>
-            <li>Each overlay has six designs, picked in the control panel (<b>Overlay design</b> for the draft, <b>Design</b> for the scoreboard). To give one OBS scene its own look, or just to preview one, add it to the URL, for example <code>draft.html?design=towers</code>.</li>
+            <li>There are seven show designs (Classic, Slant, Glass, Studio, Neon, Prestige and Championship, the finals look with the most animation). One choice, <b>Show design</b> at the top of the Settings tab, restyles the draft, the scoreboard and the MVP screen together. To preview one, or give a single OBS scene its own look, add it to the URL, for example <code>mvp.html?design=neon</code>.</li>
             <li>The match is saved in <code>data/state.json</code>, so closing and reopening the server keeps your teams and draft.</li>
             <li>New hero: put a 240 × 390 portrait in <code>Assets/HeroPick/</code> and add one line to <code>js/heroes.js</code>. A hero without a portrait still works and shows its name.</li>
             <li>The previous version of this tool is kept in the <code>legacy</code> folder.</li>

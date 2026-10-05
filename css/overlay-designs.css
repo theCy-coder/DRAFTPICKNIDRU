@@ -352,3 +352,629 @@
 .sb[data-design="prestige"] .stats { top: 62px; background: #0b0a07; border: 1px solid rgba(255, 201, 77, 0.6); border-top: 0; color: var(--gold); }
 .sb[data-design="prestige"] .team.blue .stats { right: -1px; }
 .sb[data-design="prestige"] .team.red .stats { left: -1px; }
+
+/* ====================================================================
+   MVP SCREEN - the base look in overlay.css is "classic": light rays,
+   gold sparks, portrait on the left. The five below restyle it to match
+   the draft and scoreboard of the same show design.
+   ==================================================================== */
+
+/* ---------------- Slant: diagonal bands, leaning portrait ---------------- */
+.mvp[data-design="slant"] .mvp-rays { display: none; }
+.mvp[data-design="slant"] .mvp-shade {
+    background:
+        linear-gradient(105deg, transparent 0 37.5%, #ffd766 37.5% 38.1%, transparent 38.1%),
+        linear-gradient(105deg, color-mix(in srgb, var(--team) 88%, transparent) 0 30%, color-mix(in srgb, var(--team-deep) 80%, transparent) 30% 37.5%, transparent 37.5%),
+        linear-gradient(105deg, transparent 0 86%, color-mix(in srgb, var(--team) 55%, transparent) 86% 88%, transparent 88% 90%, color-mix(in srgb, var(--team) 30%, transparent) 90% 91%, transparent 91%),
+        linear-gradient(180deg, rgba(11, 14, 20, 0.82), rgba(11, 14, 20, 0.96));
+}
+.mvp[data-design="slant"] .mvp-card { left: 190px; transform: skewX(-8deg); box-shadow: 0 0 0 5px #ffd766, 18px 18px 0 0 rgba(0, 0, 0, 0.55), 0 40px 90px rgba(0, 0, 0, 0.7); }
+.mvp[data-design="slant"] .mvp-card img { transform: skewX(8deg) scale(1.24); }
+.mvp[data-design="slant"].show .mvp-card { animation: mvp-card-slant 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+.mvp[data-design="slant"] .mvp-info { left: 770px; }
+.mvp[data-design="slant"] .mvp-crown { display: none; }
+.mvp[data-design="slant"] .mvp-tag b {
+    padding: 14px 44px 0 34px;
+    font-size: 170px;
+    font-style: italic;
+    color: var(--ink);
+    -webkit-text-fill-color: var(--ink);
+    background: #ffd766;
+    clip-path: polygon(28px 0, 100% 0, calc(100% - 28px) 100%, 0 100%);
+    filter: drop-shadow(10px 10px 0 rgba(0, 0, 0, 0.5));
+}
+.mvp[data-design="slant"] .mvp-tag span,
+.mvp[data-design="slant"] .mvp-player,
+.mvp[data-design="slant"] .mvp-team,
+.mvp[data-design="slant"] .mvp-kda b,
+.mvp[data-design="slant"] .mvp-stats b { font-style: italic; }
+.mvp[data-design="slant"] .mvp-rule { height: 10px; background: linear-gradient(90deg, var(--team), transparent); transform: skewX(-30deg); }
+.mvp[data-design="slant"] .mvp-rule::before { display: none; }
+.mvp[data-design="slant"] .mvp-kda > div,
+.mvp[data-design="slant"] .mvp-stats > div {
+    padding: 14px 34px 10px;
+    border: 0;
+    box-shadow: none;
+    background: rgba(13, 16, 23, 0.92);
+    clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+}
+.mvp[data-design="slant"] .mvp-kda > div { background: linear-gradient(180deg, rgba(13, 16, 23, 0.92) 0 calc(100% - 8px), var(--team) calc(100% - 8px)); }
+.mvp[data-design="slant"] .mvp-stats > div { background: linear-gradient(180deg, rgba(13, 16, 23, 0.92) 0 calc(100% - 6px), #ffd766 calc(100% - 6px)); }
+.mvp[data-design="slant"] .mvp-kda .ratio { background: #ffd766; }
+@keyframes mvp-card-slant { from { opacity: 0; transform: translateX(-220px) skewX(-8deg); } to { opacity: 1; transform: skewX(-8deg); } }
+
+/* ---------------- Glass: one frosted panel, soft light ---------------- */
+.mvp[data-design="glass"] .mvp-rays { display: none; }
+.mvp[data-design="glass"] .mvp-bg { filter: blur(50px) saturate(1.5) brightness(0.7); }
+.mvp[data-design="glass"] .mvp-shade {
+    background:
+        radial-gradient(circle at 12% 20%, color-mix(in srgb, var(--team) 60%, transparent), transparent 34%),
+        radial-gradient(circle at 92% 86%, rgba(255, 201, 77, 0.38), transparent 36%),
+        radial-gradient(circle at 70% 10%, color-mix(in srgb, var(--team) 32%, transparent), transparent 30%),
+        rgba(11, 14, 20, 0.55);
+}
+.mvp[data-design="glass"] .mvp-card {
+    left: 130px;
+    top: 158px;
+    border-radius: 44px;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45), 0 40px 90px rgba(0, 0, 0, 0.55), 0 0 120px color-mix(in srgb, var(--team) 55%, transparent);
+}
+.mvp[data-design="glass"] .mvp-card-name { color: #fff; }
+.mvp[data-design="glass"] .mvp-info {
+    left: 680px;
+    right: 90px;
+    top: 104px;
+    padding: 26px 56px 44px;
+    border-radius: 52px;
+    background: rgba(16, 20, 30, 0.5);
+    -webkit-backdrop-filter: blur(26px) saturate(1.4);
+    backdrop-filter: blur(26px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+.mvp[data-design="glass"] .mvp-mark { opacity: 0.06; }
+.mvp[data-design="glass"] .mvp-rule { display: none; }
+.mvp[data-design="glass"] .mvp-team { margin-top: 18px; padding: 0 40px 0 8px; border-radius: 999px; clip-path: none; background: color-mix(in srgb, var(--team) 72%, transparent); }
+.mvp[data-design="glass"] .mvp-team .logo { width: 64px; height: 64px; margin: 8px 0; border-radius: 50%; }
+.mvp[data-design="glass"] .mvp-kda > div,
+.mvp[data-design="glass"] .mvp-stats > div {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.09);
+    box-shadow: none;
+}
+.mvp[data-design="glass"] .mvp-kda .ratio { background: var(--shine); border-color: rgba(255, 255, 255, 0.5); }
+.mvp[data-design="glass"] .mvp-stats i { color: var(--muted); }
+
+/* ---------------- Studio: flat and editorial, portrait fills the left ---------------- */
+.mvp[data-design="studio"] .mvp-bg,
+.mvp[data-design="studio"] .mvp-rays,
+.mvp[data-design="studio"] .mvp-sparks,
+.mvp[data-design="studio"] .mvp-flash,
+.mvp[data-design="studio"] .mvp-crown { display: none; }
+.mvp[data-design="studio"] .mvp-shade { background: linear-gradient(90deg, var(--team) 0 16px, #0d1017 16px); }
+.mvp[data-design="studio"] .mvp-card { left: 16px; top: 0; width: 664px; height: 1080px; box-shadow: none; }
+.mvp[data-design="studio"].show .mvp-card { animation: mvp-card-flat 0.8s ease-out both; }
+.mvp[data-design="studio"] .mvp-card::after { display: none; }
+.mvp[data-design="studio"] .mvp-card-name { padding: 140px 40px 34px; text-align: left; font-size: 84px; line-height: 80px; color: #fff; }
+.mvp[data-design="studio"] .mvp-top { left: 770px; top: 60px; }
+.mvp[data-design="studio"] .mvp-info { left: 770px; right: 90px; top: 196px; }
+.mvp[data-design="studio"] .mvp-mark { right: 60px; top: 60px; width: 150px; height: 150px; opacity: 1; }
+.mvp[data-design="studio"].show .mvp-mark { animation: mvp-fade-in 1s ease-out both; }
+.mvp[data-design="studio"] .mvp-mark span { font-size: 60px; color: var(--team); }
+.mvp[data-design="studio"] .mvp-tag { height: 130px; gap: 28px; }
+.mvp[data-design="studio"] .mvp-tag b { font-size: 150px; line-height: 130px; color: var(--team); -webkit-text-fill-color: var(--team); background: none; filter: none; }
+.mvp[data-design="studio"] .mvp-player { margin-top: 10px; text-shadow: none; }
+.mvp[data-design="studio"] .mvp-rule { width: 100%; height: 2px; margin-top: 14px; background: rgba(255, 255, 255, 0.2); }
+.mvp[data-design="studio"] .mvp-rule::before { display: none; }
+.mvp[data-design="studio"] .mvp-team { margin-top: 22px; padding: 0; background: none; clip-path: none; color: var(--muted); text-shadow: none; }
+.mvp[data-design="studio"] .mvp-team .logo { width: 60px; height: 60px; background: none; }
+.mvp[data-design="studio"] .mvp-team .logo span { color: var(--team); }
+.mvp[data-design="studio"] .mvp-kda { gap: 0; margin-top: 46px; }
+.mvp[data-design="studio"] .mvp-stats { gap: 0; margin-top: 40px; }
+.mvp[data-design="studio"] .mvp-kda > div,
+.mvp[data-design="studio"] .mvp-stats > div {
+    min-width: 0;
+    padding: 0 44px;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+}
+.mvp[data-design="studio"] .mvp-kda > div:first-child,
+.mvp[data-design="studio"] .mvp-stats > div:first-child { padding-left: 24px; border-left: 6px solid var(--team); }
+.mvp[data-design="studio"] .mvp-kda .ratio { color: #ffd766; }
+.mvp[data-design="studio"] .mvp-kda .ratio i { color: var(--muted); }
+.mvp[data-design="studio"] .mvp-stats i { color: var(--muted); }
+@keyframes mvp-card-flat { from { opacity: 0; transform: translateX(-80px); } to { opacity: 1; transform: none; } }
+@keyframes mvp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------------- Neon: grid, glowing outlines, portrait on the right ---------------- */
+.mvp[data-design="neon"] { --blue: #19c8ff; --blue-deep: #063a55; --red: #ff2d6f; --red-deep: #55061f; --gold: #f6ff4d; }
+.mvp[data-design="neon"] .mvp-bg { filter: blur(44px) saturate(1.7) brightness(0.32); }
+.mvp[data-design="neon"] .mvp-shade {
+    background:
+        radial-gradient(circle at 80% 52%, color-mix(in srgb, var(--team) 40%, transparent), transparent 46%),
+        linear-gradient(color-mix(in srgb, var(--team) 16%, transparent) 2px, transparent 2px) 0 0 / 100% 60px,
+        linear-gradient(90deg, color-mix(in srgb, var(--team) 16%, transparent) 2px, transparent 2px) 0 0 / 60px 100%,
+        rgba(4, 7, 13, 0.82);
+}
+.mvp[data-design="neon"] .mvp-rays { left: 1535px; }
+.mvp[data-design="neon"] .mvp-rays.gold { display: none; }
+.mvp[data-design="neon"] .mvp-sparks i { background: var(--team); box-shadow: 0 0 12px 3px var(--team); }
+.mvp[data-design="neon"] .mvp-flash { background: radial-gradient(circle at 80% 52%, #fff, color-mix(in srgb, var(--team) 60%, transparent) 30%, transparent 70%); }
+.mvp[data-design="neon"] .mvp-card { left: auto; right: 150px; box-shadow: 0 0 0 3px var(--team), 0 0 50px 6px var(--team), 0 0 160px 30px color-mix(in srgb, var(--team) 50%, transparent); }
+.mvp[data-design="neon"].show .mvp-card { animation: mvp-card-right 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both, mvp-float 6s ease-in-out 0.9s infinite; }
+.mvp[data-design="neon"] .mvp-card::before { content: ''; position: absolute; inset: 0; z-index: 1; background: repeating-linear-gradient(to bottom, transparent 0 4px, rgba(0, 0, 0, 0.25) 4px 6px); pointer-events: none; }
+.mvp[data-design="neon"] .mvp-card-name { z-index: 2; color: var(--team); text-shadow: 0 0 14px var(--team), 0 3px 10px #000; }
+.mvp[data-design="neon"] .mvp-info { left: 110px; right: 730px; }
+.mvp[data-design="neon"] .mvp-mark { right: auto; left: 560px; opacity: 0.06; }
+.mvp[data-design="neon"] .mvp-crown { fill: none; stroke: var(--gold); stroke-width: 3; filter: drop-shadow(0 0 12px var(--gold)); }
+.mvp[data-design="neon"] .mvp-tag b {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 4px var(--gold);
+    background: none;
+    filter: drop-shadow(0 0 18px var(--gold));
+}
+.mvp[data-design="neon"] .mvp-player { color: var(--team); text-shadow: 0 0 30px var(--team), 0 0 6px #fff; }
+.mvp[data-design="neon"] .mvp-rule { background: linear-gradient(90deg, var(--team), transparent); box-shadow: 0 0 14px var(--team); }
+.mvp[data-design="neon"] .mvp-rule::before { background: var(--team); box-shadow: 0 0 16px var(--team); }
+.mvp[data-design="neon"] .mvp-team { padding: 0 34px 0 0; clip-path: none; color: var(--team); background: rgba(4, 7, 13, 0.82); border: 2px solid var(--team); box-shadow: 0 0 16px color-mix(in srgb, var(--team) 70%, transparent); text-shadow: 0 0 12px var(--team); }
+.mvp[data-design="neon"] .mvp-team .logo { background: none; border-right: 2px solid var(--team); }
+.mvp[data-design="neon"] .mvp-kda > div,
+.mvp[data-design="neon"] .mvp-stats > div {
+    background: rgba(4, 7, 13, 0.84);
+    border: 2px solid var(--team);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--team) 70%, transparent), inset 0 0 22px color-mix(in srgb, var(--team) 24%, transparent);
+}
+.mvp[data-design="neon"] .mvp-kda b { text-shadow: 0 0 18px var(--team); }
+.mvp[data-design="neon"] .mvp-kda .ratio,
+.mvp[data-design="neon"] .mvp-stats > div { border-color: var(--gold); color: var(--gold); background: rgba(4, 7, 13, 0.84); box-shadow: 0 0 16px rgba(246, 255, 77, 0.6), inset 0 0 22px rgba(246, 255, 77, 0.16); }
+.mvp[data-design="neon"] .mvp-kda .ratio b { text-shadow: 0 0 18px var(--gold); }
+.mvp[data-design="neon"] .mvp-kda .ratio i,
+.mvp[data-design="neon"] .mvp-stats i { color: var(--gold); }
+@keyframes mvp-card-right { from { opacity: 0; transform: translateX(180px) scale(1.18); filter: brightness(3); } to { opacity: 1; transform: none; filter: none; } }
+
+/* ---------------- Prestige: black and gold, framed like a trophy ---------------- */
+.mvp[data-design="prestige"] .mvp-bg { filter: blur(40px) grayscale(0.7) brightness(0.32); }
+.mvp[data-design="prestige"] .mvp-shade {
+    background:
+        radial-gradient(circle at 20% 52%, rgba(255, 201, 77, 0.28), transparent 46%),
+        linear-gradient(180deg, rgba(27, 23, 13, 0.86), rgba(7, 6, 5, 0.94)),
+        radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.8) 100%);
+}
+.mvp[data-design="prestige"] .mvp-rays:not(.gold) { display: none; }
+.mvp[data-design="prestige"] .mvp-rays.gold { background: repeating-conic-gradient(from 9deg, rgba(255, 201, 77, 0.3) 0deg 4deg, transparent 4deg 15deg); }
+.mvp[data-design="prestige"] .mvp-mark { opacity: 0.05; filter: grayscale(1); }
+.mvp[data-design="prestige"] .mvp-card {
+    box-shadow:
+        0 0 0 2px #ffd766,
+        0 0 0 12px #0b0a07,
+        0 0 0 14px rgba(255, 215, 102, 0.7),
+        0 0 0 26px #0b0a07,
+        0 0 0 27px rgba(255, 215, 102, 0.35),
+        0 40px 90px rgba(0, 0, 0, 0.8),
+        0 0 150px 20px rgba(255, 201, 77, 0.35);
+}
+.mvp[data-design="prestige"] .mvp-card::before { content: ''; position: absolute; inset: 14px; z-index: 1; border: 1px solid rgba(255, 215, 102, 0.75); pointer-events: none; }
+.mvp[data-design="prestige"] .mvp-card-name { z-index: 2; }
+.mvp[data-design="prestige"] .mvp-tag em { color: #ffd766; }
+.mvp[data-design="prestige"] .mvp-player {
+    color: #ffd766;
+    background: linear-gradient(180deg, #ffffff 0%, #fff3c4 40%, #ffc94d 72%, #b8862b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.4));
+}
+.mvp[data-design="prestige"] .mvp-team { padding: 0 40px 0 0; clip-path: none; color: #ffd766; background: #0b0a07; border: 1px solid rgba(255, 215, 102, 0.7); border-left: 10px solid var(--team); text-shadow: none; }
+.mvp[data-design="prestige"] .mvp-team .logo { background: none; }
+.mvp[data-design="prestige"] .mvp-kda > div,
+.mvp[data-design="prestige"] .mvp-stats > div {
+    background: linear-gradient(180deg, #1b170d, #0b0a07);
+    border: 1px solid rgba(255, 215, 102, 0.7);
+    box-shadow: inset 0 0 0 4px #0b0a07, inset 0 0 0 5px rgba(255, 215, 102, 0.25), 0 14px 30px rgba(0, 0, 0, 0.5);
+}
+.mvp[data-design="prestige"] .mvp-kda > div:not(.ratio) { border-bottom: 5px solid var(--team); }
+.mvp[data-design="prestige"] .mvp-kda i { color: #ffd766; }
+.mvp[data-design="prestige"] .mvp-kda .ratio { background: var(--shine); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 60px rgba(255, 201, 77, 0.5); }
+.mvp[data-design="prestige"] .mvp-kda .ratio i { color: rgba(11, 14, 20, 0.7); }
+
+/* ====================================================================
+   WAITING SCREEN - "classic" is the base look in overlay.css
+   ==================================================================== */
+
+/* ---------------- Slant ---------------- */
+.idle[data-design="slant"] .idle-rays { display: none; }
+.idle[data-design="slant"] .idle-bg {
+    background:
+        linear-gradient(105deg, color-mix(in srgb, var(--blue) 88%, transparent) 0 22%, color-mix(in srgb, var(--blue-deep) 85%, transparent) 22% 29%, transparent 29%),
+        linear-gradient(105deg, transparent 0 71%, color-mix(in srgb, var(--red-deep) 85%, transparent) 71% 78%, color-mix(in srgb, var(--red) 88%, transparent) 78%),
+        linear-gradient(105deg, transparent 0 29%, #ffd766 29% 29.5%, transparent 29.5% 70.5%, #ffd766 70.5% 71%, transparent 71%),
+        linear-gradient(180deg, #121722, #06080c);
+}
+.idle[data-design="slant"] .idle-team .logo { transform: skewX(-8deg); animation: none; box-shadow: 14px 14px 0 rgba(0, 0, 0, 0.5); border-bottom: 0; border: 5px solid #ffd766; }
+.idle[data-design="slant"] .idle-team.red .logo { transform: skewX(8deg); }
+.idle[data-design="slant"] .idle-team .logo > * { transform: skewX(8deg); }
+.idle[data-design="slant"] .idle-team.red .logo > * { transform: skewX(-8deg); }
+.idle[data-design="slant"] .idle-name,
+.idle[data-design="slant"] .idle-score b,
+.idle[data-design="slant"] .idle-clock,
+.idle[data-design="slant"] .idle-title { font-style: italic; }
+.idle[data-design="slant"] .idle-roster { background: rgba(13, 16, 23, 0.9); border-top: 0; clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%); }
+.idle[data-design="slant"] .idle-vs { border-radius: 0; width: 210px; height: 170px; background: #ffd766; clip-path: polygon(30px 0, 100% 0, calc(100% - 30px) 100%, 0 100%); box-shadow: none; animation: idle-bob 2.4s ease-in-out infinite; font-style: italic; }
+.idle[data-design="slant"] .idle-title { padding: 14px 60px 6px; clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%); box-shadow: none; }
+
+/* ---------------- Glass ---------------- */
+.idle[data-design="glass"] .idle-rays { display: none; }
+.idle[data-design="glass"] .idle-bg {
+    background:
+        radial-gradient(circle at 14% 30%, color-mix(in srgb, var(--blue) 70%, transparent), transparent 40%),
+        radial-gradient(circle at 86% 74%, color-mix(in srgb, var(--red) 70%, transparent), transparent 40%),
+        radial-gradient(circle at 60% 6%, rgba(255, 201, 77, 0.35), transparent 30%),
+        linear-gradient(180deg, #161b28, #0a0d14);
+}
+.idle[data-design="glass"] .idle-team {
+    top: 236px;
+    padding: 34px 0 30px;
+    border-radius: 52px;
+    background: rgba(16, 20, 30, 0.45);
+    -webkit-backdrop-filter: blur(26px) saturate(1.4);
+    backdrop-filter: blur(26px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+.idle[data-design="glass"] .idle-team .logo { width: 230px; height: 230px; border-radius: 44px; border-bottom: 0; background: color-mix(in srgb, var(--team) 40%, rgba(8, 10, 15, 0.5)); box-shadow: 0 0 80px color-mix(in srgb, var(--team) 55%, transparent); }
+.idle[data-design="glass"] .idle-name { width: 500px; }
+.idle[data-design="glass"] .idle-roster { width: 400px; border-top: 0; border-radius: 26px; background: rgba(255, 255, 255, 0.08); }
+.idle[data-design="glass"] .idle-title { border-radius: 999px; background: rgba(255, 201, 77, 0.92); }
+
+/* ---------------- Studio: flat, no effects ---------------- */
+.idle[data-design="studio"] .idle-rays,
+.idle[data-design="studio"] .idle-sparks { display: none; }
+.idle[data-design="studio"] .idle-bg { background: linear-gradient(90deg, var(--blue) 0 16px, #0d1017 16px calc(100% - 16px), var(--red) calc(100% - 16px)); }
+.idle[data-design="studio"] .idle-bg::after { opacity: 0.5; }
+.idle[data-design="studio"] .idle-team .logo { background: none; border: 0; border-bottom: 4px solid var(--team); box-shadow: none; animation: none; }
+.idle[data-design="studio"] .idle-name { text-shadow: none; }
+.idle[data-design="studio"] .idle-roster { background: none; border-top: 0; color: var(--muted); font-size: 34px; line-height: 44px; }
+.idle[data-design="studio"] .idle-roster li:nth-child(even) { color: var(--muted); }
+.idle[data-design="studio"] .idle-score b { text-shadow: none; }
+.idle[data-design="studio"] .idle-vs { width: 150px; height: 150px; font-size: 80px; color: var(--muted); background: none; border: 2px solid rgba(255, 255, 255, 0.25); box-shadow: none; animation: none; }
+.idle[data-design="studio"] .idle-title { padding: 0; color: var(--muted); background: none; box-shadow: none; letter-spacing: 8px; font-size: 44px; }
+.idle[data-design="studio"] .idle-clock { text-shadow: none; }
+.idle[data-design="studio"] .idle-stage { color: var(--muted); }
+
+/* ---------------- Neon ---------------- */
+.idle[data-design="neon"] { --blue: #19c8ff; --blue-deep: #063a55; --red: #ff2d6f; --red-deep: #55061f; --gold: #f6ff4d; }
+.idle[data-design="neon"] .idle-bg {
+    background:
+        radial-gradient(circle at 10% 58%, color-mix(in srgb, var(--blue) 40%, transparent), transparent 42%),
+        radial-gradient(circle at 90% 58%, color-mix(in srgb, var(--red) 40%, transparent), transparent 42%),
+        linear-gradient(rgba(246, 255, 77, 0.08) 2px, transparent 2px) 0 0 / 100% 60px,
+        linear-gradient(90deg, rgba(246, 255, 77, 0.08) 2px, transparent 2px) 0 0 / 60px 100%,
+        #04070d;
+}
+.idle[data-design="neon"] .idle-rays { background: repeating-conic-gradient(from 0deg, rgba(246, 255, 77, 0.16) 0deg 3deg, transparent 3deg 20deg); }
+.idle[data-design="neon"] .idle-sparks i { background: var(--gold); box-shadow: 0 0 12px 3px var(--gold); }
+.idle[data-design="neon"] .idle-team .logo { background: rgba(4, 7, 13, 0.8); border: 3px solid var(--team); box-shadow: 0 0 40px var(--team), inset 0 0 40px color-mix(in srgb, var(--team) 30%, transparent); }
+.idle[data-design="neon"] .idle-name { color: var(--team); text-shadow: 0 0 30px var(--team), 0 0 6px #fff; }
+.idle[data-design="neon"] .idle-roster { background: rgba(4, 7, 13, 0.82); border: 2px solid var(--team); box-shadow: 0 0 18px color-mix(in srgb, var(--team) 70%, transparent); }
+.idle[data-design="neon"] .idle-score b { text-shadow: 0 0 40px var(--team), 0 0 8px #fff; }
+.idle[data-design="neon"] .idle-vs { color: var(--gold); background: rgba(4, 7, 13, 0.8); border: 4px solid var(--gold); box-shadow: 0 0 40px var(--gold), inset 0 0 40px rgba(246, 255, 77, 0.25); text-shadow: 0 0 18px var(--gold); animation: idle-bob 2.4s ease-in-out infinite; }
+.idle[data-design="neon"] .idle-title { color: var(--gold); background: rgba(4, 7, 13, 0.82); border: 2px solid var(--gold); box-shadow: 0 0 20px rgba(246, 255, 77, 0.6); text-shadow: 0 0 12px var(--gold); }
+.idle[data-design="neon"] .idle-clock { text-shadow: 0 0 40px #fff, 0 0 90px var(--gold); }
+
+/* ---------------- Prestige ---------------- */
+.idle[data-design="prestige"] .idle-bg {
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 201, 77, 0.22), transparent 44%),
+        radial-gradient(ellipse at 50% 50%, transparent 46%, rgba(0, 0, 0, 0.85) 100%),
+        linear-gradient(180deg, #1b170d, #070605);
+}
+.idle[data-design="prestige"] .idle-rays { background: repeating-conic-gradient(from 0deg, rgba(255, 201, 77, 0.28) 0deg 4deg, transparent 4deg 15deg); }
+.idle[data-design="prestige"] .idle-team .logo {
+    background: linear-gradient(180deg, #1b170d, #0b0a07);
+    border-bottom: 8px solid var(--team);
+    box-shadow: 0 0 0 2px #ffd766, 0 0 0 12px #0b0a07, 0 0 0 14px rgba(255, 215, 102, 0.6), 0 0 110px rgba(255, 201, 77, 0.35);
+}
+.idle[data-design="prestige"] .idle-team .logo span { color: #ffd766; }
+.idle[data-design="prestige"] .idle-name,
+.idle[data-design="prestige"] .idle-clock {
+    color: #ffd766;
+    background: linear-gradient(180deg, #ffffff 0%, #fff3c4 40%, #ffc94d 72%, #b8862b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.4));
+}
+.idle[data-design="prestige"] .idle-name { margin-top: 36px; }
+.idle[data-design="prestige"] .idle-roster { background: linear-gradient(180deg, #1b170d, #0b0a07); border: 1px solid rgba(255, 215, 102, 0.7); border-top: 4px solid var(--team); }
+.idle[data-design="prestige"] .idle-roster li:nth-child(even) { color: #ffd766; }
+.idle[data-design="prestige"] .idle-score b { color: #fff; text-shadow: 0 6px 0 rgba(0, 0, 0, 0.4); border-bottom: 8px solid var(--team); }
+.idle[data-design="prestige"] .idle-title { color: #ffd766; background: #0b0a07; border: 1px solid rgba(255, 215, 102, 0.7); box-shadow: inset 0 0 0 4px #0b0a07, inset 0 0 0 5px rgba(255, 215, 102, 0.3); }
+
+/* ####################################################################
+   CHAMPIONSHIP - the finals look, for all four screens.
+   Black and moving gold: metallic plates, hexagon bans, a band of light
+   that keeps sweeping across names and frames, turning rays, confetti.
+   #################################################################### */
+.draft[data-design="championship"],
+.sb[data-design="championship"],
+.mvp[data-design="championship"],
+.idle[data-design="championship"] {
+    --c-ink: #08070a;
+    --champ: linear-gradient(180deg, #fff6cf 0%, #ffd766 34%, #c8841c 58%, #ffe9a0 76%, #8a5a0c 100%);
+    --shimmer: linear-gradient(100deg, #b8862b 0%, #ffd766 18%, #fff6cf 30%, #ffffff 38%, #ffd766 50%, #b8862b 72%, #ffd766 100%);
+    --trophy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23ffd766' d='M18 6h28v6h10c0 12-5 19-12 21-2 5-5 8-9 9v8h8v6H21v-6h8v-8c-4-1-7-4-9-9C13 31 8 24 8 12h10zM14 17c1 6 3 9 5 10-1-3-1-7-1-10zm36 0h-4c0 3 0 7-1 10 2-1 4-4 5-10z'/%3E%3C/svg%3E");
+}
+@keyframes champ-shine { to { background-position: -250% 0; } }
+@keyframes champ-sweep { 0% { background-position: 150% 0; } 55%, 100% { background-position: -150% 0; } }
+@keyframes champ-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+@keyframes champ-fall { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 8% { opacity: 1; } 90% { opacity: 0.9; } 100% { transform: translateY(1180px) translateX(60px) rotate(760deg); opacity: 0; } }
+
+/* gold text with a highlight that keeps travelling across it */
+.draft[data-design="championship"] .plate .tname,
+.draft[data-design="championship"] .title .tour,
+.draft[data-design="championship"] .center .timer:not(.low),
+.sb[data-design="championship"] .team .tname,
+.sb[data-design="championship"].bar .info .tour,
+.mvp[data-design="championship"] .mvp-player,
+.idle[data-design="championship"] .idle-name,
+.idle[data-design="championship"] .idle-tour,
+.idle[data-design="championship"] .idle-clock:not(.low):not(.done) {
+    color: #ffd766;
+    background: var(--shimmer) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    animation: champ-shine 5s linear infinite;
+}
+
+/* ============================ DRAFT ============================ */
+.draft[data-design="championship"] { gap: 8px; }
+.draft[data-design="championship"] .row { gap: 12px; }
+.draft[data-design="championship"] .main .half { gap: 8px; }
+
+.draft[data-design="championship"] .plate {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, var(--c-ink) 0%, color-mix(in srgb, var(--team-deep) 85%, var(--c-ink)) 58%, var(--team) 100%);
+    box-shadow: inset 0 3px 0 #ffd766, inset 0 -3px 0 rgba(255, 215, 102, 0.45);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+}
+.draft[data-design="championship"] .red .plate {
+    background: linear-gradient(270deg, var(--c-ink) 0%, color-mix(in srgb, var(--team-deep) 85%, var(--c-ink)) 58%, var(--team) 100%);
+    clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+}
+.draft[data-design="championship"] .plate::after,
+.draft[data-design="championship"] .title::after,
+.draft[data-design="championship"] .flabel::after,
+.draft[data-design="championship"] .pick.filled::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 244, 200, 0.42) 50%, transparent 58%) 150% 0 / 300% 100% no-repeat;
+    animation: champ-sweep 6s ease-in-out infinite;
+}
+.draft[data-design="championship"] .plate .logo { background: var(--c-ink); box-shadow: inset 0 0 0 2px rgba(255, 215, 102, 0.75); }
+.draft[data-design="championship"] .plate .logo span { color: #ffd766; }
+.draft[data-design="championship"] .pips { gap: 10px; padding-left: 4px; }
+.draft[data-design="championship"] .pip { width: 13px; height: 13px; transform: rotate(45deg); background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.6); }
+.draft[data-design="championship"] .pip.on { background: #ffd766; box-shadow: 0 0 12px rgba(255, 201, 77, 0.95); }
+
+.draft[data-design="championship"] .bans { gap: 2px; align-items: center; }
+.draft[data-design="championship"] .ban { width: 86px; background: var(--champ); box-shadow: none; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+.draft[data-design="championship"] .ban::before { inset: 3px; opacity: 1; background: var(--c-ink) url('../Assets/Other/ban.png') center / 40% no-repeat; filter: none; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+.draft[data-design="championship"] .ban.filled::before { opacity: 0; }
+.draft[data-design="championship"] .ban img { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+.draft[data-design="championship"] .ban.filled::after { box-shadow: none; }
+.draft[data-design="championship"] .ban.active::after { border: 0; background: color-mix(in srgb, var(--team) 60%, transparent); }
+
+.draft[data-design="championship"] .title {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1b170d, var(--c-ink));
+    box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.85), inset 0 0 0 4px var(--c-ink), inset 0 0 0 5px rgba(255, 215, 102, 0.3);
+}
+.draft[data-design="championship"] .title .stage-name { color: #fff; letter-spacing: 3px; }
+
+.draft[data-design="championship"] .pick { background: var(--c-ink); box-shadow: none; clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); }
+/* gold frame over the portrait, with the team colour along the bottom */
+.draft[data-design="championship"] .pick .label::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--team); }
+.draft[data-design="championship"] .pick .order { inset: 0; z-index: 2; pointer-events: none; display: flex; color: rgba(255, 215, 102, 0.16); box-shadow: inset 0 0 0 2px #ffd766; }
+.draft[data-design="championship"] .pick.filled .order { display: flex; font-size: 0; }
+.draft[data-design="championship"] .pick.active .order { color: rgba(255, 215, 102, 0.6); }
+.draft[data-design="championship"] .pick:nth-child(2).filled::before { animation-delay: 0.5s; }
+.draft[data-design="championship"] .pick:nth-child(3).filled::before { animation-delay: 1s; }
+.draft[data-design="championship"] .pick:nth-child(4).filled::before { animation-delay: 1.5s; }
+.draft[data-design="championship"] .pick:nth-child(5).filled::before { animation-delay: 2s; }
+.draft[data-design="championship"] .pick .label { background: linear-gradient(to top, rgba(8, 7, 10, 0.97) 34px, rgba(8, 7, 10, 0)); }
+.draft[data-design="championship"] .pick .hero { color: #ffd766; }
+.draft[data-design="championship"] .pick .nick { background: var(--c-ink); border-top: 1px solid rgba(255, 215, 102, 0.7); }
+
+.draft[data-design="championship"] .center {
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 58%, rgba(255, 201, 77, 0.3), transparent 60%), linear-gradient(180deg, #1b170d, var(--c-ink));
+    box-shadow: inset 0 0 0 2px #ffd766, inset 0 0 0 6px var(--c-ink), inset 0 0 0 7px rgba(255, 215, 102, 0.35);
+}
+/* rays turning behind the timer */
+.draft[data-design="championship"] .center::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    width: 900px;
+    height: 900px;
+    margin: -450px 0 0 -450px;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 201, 77, 0.2) 0deg 5deg, transparent 5deg 20deg);
+    -webkit-mask-image: radial-gradient(circle, #000 5%, transparent 45%);
+    mask-image: radial-gradient(circle, #000 5%, transparent 45%);
+    animation: mvp-spin 40s linear infinite;
+}
+.draft[data-design="championship"] .center > * { position: relative; z-index: 1; }
+.draft[data-design="championship"] .center .meta { color: rgba(255, 233, 160, 0.8); }
+.draft[data-design="championship"] .center .bar { background: rgba(255, 215, 102, 0.18); }
+.draft[data-design="championship"] .flabel { position: relative; overflow: hidden; background: var(--champ); }
+.draft[data-design="championship"] .pgame { color: #ffd766; background: var(--c-ink); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.7); }
+.draft[data-design="championship"] .ptile { box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.6), inset 0 -3px 0 var(--team); }
+
+/* ============================ SCOREBOARD ============================ */
+.sb[data-design="championship"] .team {
+    background: linear-gradient(180deg, #1b170d, var(--c-ink));
+    box-shadow: inset 0 2px 0 #ffd766, 0 8px 22px rgba(0, 0, 0, 0.5);
+}
+.sb[data-design="championship"] .team::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 244, 200, 0.35) 50%, transparent 58%) 150% 0 / 300% 100% no-repeat;
+    animation: champ-sweep 7s ease-in-out infinite;
+}
+.sb[data-design="championship"] .team.red::after { animation-delay: 1.2s; }
+.sb[data-design="championship"] .team .logo { background: var(--c-ink); box-shadow: inset 0 0 0 2px rgba(255, 215, 102, 0.75); }
+.sb[data-design="championship"] .team .logo span { color: #ffd766; }
+.sb[data-design="championship"] .team .who { border-bottom: 4px solid var(--team); }
+.sb[data-design="championship"] .pips { gap: 9px; padding: 0 4px; }
+.sb[data-design="championship"] .team .pip { width: 10px; height: 10px; transform: rotate(45deg); background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.6); }
+.sb[data-design="championship"] .team .pip.on { background: #ffd766; box-shadow: 0 0 10px rgba(255, 201, 77, 0.95); }
+.sb[data-design="championship"] .team .score { background: linear-gradient(180deg, var(--team), var(--team-deep)); box-shadow: inset 0 0 0 2px #ffd766; clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); width: 78px; }
+.sb[data-design="championship"] .team.red .score { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 12px 100%); }
+.sb[data-design="championship"].split .tab,
+.sb[data-design="championship"] .stats { color: #ffd766; background: var(--c-ink); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.7); }
+.sb[data-design="championship"].bar .middle {
+    background: radial-gradient(circle at 50% 100%, rgba(255, 201, 77, 0.28), transparent 70%), linear-gradient(180deg, #1b170d, var(--c-ink));
+    border-bottom: 4px solid #ffd766;
+    box-shadow: inset 0 2px 0 #ffd766;
+}
+.sb[data-design="championship"].bar .info .series { color: #fff; }
+
+/* ============================ MVP ============================ */
+.mvp[data-design="championship"] .mvp-bg { filter: blur(40px) saturate(1.1) brightness(0.36); }
+.mvp[data-design="championship"] .mvp-shade {
+    background:
+        radial-gradient(circle at 20% 52%, rgba(255, 201, 77, 0.42), transparent 44%),
+        radial-gradient(circle at 78% 20%, color-mix(in srgb, var(--team) 40%, transparent), transparent 40%),
+        linear-gradient(180deg, rgba(27, 23, 13, 0.8), rgba(8, 7, 10, 0.94)),
+        radial-gradient(ellipse at 50% 50%, transparent 46%, rgba(0, 0, 0, 0.85) 100%);
+}
+.mvp[data-design="championship"] .mvp-rays { background: repeating-conic-gradient(from 0deg, rgba(255, 201, 77, 0.34) 0deg 5deg, transparent 5deg 16deg); animation-duration: 45s; }
+.mvp[data-design="championship"] .mvp-rays.gold { background: repeating-conic-gradient(from 7deg, rgba(255, 255, 255, 0.16) 0deg 2deg, transparent 2deg 22deg); animation-duration: 70s; }
+.mvp[data-design="championship"] .mvp-mark { opacity: 0.07; }
+/* the sparks become gold, white and team-coloured confetti falling from the top */
+.mvp[data-design="championship"] .mvp-sparks i,
+.idle[data-design="championship"] .idle-sparks i {
+    top: -30px;
+    bottom: auto;
+    width: 10px !important;
+    height: 20px !important;
+    border-radius: 1px;
+    background: #ffd766;
+    box-shadow: none;
+    animation-name: champ-fall;
+}
+.mvp[data-design="championship"] .mvp-sparks i:nth-child(3n),
+.idle[data-design="championship"] .idle-sparks i:nth-child(3n) { background: #fff; width: 8px !important; height: 14px !important; }
+.mvp[data-design="championship"] .mvp-sparks i:nth-child(4n) { background: var(--team); }
+.idle[data-design="championship"] .idle-sparks i:nth-child(4n) { background: var(--blue); }
+.idle[data-design="championship"] .idle-sparks i:nth-child(8n) { background: var(--red); }
+
+.mvp[data-design="championship"] .mvp-card {
+    box-shadow:
+        0 0 0 3px #ffd766,
+        0 0 0 13px var(--c-ink),
+        0 0 0 16px rgba(255, 215, 102, 0.8),
+        0 0 0 28px var(--c-ink),
+        0 0 0 29px rgba(255, 215, 102, 0.4),
+        0 40px 90px rgba(0, 0, 0, 0.8),
+        0 0 170px 30px rgba(255, 201, 77, 0.5);
+}
+.mvp[data-design="championship"].show .mvp-card { animation: mvp-card 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both, mvp-float 6s ease-in-out 0.9s infinite, champ-glow 3s ease-in-out 0.9s infinite; }
+.mvp[data-design="championship"].show .mvp-card::after { animation-duration: 3s; }
+.mvp[data-design="championship"] .mvp-card::before { content: ''; position: absolute; inset: 14px; z-index: 1; border: 1px solid rgba(255, 215, 102, 0.8); pointer-events: none; }
+.mvp[data-design="championship"] .mvp-card-name { z-index: 2; }
+.mvp[data-design="championship"] .mvp-crown { width: 124px; height: 93px; }
+.mvp[data-design="championship"] .mvp-tag em { color: #ffd766; }
+.mvp[data-design="championship"].show .mvp-player { animation: mvp-line 0.6s ease-out 0.45s both, champ-shine 4s linear infinite; }
+.mvp[data-design="championship"] .mvp-player { filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.45)); }
+.mvp[data-design="championship"] .mvp-rule { height: 8px; width: 760px; background: linear-gradient(90deg, #ffd766, #fff6cf 30%, rgba(255, 215, 102, 0)); box-shadow: 0 0 24px rgba(255, 201, 77, 0.7); }
+.mvp[data-design="championship"] .mvp-team { padding: 0 44px 0 0; clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%); color: #ffd766; background: linear-gradient(90deg, var(--c-ink), #1b170d); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.8), inset 10px 0 0 var(--team); text-shadow: none; }
+.mvp[data-design="championship"] .mvp-team .logo { background: none; margin-left: 10px; }
+.mvp[data-design="championship"] .mvp-kda > div,
+.mvp[data-design="championship"] .mvp-stats > div {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1b170d, var(--c-ink));
+    border: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.85), inset 0 0 0 5px var(--c-ink), inset 0 0 0 6px rgba(255, 215, 102, 0.28), 0 14px 30px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+.mvp[data-design="championship"] .mvp-kda > div::after,
+.mvp[data-design="championship"] .mvp-stats > div::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 244, 200, 0.4) 50%, transparent 58%) 150% 0 / 300% 100% no-repeat;
+    animation: champ-sweep 5s ease-in-out 1.6s infinite;
+}
+.mvp[data-design="championship"] .mvp-kda i { color: #ffd766; }
+.mvp[data-design="championship"] .mvp-kda .ratio { background: var(--champ); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5); }
+.mvp[data-design="championship"] .mvp-kda .ratio i { color: rgba(11, 14, 20, 0.7); }
+
+/* ============================ WAITING SCREEN ============================ */
+.idle[data-design="championship"] .idle-bg {
+    background:
+        radial-gradient(circle at 50% 36%, rgba(255, 201, 77, 0.34), transparent 40%),
+        radial-gradient(circle at 8% 62%, color-mix(in srgb, var(--blue) 46%, transparent), transparent 40%),
+        radial-gradient(circle at 92% 62%, color-mix(in srgb, var(--red) 46%, transparent), transparent 40%),
+        radial-gradient(ellipse at 50% 50%, transparent 44%, rgba(0, 0, 0, 0.88) 100%),
+        linear-gradient(180deg, #1b170d, #060508);
+}
+.idle[data-design="championship"] .idle-rays { background: repeating-conic-gradient(from 0deg, rgba(255, 201, 77, 0.32) 0deg 4deg, transparent 4deg 14deg); animation-duration: 50s; }
+.idle[data-design="championship"] .idle-stage { color: #fff; letter-spacing: 10px; }
+/* a band of gold light keeps circling each logo's frame */
+.idle[data-design="championship"] .idle-team .logo { border: 0; background: var(--c-ink); box-shadow: 0 0 120px 10px rgba(255, 201, 77, 0.4), 0 0 60px color-mix(in srgb, var(--team) 60%, transparent); }
+.idle[data-design="championship"] .idle-team .logo::before {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    background: conic-gradient(from 0deg, #8a5a0c 0deg, #ffd766 60deg, #ffffff 80deg, #ffd766 100deg, #8a5a0c 180deg, var(--team) 250deg, #ffd766 300deg, #8a5a0c 360deg);
+    animation: mvp-spin 5s linear infinite;
+}
+.idle[data-design="championship"] .idle-team .logo::after { content: ''; position: absolute; inset: 7px; background: linear-gradient(180deg, #1b170d, var(--c-ink)); }
+.idle[data-design="championship"] .idle-team .logo > * { position: relative; z-index: 2; }
+.idle[data-design="championship"] .idle-team .logo span { color: #ffd766; }
+.idle[data-design="championship"] .idle-name { margin-top: 34px; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.45)); }
+.idle[data-design="championship"] .idle-roster { background: linear-gradient(180deg, #1b170d, var(--c-ink)); border-top: 4px solid var(--team); box-shadow: inset 0 0 0 1px rgba(255, 215, 102, 0.7); }
+.idle[data-design="championship"] .idle-roster li:nth-child(even) { color: #ffd766; }
+/* trophy above the score */
+.idle[data-design="championship"] .idle-mid { top: 236px; }
+.idle[data-design="championship"] .idle-mid::before { content: ''; width: 120px; height: 120px; margin-bottom: 6px; background: var(--trophy) center / contain no-repeat; filter: drop-shadow(0 0 26px rgba(255, 201, 77, 0.9)); animation: idle-bob 4s ease-in-out infinite; }
+.idle[data-design="championship"] .idle-score b { color: #fff; text-shadow: 0 0 50px var(--team), 0 6px 0 rgba(0, 0, 0, 0.45); border-bottom: 8px solid var(--team); }
+.idle[data-design="championship"] .idle-vs { background: var(--champ); }
+.idle[data-design="championship"] .idle-series { color: rgba(255, 233, 160, 0.85); }
+.idle[data-design="championship"] .idle-title {
+    position: relative;
+    overflow: hidden;
+    margin-top: 34px;
+    background: var(--champ);
+    clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+    padding: 14px 60px 6px;
+}
+.idle[data-design="championship"] .idle-title::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.7) 50%, transparent 58%) 150% 0 / 300% 100% no-repeat;
+    animation: champ-sweep 4s ease-in-out infinite;
+}
+.idle[data-design="championship"] .idle-clock:not(.low):not(.done) { filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 40px rgba(255, 201, 77, 0.45)); }
+.idle[data-design="championship"] .idle-msg { color: rgba(255, 233, 160, 0.85); }

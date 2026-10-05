@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLBB Waiting Screen</title>
+    <link rel="stylesheet" href="css/overlay.css">
+    <link rel="stylesheet" href="css/overlay-designs.css">
+</head>
+<body>
+<div class="stage" id="stage">
+    <div class="idle" id="idle">
+        <!-- backdrop: team colours either side, turning rays, rising sparks -->
+        <div class="idle-bg"></div>
+        <div class="idle-rays"></div>
+        <div class="idle-sparks" id="idle-sparks"></div>
+
+        <div class="idle-top">
+            <img id="tlogo" alt="">
+            <div class="idle-tour fit" id="tour"></div>
+            <div class="idle-stage" id="stage-name"></div>
+        </div>
+
+        <div class="idle-team blue">
+            <div class="logo" id="logo-blue"></div>
+            <div class="idle-name fit" id="name-blue"></div>
+            <ul class="idle-roster" id="roster-blue"></ul>
+        </div>
+
+        <div class="idle-mid">
+            <div class="idle-score">
+                <b class="blue" id="score-blue"></b>
+                <span class="idle-vs">VS</span>
+                <b class="red" id="score-red"></b>
+            </div>
+            <div class="idle-series" id="series"></div>
+            <div class="idle-title fit" id="title"></div>
+            <div class="idle-clock" id="clock"></div>
+        </div>
+
+        <div class="idle-team red">
+            <div class="logo" id="logo-red"></div>
+            <div class="idle-name fit" id="name-red"></div>
+            <ul class="idle-roster" id="roster-red"></ul>
+        </div>
+
+        <div class="idle-msg" id="msg"></div>
+    </div>
+</div>
+<script src="js/store.js"></script>
+<script src="js/overlay-common.js"></script>
+<script src="js/idle.js"></script>
+</body>
+</html>

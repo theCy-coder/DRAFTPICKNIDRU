@@ -54,6 +54,38 @@
 
             <div class="card team red" id="team-red"></div>
         </div>
+        <div class="card">
+            <div class="card-head">
+                <h2>Waiting screen</h2>
+                <a class="btn ghost" href="idle.html" target="_blank">Open</a>
+            </div>
+            <div class="options idle-row">
+                <label class="field medium">Headline
+                    <input type="text" list="idle-titles" data-bind="idle.title" placeholder="Starting soon">
+                </label>
+                <label class="field small">Countdown (min)<input type="number" min="0" max="180" data-bind="idle.minutes" data-num></label>
+                <div class="timer-box" id="idle-left">05:00</div>
+                <div class="actions">
+                    <button type="button" class="btn primary" data-act="idle-start">Start countdown</button>
+                    <button type="button" class="btn" data-act="idle-toggle" id="idle-toggle">Pause</button>
+                    <button type="button" class="btn" data-act="idle-add">+1 min</button>
+                    <button type="button" class="btn ghost" data-act="idle-reset">Reset</button>
+                </div>
+                <label class="check"><input type="checkbox" data-bind="idle.showTimer"> Show the countdown</label>
+            </div>
+            <label class="field idle-msg-field">Bottom line (optional)
+                <input type="text" data-bind="idle.message" placeholder="e.g. Follow us for the full schedule">
+            </label>
+            <datalist id="idle-titles">
+                <option value="Starting soon"></option>
+                <option value="Next game starting soon"></option>
+                <option value="Be right back"></option>
+                <option value="Break time"></option>
+                <option value="Thanks for watching"></option>
+            </datalist>
+            <p class="hint">A full-screen scene for before a game: both teams, their players, the series score so far and a countdown. It uses the teams and match details above.</p>
+        </div>
+
         <div class="next-step">
             <button type="button" class="btn" data-act="swap-sides">⇄ Swap sides</button>
             <button type="button" class="btn primary big" data-goto="draft">Go to draft ▶</button>
@@ -162,6 +194,29 @@
         </div>
 
         <div class="card">
+            <div class="card-head">
+                <h2>MVP of the game</h2>
+                <label class="check onair"><input type="checkbox" data-bind="mvp.visible"> MVP screen on</label>
+            </div>
+            <div class="mvp-picks">
+                <div class="mvp-side blue" id="mvp-picks-blue"></div>
+                <div class="mvp-side red" id="mvp-picks-red"></div>
+            </div>
+            <div class="options mvp-fields">
+                <label class="field medium">Player name<input type="text" data-bind="mvp.player" placeholder="Pick a hero above"></label>
+                <label class="field tiny">Kills<input type="text" inputmode="numeric" data-bind="mvp.k"></label>
+                <label class="field tiny">Deaths<input type="text" inputmode="numeric" data-bind="mvp.d"></label>
+                <label class="field tiny">Assists<input type="text" inputmode="numeric" data-bind="mvp.a"></label>
+                <label class="field small mvp-extra">Gold<input type="text" data-bind="mvp.gold" placeholder="e.g. 12.4k"></label>
+                <label class="field small mvp-extra">Damage<input type="text" data-bind="mvp.damage" placeholder="e.g. 86k"></label>
+                <label class="field small mvp-extra">Rating<input type="text" data-bind="mvp.rating" placeholder="e.g. 11.2"></label>
+                <label class="check"><input type="checkbox" data-bind="mvp.kdaOnly"> KDA only</label>
+                <button type="button" class="btn ghost" data-act="mvp-clear">Clear MVP</button>
+            </div>
+            <p class="hint">Click the MVP&rsquo;s hero, type the numbers from the results screen, then switch the screen on. Do this before pressing who won below, because that clears the picks. The MVP itself stays as it is until you change it.</p>
+        </div>
+
+        <div class="card">
             <h2>Game finished &ndash; who won?</h2>
             <div class="winners">
                 <button type="button" class="wbtn blue" id="win-blue" data-act="win" data-side="blue"></button>
@@ -179,20 +234,27 @@
 
     <!-- ================= SETTINGS: set once, then leave alone ================= -->
     <section class="panel" data-panel="settings">
+        <div class="card design-card">
+            <h2>Show design</h2>
+            <div class="options">
+                <label class="field medium">One look for the draft, scoreboard and MVP screen
+                    <select data-bind="design" id="design">
+                        <option value="classic">Classic</option>
+                        <option value="slant">Slant</option>
+                        <option value="glass">Glass</option>
+                        <option value="studio">Studio</option>
+                        <option value="neon">Neon</option>
+                        <option value="prestige">Prestige</option>
+                        <option value="championship">Championship</option>
+                    </select>
+                </label>
+                <p class="hint" id="design-hint"></p>
+            </div>
+        </div>
         <div class="row2">
             <div class="card">
                 <h2>Draft overlay</h2>
                 <div class="options">
-                    <label class="field small">Design
-                        <select data-bind="draft.design">
-                            <option value="classic">Classic</option>
-                            <option value="slant">Slant</option>
-                            <option value="glass">Glass</option>
-                            <option value="towers">Towers</option>
-                            <option value="neon">Neon</option>
-                            <option value="prestige">Prestige</option>
-                        </select>
-                    </label>
                     <label class="field small">Draft mode
                         <select data-bind="draft.mode">
                             <option value="normal">Normal</option>
@@ -222,16 +284,6 @@
             <div class="card">
                 <h2>Scoreboard overlay</h2>
                 <div class="options">
-                    <label class="field small">Design
-                        <select data-bind="scoreboard.design">
-                            <option value="classic">Classic</option>
-                            <option value="slant">Slant</option>
-                            <option value="glass">Glass</option>
-                            <option value="minimal">Minimal</option>
-                            <option value="neon">Neon</option>
-                            <option value="prestige">Prestige</option>
-                        </select>
-                    </label>
                     <label class="field medium">Layout
                         <select data-bind="scoreboard.layout">
                             <option value="split">Split – either side of the in-game score</option>
@@ -290,6 +342,8 @@
                 <h2>OBS browser sources</h2>
                 <div class="url-row"><span>Draft</span><code id="url-draft"></code><button type="button" class="btn" data-copy="url-draft">Copy</button><a class="btn ghost" href="draft.html" target="_blank">Open</a></div>
                 <div class="url-row"><span>Scoreboard</span><code id="url-scoreboard"></code><button type="button" class="btn" data-copy="url-scoreboard">Copy</button><a class="btn ghost" href="scoreboard.html" target="_blank">Open</a></div>
+                <div class="url-row"><span>MVP</span><code id="url-mvp"></code><button type="button" class="btn" data-copy="url-mvp">Copy</button><a class="btn ghost" href="mvp.html" target="_blank">Open</a></div>
+                <div class="url-row"><span>Waiting</span><code id="url-idle"></code><button type="button" class="btn" data-copy="url-idle">Copy</button><a class="btn ghost" href="idle.html" target="_blank">Open</a></div>
                 <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS. <a href="index.html">Setup guide</a></p>
             </div>
         </div>

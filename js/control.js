@@ -194,6 +194,31 @@
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
         'sb-image-clear': function (s) { s.scoreboard.image = ''; },
+        // Waiting screen countdown
+        'idle-start': function (s) {
+            const ms = clamp(Number(s.idle.minutes) || 0, 0, 180) * 60000;
+            s.idle.timer = { running: ms > 0, endsAt: Store.now() + ms, remaining: ms };
+        },
+        'idle-toggle': function (s) {
+            const left = Store.idleLeft(s);
+            s.idle.timer = s.idle.timer.running
+                ? { running: false, endsAt: 0, remaining: left }
+                : { running: left > 0, endsAt: Store.now() + left, remaining: left };
+        },
+        'idle-add': function (s) {
+            const t = s.idle.timer;
+            if (t.running) t.endsAt = Math.max(t.endsAt, Store.now()) + 60000;
+            else t.remaining = Math.max(0, t.remaining) + 60000;
+        },
+        'idle-reset': function (s) {
+            const ms = clamp(Number(s.idle.minutes) || 0, 0, 180) * 60000;
+            s.idle.timer = { running: false, endsAt: 0, remaining: ms };
+        },
+        'mvp-clear': function (s) {
+            const keep = s.mvp.kdaOnly;
+            s.mvp = Store.defaults().mvp;
+            s.mvp.kdaOnly = keep;
+        },
         'swap-sides': function (s) {
             swapSides(s);
             // Older snapshots are tied to the sides as they were.
@@ -369,6 +394,69 @@
             other.hidden = true;
             select.add(other);
         });
+    }
+
+    const DESIGN_NOTES = {
+        classic: 'Solid team-colour plates. Draft along the bottom.',
+        slant: 'Everything leans towards the centre. Draft along the bottom.',
+        glass: 'Frosted, rounded panels. Draft along the bottom, picks above the team plates.',
+        studio: 'Flat and minimal. Picks stacked down both edges of the screen, thin scoreboard strip.',
+        neon: 'Dark panels with glowing outlines. Team colours become cyan and pink.',
+        prestige: 'Black and gold. Draft along the bottom with diamond bans.',
+        championship: 'The finals look: black and moving gold, hexagon bans, light sweeps, rays and confetti. The heaviest on animation.'
+    };
+
+    // MVP picker: the ten picks of the game being played, one button each.
+    function buildMvpPicks(side) {
+        const box = $('mvp-picks-' + side);
+        for (let i = 0; i < 5; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'mvp-pick';
+            btn.dataset.side = side;
+            btn.dataset.i = i;
+            btn.innerHTML = '<img alt="" hidden><b></b><span></span>';
+            btn.querySelector('img').onerror = function () { this.hidden = true; };
+            box.appendChild(btn);
+        }
+    }
+
+    function pickMvp(side, i) {
+        Store.update(function (s) {
+            const hero = s.draft.picks[side][i];
+            if (!hero) return;
+            const same = s.mvp.hero === hero && s.mvp.game === s.tournament.game && s.mvp.side === side;
+            const fresh = Store.defaults().mvp;
+            // A different MVP starts with empty numbers; re-clicking the same one keeps them.
+            ['k', 'd', 'a', 'gold', 'damage', 'rating'].forEach(function (key) { if (!same) s.mvp[key] = fresh[key]; });
+            s.mvp.side = side;
+            s.mvp.hero = hero;
+            s.mvp.player = s.teams[side].players[i] || '';
+            s.mvp.team = s.teams[side].name;
+            s.mvp.game = s.tournament.game;
+        });
+    }
+
+    function renderMvp(state) {
+        const m = state.mvp;
+        SIDES.forEach(function (side) {
+            $('mvp-picks-' + side).querySelectorAll('.mvp-pick').forEach(function (btn, i) {
+                const id = state.draft.picks[side][i];
+                const hero = Heroes.get(id);
+                const img = btn.querySelector('img');
+                if (hero) {
+                    if (img.getAttribute('src') !== hero.img) { img.hidden = false; img.src = hero.img; }
+                } else {
+                    img.hidden = true;
+                    img.removeAttribute('src');
+                }
+                btn.querySelector('b').textContent = hero ? hero.name : 'Pick ' + (i + 1);
+                btn.querySelector('span').textContent = state.teams[side].players[i] || '';
+                btn.disabled = !hero;
+                btn.classList.toggle('on', !!hero && m.hero === id && m.side === side && m.game === state.tournament.game);
+            });
+        });
+        document.querySelectorAll('.mvp-extra input').forEach(function (input) { input.disabled = !!m.kdaOnly; });
     }
 
     let onAirTimer = null;
@@ -595,6 +683,8 @@
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
             (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
         $('draft-done').hidden = !!step;
+        renderMvp(state);
+        $('design-hint').textContent = DESIGN_NOTES[state.design] || '';
         const effect = state.tournament.effect || '';
         const known = GameEvents.effect(effect);
         document.querySelectorAll('.effect-select').forEach(function (select) {
@@ -704,6 +794,8 @@
             const eventBtn = e.target.closest('.ebtn');
             if (eventBtn) { announce(eventBtn); return; }
             if (e.target.closest('#event-hide')) { hideBanner(); return; }
+            const mvpBtn = e.target.closest('.mvp-pick');
+            if (mvpBtn) { if (!mvpBtn.disabled) pickMvp(mvpBtn.dataset.side, Number(mvpBtn.dataset.i)); return; }
             const actBtn = e.target.closest('[data-act]');
             if (actBtn) {
                 const name = actBtn.dataset.act;
@@ -777,6 +869,9 @@
                     resetDraft(s);
                     // Older snapshots follow the other phase order.
                     history.length = 0;
+                }
+                else if (input.dataset.bind === 'idle.minutes' && !s.idle.timer.running) {
+                    s.idle.timer.remaining = clamp(value, 0, 180) * 60000;
                 }
                 // A shorter series cannot be on a game, or a score, past its end.
                 else if (input.dataset.bind === 'tournament.bestOf') {
@@ -871,9 +966,20 @@
     }
 
     // The control panel is the one that reacts when the clock runs out.
+    function renderIdleClock(state) {
+        const total = Math.ceil(Store.idleLeft(state) / 1000);
+        const mins = Math.floor(total / 60);
+        const secs = total % 60;
+        $('idle-left').textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        $('idle-left').classList.toggle('low', state.idle.timer.running && total <= 10);
+        $('idle-toggle').textContent = state.idle.timer.running ? 'Pause' : 'Resume';
+        $('idle-toggle').disabled = !state.idle.timer.running && Store.idleLeft(state) <= 0;
+    }
+
     function watchTimer() {
         const state = Store.get();
         renderTimer(state);
+        renderIdleClock(state);
         const d = state.draft;
         if (!d.timer.running || Store.timerLeft(state) > 0) return;
         Store.update(function (s) {
@@ -891,6 +997,8 @@
         const base = location.href.replace(/[^/]*$/, '');
         $('url-draft').textContent = base + 'draft.html';
         $('url-scoreboard').textContent = base + 'scoreboard.html';
+        $('url-mvp').textContent = base + 'mvp.html';
+        $('url-idle').textContent = base + 'idle.html';
         if (local) {
             $('url-hint').textContent = 'OBS cannot sync with this page in local mode. Start “Start Overlay Server.bat” and open the control panel from the address it prints.';
         }
@@ -901,6 +1009,7 @@
     buildEvents();
     buildEffects();
     SIDES.forEach(buildStats);
+    SIDES.forEach(buildMvpPicks);
     showTab(savedTab() || 'setup');
     bindEvents();
     Store.subscribe(render);

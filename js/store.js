@@ -19,12 +19,14 @@
 
     function defaults() {
         return {
+            // One look for the draft, the scoreboard and the MVP screen:
+            // classic | slant | glass | studio | neon | prestige | championship
+            design: 'classic',
             // effect: this game's battlefield effect, e.g. 'Revealing Wisps' ('' = none)
             tournament: { name: 'Tournament Name', stage: '', bestOf: 3, game: 1, logo: '', effect: '' },
             teams: { blue: emptyTeam('Blue Team', 'BLU'), red: emptyTeam('Red Team', 'RED') },
             draft: {
                 visible: true,
-                design: 'classic',       // look of the draft overlay, see css/overlay-designs.css
                 mode: 'normal',          // 'normal' | 'fearless'
                 fearlessScope: 'both',   // 'both' | 'team'
                 step: 0,
@@ -38,12 +40,19 @@
                 timer: { running: false, endsAt: 0, remaining: 60000 }
             },
             // middle: what the Bar layout shows in its centre: 'info' | 'logo' | 'image'
-            scoreboard: { visible: true, design: 'classic', layout: 'split', gap: 640, top: 0, showInfo: true, showStats: true, middle: 'info', image: '',
+            scoreboard: { visible: true, layout: 'split', gap: 640, top: 0, showInfo: true, showStats: true, middle: 'info', image: '',
                 showEffect: true, effectSide: 'right', effectTop: 20 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.
             event: { id: '', side: '', at: 0 },
-            banner: { top: 136, seconds: 5 }
+            banner: { top: 136, seconds: 5 },
+            // Waiting screen (idle.html): headline, optional bottom line and a countdown.
+            idle: { title: 'Starting soon', message: '', minutes: 5, showTimer: true,
+                timer: { running: false, endsAt: 0, remaining: 300000 } },
+            // Player of the game for the MVP overlay. It is a copy taken when the
+            // operator picks it, so it survives the draft being cleared.
+            mvp: { visible: false, side: '', hero: '', player: '', team: '', game: 1,
+                k: '', d: '', a: '', gold: '', damage: '', rating: '', kdaOnly: false }
         };
     }
 
@@ -62,6 +71,14 @@
             else base[k] = saved[k];
         });
         return base;
+    }
+
+    // Defaults filled in, plus one upgrade: the design used to be chosen per
+    // overlay, so a state saved back then hands its draft design to the show.
+    function load(saved) {
+        const next = merge(defaults(), saved);
+        if (isObject(saved) && saved.design === undefined && isObject(saved.draft) && saved.draft.design) next.design = saved.draft.design;
+        return next;
     }
 
     // Combine two edits of the same starting state: every value this page
@@ -109,6 +126,12 @@
 
     function timerLeft(state) {
         const t = state.draft.timer;
+        return t.running ? Math.max(0, t.endsAt - now()) : Math.max(0, t.remaining);
+    }
+
+    // Milliseconds left on the waiting screen's countdown.
+    function idleLeft(state) {
+        const t = state.idle.timer;
         return t.running ? Math.max(0, t.endsAt - now()) : Math.max(0, t.remaining);
     }
 
@@ -170,7 +193,7 @@
         clockOffset = j.t - Date.now();
         if (!dirty && !pushing) {
             version = j.v;
-            state = merge(defaults(), j.state);
+            state = load(j.state);
             synced = JSON.stringify(state);
             emit();
         }
@@ -196,7 +219,7 @@
             if (r.status === 409) {
                 // Another page saved first: keep its changes, add ours, try again.
                 const j = await r.json();
-                const remote = merge(defaults(), j.state);
+                const remote = load(j.state);
                 state = merge3(JSON.parse(synced), state, remote);
                 synced = JSON.stringify(remote);
                 version = j.v;
@@ -224,7 +247,7 @@
     }
 
     function loadLocal(text) {
-        try { state = merge(defaults(), JSON.parse(text)); } catch (e) { return; }
+        try { state = load(JSON.parse(text)); } catch (e) { return; }
         emit();
     }
 
@@ -277,6 +300,7 @@
         currentStep: currentStep,
         stepDuration: stepDuration,
         timerLeft: timerLeft,
+        idleLeft: idleLeft,
         playedHeroes: playedHeroes,
         fearlessLocked: fearlessLocked,
         winsNeeded: winsNeeded

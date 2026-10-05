@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLBB MVP Overlay</title>
+    <link rel="stylesheet" href="css/overlay.css">
+    <link rel="stylesheet" href="css/overlay-designs.css">
+</head>
+<body>
+<div class="stage" id="stage">
+    <div class="mvp" id="mvp">
+        <!-- backdrop: blurred portrait, turning light rays, team logo watermark, rising sparks -->
+        <div class="mvp-bg" id="mvp-bg"></div>
+        <div class="mvp-shade"></div>
+        <div class="mvp-rays"></div>
+        <div class="mvp-rays gold"></div>
+        <div class="mvp-mark logo" id="mvp-mark"></div>
+        <div class="mvp-sparks" id="mvp-sparks"></div>
+
+        <div class="mvp-top">
+            <img id="tlogo" alt="">
+            <div>
+                <div class="mvp-tour" id="tour"></div>
+                <div class="mvp-stage" id="stage-name"></div>
+            </div>
+        </div>
+
+        <div class="mvp-card" id="mvp-card">
+            <img id="mvp-hero" alt="">
+            <div class="mvp-card-name" id="mvp-hero-name"></div>
+        </div>
+
+        <div class="mvp-info">
+            <div class="mvp-tag">
+                <svg class="mvp-crown" viewBox="0 0 64 48" aria-hidden="true"><path d="M4 12l14 12L32 2l14 22 14-12-6 28H10z"/><rect x="10" y="42" width="44" height="6" rx="2"/></svg>
+                <b>MVP</b>
+                <div>
+                    <span id="mvp-game"></span>
+                    <em>Most valuable player</em>
+                </div>
+            </div>
+            <div class="mvp-player fit" id="mvp-player"></div>
+            <div class="mvp-rule"></div>
+            <div class="mvp-team">
+                <div class="logo" id="mvp-logo"></div>
+                <span id="mvp-team"></span>
+            </div>
+            <div class="mvp-kda" id="mvp-kda">
+                <div><b id="mvp-k"></b><i>Kills</i></div>
+                <div><b id="mvp-d"></b><i>Deaths</i></div>
+                <div><b id="mvp-a"></b><i>Assists</i></div>
+                <div class="ratio" id="mvp-ratio-box"><b id="mvp-ratio"></b><i>KDA</i></div>
+            </div>
+            <div class="mvp-stats" id="mvp-stats">
+                <div data-stat="gold"><i>Gold</i><b></b></div>
+                <div data-stat="damage"><i>Damage</i><b></b></div>
+                <div data-stat="rating"><i>Rating</i><b></b></div>
+            </div>
+        </div>
+
+        <div class="mvp-flash"></div>
+    </div>
+</div>
+<script src="js/heroes.js"></script>
+<script src="js/store.js"></script>
+<script src="js/overlay-common.js"></script>
+<script src="js/mvp.js"></script>
+</body>
+</html>
