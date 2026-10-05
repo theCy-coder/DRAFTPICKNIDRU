@@ -76,6 +76,15 @@ function Handle-Request($ctx) {
             $body = $reader.ReadToEnd().Trim()
             $reader.Dispose()
             if (-not ($body.StartsWith('{') -and $body.EndsWith('}'))) { Send-Text $res 400 'Expected a JSON object'; return }
+            # A page says which version its copy is based on. If someone else has
+            # saved since, refuse it and hand back the newer state so the page can
+            # merge its own change into that instead of overwriting it.
+            $based = $req.QueryString['v']
+            if ($based -and $based -ne "$script:version") {
+                $now = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+                Send-Text $res 409 ('{"v":' + $script:version + ',"t":' + $now + ',"state":' + $script:stateJson + '}') 'application/json; charset=utf-8'
+                return
+            }
             $script:stateJson = $body
             $script:version++
             try { [IO.File]::WriteAllText($stateFile, $body, $utf8) } catch { }

@@ -64,6 +64,24 @@
         return base;
     }
 
+    // Combine two edits of the same starting state: every value this page
+    // changed since `base` wins, everything else comes from `remote`. Used
+    // when another page saved first, so neither edit is lost.
+    function merge3(base, local, remote) {
+        if (isObject(local) && isObject(remote)) {
+            const out = {};
+            Object.keys(remote).concat(Object.keys(local)).forEach(function (k) {
+                if (!(k in out)) out[k] = merge3(isObject(base) ? base[k] : undefined, local[k], remote[k]);
+            });
+            return out;
+        }
+        if (Array.isArray(local) && Array.isArray(remote) && Array.isArray(base) &&
+            local.length === remote.length && local.length === base.length) {
+            return local.map(function (item, i) { return merge3(base[i], item, remote[i]); });
+        }
+        return JSON.stringify(local) !== JSON.stringify(base) ? local : remote;
+    }
+
     // ---- Draft order -----------------------------------------------------
     // Tournament draft: blue opens both the first ban and first pick rotation,
     // red opens the second ban rotation and gets last pick.
@@ -123,6 +141,7 @@
 
     // ---- Sync ------------------------------------------------------------
     let state = defaults();
+    let synced = JSON.stringify(state);   // the state as the server last had it
     let version = -1;
     let clockOffset = 0;
     let mode = 'local';
@@ -152,6 +171,7 @@
         if (!dirty && !pushing) {
             version = j.v;
             state = merge(defaults(), j.state);
+            synced = JSON.stringify(state);
             emit();
         }
         return true;
@@ -171,9 +191,22 @@
         dirty = false;
         let ok = true;
         try {
-            const r = await fetch('api/state', { method: 'POST', body: JSON.stringify(state) });
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            version = (await r.json()).v;
+            const sent = JSON.stringify(state);
+            const r = await fetch('api/state?v=' + version, { method: 'POST', body: sent });
+            if (r.status === 409) {
+                // Another page saved first: keep its changes, add ours, try again.
+                const j = await r.json();
+                const remote = merge(defaults(), j.state);
+                state = merge3(JSON.parse(synced), state, remote);
+                synced = JSON.stringify(remote);
+                version = j.v;
+                dirty = true;
+                emit();
+            } else {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                version = (await r.json()).v;
+                synced = sent;
+            }
             setOnline(true);
         } catch (e) {
             ok = false;
