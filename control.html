@@ -213,7 +213,14 @@
                 <label class="check"><input type="checkbox" data-bind="mvp.kdaOnly"> KDA only</label>
                 <button type="button" class="btn ghost" data-act="mvp-clear">Clear MVP</button>
             </div>
-            <p class="hint">Click the MVP&rsquo;s hero, type the numbers from the results screen, then switch the screen on. Do this before pressing who won below, because that clears the picks. The MVP itself stays as it is until you change it.</p>
+            <div class="options mvp-fields mvp-loop">
+                <label class="check"><input type="checkbox" data-bind="mvp.loop"> Alternate with the winning team</label>
+                <label class="field tiny">Seconds each<input type="number" min="3" max="120" data-bind="mvp.seconds" data-num></label>
+                <label class="field medium">Winning team
+                    <select id="mvp-winner" aria-label="Winning team"></select>
+                </label>
+            </div>
+            <p class="hint">Click the MVP&rsquo;s hero, type the numbers from the results screen, then switch the screen on. Do this before pressing who won below, because that clears the picks. The MVP itself stays as it is until you change it. With &ldquo;Alternate&rdquo; ticked the screen loops between the winning team and the MVP; pressing who won sets the winner for you.</p>
         </div>
 
         <div class="card">

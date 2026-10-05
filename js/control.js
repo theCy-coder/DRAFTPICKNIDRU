@@ -215,9 +215,9 @@
             s.idle.timer = { running: false, endsAt: 0, remaining: ms };
         },
         'mvp-clear': function (s) {
-            const keep = s.mvp.kdaOnly;
+            const old = s.mvp;
             s.mvp = Store.defaults().mvp;
-            s.mvp.kdaOnly = keep;
+            ['kdaOnly', 'loop', 'seconds'].forEach(function (key) { s.mvp[key] = old[key]; });
         },
         'swap-sides': function (s) {
             swapSides(s);
@@ -235,6 +235,8 @@
             if (seriesWinner(s)) return;
             snapshot(s, true);
             s.teams[b.dataset.side].score += 1;
+            // The MVP screen's "who won" slide, if the MVP is from this game.
+            if (s.mvp.hero && s.mvp.game === s.tournament.game) s.mvp.winner = s.teams[b.dataset.side].name;
             if (!seriesOver(s)) advanceGame(s);
         },
         'reset-series': function (s) {
@@ -428,7 +430,7 @@
             const same = s.mvp.hero === hero && s.mvp.game === s.tournament.game && s.mvp.side === side;
             const fresh = Store.defaults().mvp;
             // A different MVP starts with empty numbers; re-clicking the same one keeps them.
-            ['k', 'd', 'a', 'gold', 'damage', 'rating'].forEach(function (key) { if (!same) s.mvp[key] = fresh[key]; });
+            ['k', 'd', 'a', 'gold', 'damage', 'rating', 'winner'].forEach(function (key) { if (!same) s.mvp[key] = fresh[key]; });
             s.mvp.side = side;
             s.mvp.hero = hero;
             s.mvp.player = s.teams[side].players[i] || '';
@@ -457,6 +459,19 @@
             });
         });
         document.querySelectorAll('.mvp-extra input').forEach(function (input) { input.disabled = !!m.kdaOnly; });
+
+        // Winner choice: the MVP's own team unless set otherwise.
+        const select = $('mvp-winner');
+        const names = SIDES.map(function (side) { return state.teams[side].name; });
+        const key = names.join('|') + '|' + m.team;
+        if (select.dataset.key !== key) {
+            select.dataset.key = key;
+            select.textContent = '';
+            select.add(new Option(m.team ? 'MVP\u2019s team (' + m.team + ')' : 'MVP\u2019s team', ''));
+            names.forEach(function (name) { select.add(new Option(name, name)); });
+        }
+        if (select !== document.activeElement) select.value = names.indexOf(m.winner) >= 0 ? m.winner : '';
+        select.disabled = !m.loop;
     }
 
     let onAirTimer = null;
@@ -888,6 +903,11 @@
         }
         document.addEventListener('input', onField);
         document.addEventListener('change', function (e) {
+            if (e.target.id === 'mvp-winner') {
+                const name = e.target.value;
+                Store.update(function (s) { s.mvp.winner = name; });
+                return;
+            }
             if (e.target.classList.contains('effect-select')) {
                 const name = e.target.value;
                 if (name !== OTHER_EFFECT) Store.update(function (s) { s.tournament.effect = name; });

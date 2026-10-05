@@ -978,3 +978,57 @@
 }
 .idle[data-design="championship"] .idle-clock:not(.low):not(.done) { filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 40px rgba(255, 201, 77, 0.45)); }
 .idle[data-design="championship"] .idle-msg { color: rgba(255, 233, 160, 0.85); }
+
+/* ====================================================================
+   MVP SCREEN - the "who won" slide in each design
+   ==================================================================== */
+.mvp[data-design="slant"] .mvp-win-label,
+.mvp[data-design="slant"] .mvp-win-name,
+.mvp[data-design="slant"] .mvp-win-series { font-style: italic; }
+.mvp[data-design="slant"] .mvp-win-label { background: #ffd766; }
+.mvp[data-design="slant"] .mvp-win .logo { transform: skewX(-8deg); box-shadow: 0 0 0 5px #ffd766, 18px 18px 0 rgba(0, 0, 0, 0.55); border-bottom: 0; }
+.mvp[data-design="slant"] .mvp-win .logo > * { transform: skewX(8deg); }
+.mvp[data-design="slant"].show .mvp-win .logo { animation: mvp-win-logo-slant 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) 0.3s both; }
+@keyframes mvp-win-logo-slant { from { opacity: 0; transform: translateX(-200px) skewX(-8deg); } to { opacity: 1; transform: skewX(-8deg); } }
+
+.mvp[data-design="glass"] .mvp-win-label { clip-path: none; border-radius: 999px; }
+.mvp[data-design="glass"] .mvp-win .logo { border-radius: 60px; border-bottom: 0; background: color-mix(in srgb, var(--team) 40%, rgba(8, 10, 15, 0.5)); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45), 0 0 140px color-mix(in srgb, var(--team) 60%, transparent); }
+
+.mvp[data-design="studio"] .mvp-win::before { display: none; }
+.mvp[data-design="studio"] .mvp-win-label { padding: 0; font-size: 54px; letter-spacing: 12px; color: var(--muted); background: none; clip-path: none; }
+.mvp[data-design="studio"] .mvp-win .logo { background: none; border-bottom: 6px solid var(--team); box-shadow: none; }
+.mvp[data-design="studio"] .mvp-win-name { text-shadow: none; }
+.mvp[data-design="studio"] .mvp-win-series { color: var(--muted); }
+
+.mvp[data-design="neon"] .mvp-win-label { color: var(--gold); background: rgba(4, 7, 13, 0.82); border: 3px solid var(--gold); clip-path: none; box-shadow: 0 0 24px rgba(246, 255, 77, 0.6); text-shadow: 0 0 14px var(--gold); }
+.mvp[data-design="neon"] .mvp-win .logo { background: rgba(4, 7, 13, 0.82); border: 4px solid var(--team); box-shadow: 0 0 60px var(--team), inset 0 0 50px color-mix(in srgb, var(--team) 30%, transparent); }
+.mvp[data-design="neon"] .mvp-win-name { color: var(--team); text-shadow: 0 0 40px var(--team), 0 0 8px #fff; }
+.mvp[data-design="neon"] .mvp-win-series { color: var(--gold); text-shadow: 0 0 14px var(--gold); }
+
+.mvp[data-design="prestige"] .mvp-win .logo,
+.mvp[data-design="championship"] .mvp-win .logo {
+    background: linear-gradient(180deg, #1b170d, #0b0a07);
+    box-shadow: 0 0 0 3px #ffd766, 0 0 0 14px #0b0a07, 0 0 0 17px rgba(255, 215, 102, 0.75), 0 0 0 28px #0b0a07, 0 0 0 29px rgba(255, 215, 102, 0.4), 0 0 170px 30px rgba(255, 201, 77, 0.5);
+}
+.mvp[data-design="prestige"] .mvp-win .logo span,
+.mvp[data-design="championship"] .mvp-win .logo span { color: #ffd766; }
+.mvp[data-design="prestige"] .mvp-win-name {
+    color: #ffd766;
+    background: linear-gradient(180deg, #ffffff 0%, #fff3c4 40%, #ffc94d 72%, #b8862b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.4));
+}
+.mvp[data-design="championship"] .mvp-win-name {
+    color: #ffd766;
+    background: var(--shimmer) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.45));
+}
+.mvp[data-design="championship"].show .mvp-win-name { animation: mvp-win-name 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) 0.6s both, champ-shine 4s linear infinite; }
+.mvp[data-design="championship"] .mvp-win-label { background: var(--champ); }

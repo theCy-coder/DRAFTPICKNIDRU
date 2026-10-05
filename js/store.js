@@ -52,7 +52,10 @@
             // Player of the game for the MVP overlay. It is a copy taken when the
             // operator picks it, so it survives the draft being cleared.
             mvp: { visible: false, side: '', hero: '', player: '', team: '', game: 1,
-                k: '', d: '', a: '', gold: '', damage: '', rating: '', kdaOnly: false }
+                k: '', d: '', a: '', gold: '', damage: '', rating: '', kdaOnly: false,
+                // loop: alternate "who won" and the MVP, `seconds` each.
+                // winner: the winning team's name ('' = the MVP's own team).
+                loop: true, seconds: 10, winner: '' }
         };
     }
 

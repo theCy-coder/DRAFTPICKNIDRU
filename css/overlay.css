@@ -786,6 +786,41 @@ body.bg-green { background: #00ff00; }
 .mvp-stats i { color: #ffd766; }
 .mvp-stats b { font-size: 62px; line-height: 62px; }
 
+/* --- the "who won" slide ------------------------------------------- */
+.mvp-win { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 70px; }
+.mvp:not(.slide-win) .mvp-win,
+.mvp.slide-win .mvp-card,
+.mvp.slide-win .mvp-info,
+.mvp.slide-win .mvp-mark { display: none; }
+/* the light gathers in the middle for this slide */
+.mvp.slide-win .mvp-rays { left: 960px !important; top: 500px; }
+.mvp.slide-win .mvp-flash { background: radial-gradient(circle at 50% 46%, #fff, rgba(255, 215, 102, 0.6) 30%, transparent 70%); }
+.mvp-win::before { content: 'VICTORY'; position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-size: 470px; line-height: 1; letter-spacing: 14px; color: rgba(255, 255, 255, 0.05); }
+.mvp-win > * { position: relative; }
+.mvp-win-label { padding: 14px 54px 4px; font-size: 76px; line-height: 70px; letter-spacing: 6px; color: var(--ink); background: var(--shine); clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%); }
+.mvp-win .logo {
+    width: 330px;
+    height: 330px;
+    margin-top: 34px;
+    background: rgba(8, 10, 15, 0.6);
+    border-bottom: 12px solid var(--team);
+    box-shadow: 0 0 0 4px #ffd766, 0 0 0 14px rgba(11, 14, 20, 0.9), 0 0 0 17px var(--team), 0 0 160px 30px color-mix(in srgb, var(--team) 65%, transparent);
+}
+.mvp-win .logo img { padding: 26px; }
+.mvp-win .logo span { font-size: 150px; color: var(--team); }
+.mvp-win-name { max-width: 1700px; margin-top: 30px; font-size: 230px; line-height: 200px; text-shadow: 0 10px 0 rgba(0, 0, 0, 0.4), 0 0 80px color-mix(in srgb, var(--team) 70%, transparent); }
+.mvp-win-series { margin-top: 4px; font-size: 64px; line-height: 64px; letter-spacing: 6px; white-space: pre; color: #ffd766; }
+.mvp-win-series:empty { display: none; }
+
+.mvp.show .mvp-win-label { animation: mvp-drop 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) 0.15s both; }
+.mvp.show .mvp-win .logo { animation: mvp-win-logo 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) 0.3s both, mvp-float 5s ease-in-out 1.2s infinite; }
+.mvp.show .mvp-win-name { animation: mvp-win-name 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) 0.6s both; }
+.mvp.show .mvp-win-series { animation: mvp-tile 0.6s ease-out 0.95s both; }
+.mvp.show .mvp-win::before { animation: mvp-fade-word 1.6s ease-out both; }
+@keyframes mvp-win-logo { from { opacity: 0; transform: scale(0.2) rotate(-20deg); } to { opacity: 1; transform: none; } }
+@keyframes mvp-win-name { from { opacity: 0; transform: translateY(80px) scale(1.2); } to { opacity: 1; transform: none; } }
+@keyframes mvp-fade-word { from { opacity: 0; transform: scale(1.2); } to { opacity: 1; transform: none; } }
+
 /* a burst of light as it lands */
 .mvp-flash { position: absolute; inset: 0; background: radial-gradient(circle at 22% 52%, #fff, rgba(255, 215, 102, 0.6) 30%, transparent 70%); opacity: 0; pointer-events: none; }
 

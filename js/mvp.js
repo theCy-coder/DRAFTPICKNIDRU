@@ -1,11 +1,15 @@
 // MVP overlay: a full-screen card for the player of the game. Everything on
-// it comes from the MVP card on the control panel's Live tab.
+// it comes from the MVP card on the control panel's Live tab. When "alternate
+// with the winning team" is on it loops two slides: who won, then the MVP.
 (function () {
     'use strict';
 
     const $ = function (id) { return document.getElementById(id); };
     const KDA = ['k', 'd', 'a'];
-    let shown = '';   // which MVP is on screen, so the entrance replays for a new one
+    let shown = '';        // which MVP is on screen, so the entrance replays for a new one
+    let slide = 'mvp';     // 'win' | 'mvp'
+    let loopKey = '';
+    let loopTimer = null;
 
     function isCount(v) { return /^\d+$/.test(String(v)); }
 
@@ -66,6 +70,48 @@
         $('mvp-stats').hidden = !extras;
     }
 
+    function teamNamed(state, name) {
+        return Store.SIDES.map(function (side) { return state.teams[side]; })
+            .filter(function (t) { return t.name === name; })[0] || null;
+    }
+
+    // The winner is the MVP's own team unless the operator (or the "who won"
+    // button) said otherwise.
+    function winnerOf(m) {
+        const name = m.winner || m.team;
+        const side = name === m.team ? m.side : (m.side === 'blue' ? 'red' : 'blue');
+        return { name: name, side: side };
+    }
+
+    function renderWinner(state) {
+        const m = state.mvp;
+        const win = winnerOf(m);
+        const team = teamNamed(state, win.name);
+        Overlay.renderLogo($('win-logo'), team || { logo: '', tag: win.name });
+        if (Overlay.setText($('win-name'), win.name)) Overlay.fitText($('win-name'), 230, 80);
+        Overlay.setText($('win-label'), 'Game ' + m.game + ' winner');
+        const other = team && Store.SIDES.map(function (side) { return state.teams[side]; })
+            .filter(function (t) { return t !== team; })[0];
+        Overlay.setText($('win-series'), team && other ? 'Series  ' + team.score + ' – ' + other.score : '');
+    }
+
+    // Put one slide on screen; hiding and showing the other replays its entrance.
+    function setSlide(name) {
+        const state = Store.get();
+        const root = $('mvp');
+        slide = name;
+        root.classList.toggle('slide-win', name === 'win');
+        const side = name === 'win' ? winnerOf(state.mvp).side : state.mvp.side;
+        root.classList.toggle('blue', side === 'blue');
+        root.classList.toggle('red', side === 'red');
+        const flash = root.querySelector('.mvp-flash');
+        flash.style.animation = 'none';
+        void flash.offsetWidth;
+        flash.style.animation = '';
+        if (name === 'mvp') renderNumbers(state.mvp, true);
+        else Overlay.fitText($('win-name'), 230, 80);
+    }
+
     function render(state) {
         const m = state.mvp;
         const hero = Heroes.get(m.hero);
@@ -87,15 +133,13 @@
             Overlay.setText($('mvp-team'), m.team);
 
             // The team may have changed sides since; find it by name for its logo.
-            const team = Store.SIDES.map(function (side) { return state.teams[side]; })
-                .filter(function (t) { return t.name === m.team; })[0] || { logo: '', tag: m.team };
+            const team = teamNamed(state, m.team) || { logo: '', tag: m.team };
             Overlay.renderLogo($('mvp-logo'), team);
             Overlay.renderLogo($('mvp-mark'), team);
             renderNumbers(m, entering);
+            renderWinner(state);
         }
 
-        root.classList.toggle('blue', m.side === 'blue');
-        root.classList.toggle('red', m.side === 'red');
         if (key !== shown) {
             shown = key;
             root.classList.remove('show');
@@ -103,6 +147,27 @@
                 void root.offsetWidth; // restart the entrance
                 root.classList.add('show');
             }
+        }
+
+        // Start, stop or re-time the two-slide loop when anything about it changes.
+        const seconds = Math.max(3, Number(m.seconds) || 10);
+        const looping = on && m.loop;
+        const nextKey = key + '|' + looping + '|' + seconds;
+        if (nextKey !== loopKey) {
+            loopKey = nextKey;
+            clearInterval(loopTimer);
+            loopTimer = null;
+            if (looping) {
+                setSlide('win');
+                loopTimer = setInterval(function () { setSlide(slide === 'win' ? 'mvp' : 'win'); }, seconds * 1000);
+            } else {
+                setSlide('mvp');
+            }
+        } else {
+            // Same slide, but its colour follows a corrected winner or side.
+            const side = slide === 'win' ? winnerOf(m).side : m.side;
+            root.classList.toggle('blue', side === 'blue');
+            root.classList.toggle('red', side === 'red');
         }
 
         if (Overlay.setText($('tour'), state.tournament.name)) Overlay.fitText($('tour'), 40, 20);
@@ -116,7 +181,10 @@
     Store.subscribe(render);
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function () { Overlay.fitText($('mvp-player'), 176, 70); });
+            document.fonts.ready.then(function () {
+                Overlay.fitText($('mvp-player'), 176, 70);
+                Overlay.fitText($('win-name'), 230, 80);
+            });
         }
     });
 })();
