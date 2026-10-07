@@ -8,8 +8,16 @@
 </head>
 <body>
 <div class="stage" id="stage">
+    <!-- Optional animated backdrop. It reuses the waiting screen's background,
+         so it follows the show design the same way. -->
+    <div class="idle dbg" id="dbg">
+        <div class="idle-bg"></div>
+        <div class="idle-rays"></div>
+        <div class="idle-sparks" id="dbg-sparks"></div>
+    </div>
     <div class="draft" id="draft">
         <div class="fxp" id="fxp"></div>
+        <div class="cstage hidden" id="cstage"></div>
         <div class="row fearless" id="fearless">
             <div class="half blue" id="played-blue"></div>
             <div class="mid flabel">Fearless draft</div>
@@ -62,6 +70,7 @@
 <script src="js/events.js"></script>
 <script src="js/store.js"></script>
 <script src="js/overlay-common.js"></script>
+<script src="js/stage.js"></script>
 <script src="js/draft.js"></script>
 </body>
 </html>

@@ -35,6 +35,7 @@
             snap.series = {
                 game: state.tournament.game,
                 effect: state.tournament.effect,
+                heroes: state.season.heroes,
                 swapped: false,
                 blue: { score: state.teams.blue.score, played: state.teams.blue.played, stats: state.teams.blue.stats },
                 red: { score: state.teams.red.score, played: state.teams.red.played, stats: state.teams.red.stats }
@@ -59,6 +60,7 @@
         if (snap.series.swapped) swapSides(state);
         state.tournament.game = snap.series.game;
         state.tournament.effect = snap.series.effect || '';
+        if (snap.series.heroes) state.season.heroes = snap.series.heroes;
         SIDES.forEach(function (side) {
             state.teams[side].score = snap.series[side].score;
             state.teams[side].played = snap.series[side].played;
@@ -180,6 +182,25 @@
         selected = null;
     }
 
+    // Add the finished game to the season's hero records: every pick counts as
+    // played (and as a win for the winning side), every ban as a ban.
+    function recordHeroStats(s, winner) {
+        const bySide = {};
+        s.season.heroes.forEach(function (row) { bySide[row.id] = row; });
+        function row(id) {
+            if (!bySide[id]) { bySide[id] = { id: id, p: 0, w: 0, b: 0 }; s.season.heroes.push(bySide[id]); }
+            return bySide[id];
+        }
+        SIDES.forEach(function (side) {
+            s.draft.picks[side].filter(Boolean).forEach(function (id) {
+                const r = row(id);
+                r.p += 1;
+                if (side === winner) r.w += 1;
+            });
+            s.draft.bans[side].slice(0, s.draft.banCount).filter(Boolean).forEach(function (id) { row(id).b += 1; });
+        });
+    }
+
     // ---- actions (buttons with data-act) ---------------------------------
     const actions = {
         'game-up': function (s) { s.tournament.game = clamp(s.tournament.game + 1, 1, s.tournament.bestOf); },
@@ -194,6 +215,16 @@
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
         'sb-image-clear': function (s) { s.scoreboard.image = ''; },
+        // Season tab
+        'season-add': function (s, b) {
+            const list = b.dataset.list;
+            const row = {};
+            SEASON_COLUMNS[list].forEach(function (col) { row[col.key] = ''; });
+            s.season[list].push(row);
+        },
+        'season-del': function (s, b) { s.season[b.dataset.list].splice(Number(b.dataset.i), 1); },
+        'season-clear': function (s) { s.season = Store.defaults().season; },
+        'season-heroes-clear': function (s) { s.season.heroes = []; },
         // Waiting screen countdown
         'idle-start': function (s) {
             const ms = clamp(Number(s.idle.minutes) || 0, 0, 180) * 60000;
@@ -235,6 +266,7 @@
             if (seriesWinner(s)) return;
             snapshot(s, true);
             s.teams[b.dataset.side].score += 1;
+            recordHeroStats(s, b.dataset.side);
             // The MVP screen's "who won" slide, if the MVP is from this game.
             if (s.mvp.hero && s.mvp.game === s.tournament.game) s.mvp.winner = s.teams[b.dataset.side].name;
             if (!seriesOver(s)) advanceGame(s);
@@ -273,7 +305,7 @@
             SIDES.forEach(function (side) { s.teams[side].played = []; });
         }
     };
-    const needsConfirm = { 'reset-draft': true, 'reset-series': true, 'clear-played': true };
+    const needsConfirm = { 'reset-draft': true, 'reset-series': true, 'clear-played': true, 'season-clear': true, 'season-heroes-clear': true };
 
     // Destructive buttons need a second click within 3 seconds.
     function armed(btn) {
@@ -309,7 +341,7 @@
 
     // ---- tabs ------------------------------------------------------------
     // Each tab holds what one moment of the broadcast needs and nothing else.
-    const TABS = ['setup', 'draft', 'live', 'settings'];
+    const TABS = ['setup', 'draft', 'live', 'settings', 'season'];
     const TAB_KEY = 'mlbb-overlay-tab';
 
     function showTab(name) {
@@ -398,11 +430,195 @@
         });
     }
 
+    // ---- season tab ------------------------------------------------------
+    const SEASON_COLUMNS = {
+        standings: [
+            { key: 'team', label: 'Team', grow: 3 },
+            { key: 'w', label: 'Wins', grow: 1 },
+            { key: 'l', label: 'Losses', grow: 1 },
+            { key: 'pts', label: 'Points', grow: 1 }
+        ],
+        schedule: [
+            { key: 'when', label: 'Date and time (PH)', grow: 2, type: 'datetime-local' },
+            { key: 'a', label: 'Team', grow: 3 },
+            { key: 'score', label: 'Score', grow: 1 },
+            { key: 'b', label: 'Team', grow: 3 }
+        ],
+        bracket: [
+            { key: 'round', label: 'Round', grow: 2 },
+            { key: 'a', label: 'Team', grow: 3 },
+            { key: 'sa', label: 'Score', grow: 1 },
+            { key: 'b', label: 'Team', grow: 3 },
+            { key: 'sb', label: 'Score', grow: 1 }
+        ]
+    };
+
+    // One row of text boxes per entry. The boxes are ordinary bound fields
+    // ("season.standings.0.team"), so only the row count needs rebuilding.
+    function renderSeason(state) {
+        Object.keys(SEASON_COLUMNS).forEach(function (list) {
+            const box = $('season-' + list);
+            const rows = state.season[list];
+            if (box.dataset.count === String(rows.length)) return;
+            box.dataset.count = String(rows.length);
+            box.textContent = '';
+            if (!rows.length) {
+                const none = document.createElement('p');
+                none.className = 'hint';
+                none.textContent = 'Nothing here yet.';
+                box.appendChild(none);
+                return;
+            }
+            const cols = SEASON_COLUMNS[list];
+            const head = document.createElement('div');
+            head.className = 'srow head';
+            cols.forEach(function (col) {
+                const cell = document.createElement('span');
+                cell.style.flexGrow = col.grow;
+                cell.textContent = col.label;
+                head.appendChild(cell);
+            });
+            head.appendChild(document.createElement('i'));
+            box.appendChild(head);
+            rows.forEach(function (row, i) {
+                const line = document.createElement('div');
+                line.className = 'srow';
+                cols.forEach(function (col) {
+                    const input = document.createElement('input');
+                    input.type = col.type || 'text';
+                    input.style.flexGrow = col.grow;
+                    input.setAttribute('aria-label', col.label);
+                    input.dataset.bind = 'season.' + list + '.' + i + '.' + col.key;
+                    line.appendChild(input);
+                });
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'btn ghost danger';
+                del.dataset.act = 'season-del';
+                del.dataset.list = list;
+                del.dataset.i = i;
+                del.textContent = '\u00d7';
+                del.setAttribute('aria-label', 'Remove this row');
+                line.appendChild(del);
+                box.appendChild(line);
+            });
+        });
+    }
+
+    // Read-only table of the season's hero records, most played first.
+    function renderHeroStats(state) {
+        const box = $('season-heroes');
+        const rows = state.season.heroes.slice().sort(function (a, b) { return (b.p + b.b) - (a.p + a.b) || b.w - a.w; });
+        const key = JSON.stringify(rows);
+        $('season-heroes-clear').disabled = !rows.length;
+        if (box.dataset.key === key) return;
+        box.dataset.key = key;
+        box.textContent = '';
+        if (!rows.length) {
+            const none = document.createElement('p');
+            none.className = 'hint';
+            none.textContent = 'Nothing yet. A game is counted when you press who won on the Live game tab.';
+            box.appendChild(none);
+            return;
+        }
+        const line = function (cells, cls) {
+            const div = document.createElement('div');
+            div.className = 'hrow' + (cls ? ' ' + cls : '');
+            cells.forEach(function (text) { const span = document.createElement('span'); span.textContent = text; div.appendChild(span); });
+            box.appendChild(div);
+        };
+        line(['Hero', 'Picked', 'Won', 'Win rate', 'Banned'], 'head');
+        rows.forEach(function (row) {
+            const hero = Heroes.get(row.id);
+            line([hero ? hero.name : row.id, row.p, row.w, row.p ? Math.round(row.w / row.p * 100) + '%' : '\u2013', row.b]);
+        });
+    }
+
+    function seasonNote(text, bad) {
+        $('season-note').textContent = text;
+        $('season-note').classList.toggle('bad', !!bad);
+    }
+
+    function exportSeason() {
+        const season = Store.get().season;
+        const text = JSON.stringify({ type: 'mlbb-overlay-season', version: 1, season: season }, null, 2);
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+        link.download = ((season.title || 'season').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'season') + '.json';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+        seasonNote('Exported ' + link.download + '.');
+    }
+
+    // Keep only what a season file should hold: known lists of rows of text.
+    function cleanSeason(raw) {
+        const src = raw && typeof raw === 'object' && raw.season && typeof raw.season === 'object' ? raw.season : raw;
+        if (!src || typeof src !== 'object' || Array.isArray(src)) return null;
+        const next = Store.defaults().season;
+        let found = false;
+        Object.keys(SEASON_COLUMNS).forEach(function (list) {
+            if (!Array.isArray(src[list])) return;
+            found = true;
+            next[list] = src[list].filter(function (row) { return row && typeof row === 'object'; }).slice(0, 200).map(function (row) {
+                const out = {};
+                SEASON_COLUMNS[list].forEach(function (col) { out[col.key] = String(row[col.key] == null ? '' : row[col.key]).slice(0, 80); });
+                return out;
+            });
+        });
+        if (Array.isArray(src.heroes)) {
+            found = true;
+            const count = function (v) { const n = Math.floor(Number(v)); return isFinite(n) && n > 0 ? Math.min(n, 9999) : 0; };
+            next.heroes = src.heroes.filter(function (row) { return row && typeof row === 'object' && Heroes.get(row.id); }).map(function (row) {
+                const p = count(row.p);
+                return { id: String(row.id), p: p, w: Math.min(count(row.w), p), b: count(row.b) };
+            });
+        }
+        if (!found) return null;
+        if (typeof src.title === 'string') next.title = src.title.slice(0, 80);
+        if (isFinite(Number(src.seconds)) && Number(src.seconds) >= 4) next.seconds = Math.min(120, Number(src.seconds));
+        return next;
+    }
+
+    function importSeason(file) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            let season = null;
+            try { season = cleanSeason(JSON.parse(String(reader.result))); } catch (e) { season = null; }
+            if (!season) { seasonNote('That file is not a season export, so nothing was changed.', true); return; }
+            Store.update(function (s) { s.season = season; });
+            seasonNote('Imported ' + file.name + ': ' + season.standings.length + ' standings rows, ' +
+                season.schedule.length + ' schedule rows, ' + season.bracket.length + ' bracket rows, ' + season.heroes.length + ' hero records.');
+        };
+        reader.onerror = function () { seasonNote('That file could not be read.', true); };
+        reader.readAsText(file);
+    }
+
+    // What the centre stage will actually show with the current settings.
+    let mediaCount = null;
+    function renderStageHint(state) {
+        const d = state.draft;
+        const sides = d.layout === 'sides' || (d.layout !== 'bottom' && state.design === 'studio');
+        const season = state.season;
+        const hasSeason = ['standings', 'schedule', 'bracket'].some(function (list) { return season[list].length; });
+        let text = '';
+        if (!sides) text = 'The centre stage only appears when the picks are on the left and right edges.';
+        else if (d.stage === 'story') text = 'Draft story: the matchup, whose turn it is, a spotlight on every pick and ban with the hero\u2019s season record, then both lineups.';
+        else if (d.stage === 'info') text = hasSeason ? 'Season info: rotates the pages from the Season tab.' : 'Season info: nothing is entered on the Season tab yet, so the matchup card shows instead.';
+        else if (d.stage === 'media') {
+            text = mediaCount === null ? 'Media: plays the files in the Assets\\Media folder.'
+                : mediaCount ? 'Media: playing ' + mediaCount + ' file' + (mediaCount === 1 ? '' : 's') + ' from the Assets\\Media folder.'
+                : 'Media: the Assets\\Media folder is empty, so the matchup card shows instead.';
+        } else text = 'Centre stage is off: the middle stays clear, for player cameras.';
+        $('stage-hint').textContent = text;
+    }
+
     const DESIGN_NOTES = {
         classic: 'Solid team-colour plates. Draft along the bottom.',
         slant: 'Everything leans towards the centre. Draft along the bottom.',
         glass: 'Frosted, rounded panels. Draft along the bottom, picks above the team plates.',
-        studio: 'Flat and minimal. Picks stacked down both edges of the screen, thin scoreboard strip.',
+        studio: 'Flat and minimal, with a thin scoreboard strip. Picks go down both edges of the screen unless you change the picks position below.',
         neon: 'Dark panels with glowing outlines. Team colours become cyan and pink.',
         prestige: 'Black and gold. Draft along the bottom with diamond bans.',
         championship: 'The finals look: black and moving gold, hexagon bans, light sweeps, rays and confetti. The heaviest on animation.'
@@ -655,6 +871,8 @@
         const t = target(state);
         const used = usedHeroes(state);
 
+        renderSeason(state);   // builds its rows first, so the loop below fills them in
+        renderHeroStats(state);
         document.querySelectorAll('[data-bind]').forEach(function (input) {
             if (input === document.activeElement && input.type !== 'checkbox') return;
             const value = getPath(state, input.dataset.bind);
@@ -700,6 +918,7 @@
         $('draft-done').hidden = !!step;
         renderMvp(state);
         $('design-hint').textContent = DESIGN_NOTES[state.design] || '';
+        renderStageHint(state);
         const effect = state.tournament.effect || '';
         const known = GameEvents.effect(effect);
         document.querySelectorAll('.effect-select').forEach(function (select) {
@@ -809,6 +1028,7 @@
             const eventBtn = e.target.closest('.ebtn');
             if (eventBtn) { announce(eventBtn); return; }
             if (e.target.closest('#event-hide')) { hideBanner(); return; }
+            if (e.target.closest('#season-export')) { exportSeason(); return; }
             const mvpBtn = e.target.closest('.mvp-pick');
             if (mvpBtn) { if (!mvpBtn.disabled) pickMvp(mvpBtn.dataset.side, Number(mvpBtn.dataset.i)); return; }
             const actBtn = e.target.closest('[data-act]');
@@ -903,6 +1123,11 @@
         }
         document.addEventListener('input', onField);
         document.addEventListener('change', function (e) {
+            if (e.target.id === 'season-import') {
+                if (e.target.files[0]) importSeason(e.target.files[0]);
+                e.target.value = '';
+                return;
+            }
             if (e.target.id === 'mvp-winner') {
                 const name = e.target.value;
                 Store.update(function (s) { s.mvp.winner = name; });
@@ -981,7 +1206,7 @@
             const tag = (e.target.tagName || '').toLowerCase();
             if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
             if (e.key === '/') { e.preventDefault(); showTab('draft'); search.focus(); }
-            else if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.altKey && !e.metaKey) showTab(TABS[Number(e.key) - 1]);
+            else if (e.key >= '1' && e.key <= '5' && !e.ctrlKey && !e.altKey && !e.metaKey) showTab(TABS[Number(e.key) - 1]);
         });
     }
 
@@ -1031,6 +1256,10 @@
     SIDES.forEach(buildStats);
     SIDES.forEach(buildMvpPicks);
     showTab(savedTab() || 'setup');
+    // How many files the Media stage has to play (served mode only).
+    fetch('api/media', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (list) { if (Array.isArray(list)) { mediaCount = list.length; renderStageHint(Store.get()); } })
+        .catch(function () { });
     bindEvents();
     Store.subscribe(render);
     Store.onStatus(showStatus);

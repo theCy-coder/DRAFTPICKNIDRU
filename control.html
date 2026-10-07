@@ -15,6 +15,7 @@
         <button type="button" class="tab" role="tab" data-tab="draft"><kbd>2</kbd> Draft</button>
         <button type="button" class="tab" role="tab" data-tab="live"><kbd>3</kbd> Live game</button>
         <button type="button" class="tab" role="tab" data-tab="settings"><kbd>4</kbd> Settings</button>
+        <button type="button" class="tab" role="tab" data-tab="season"><kbd>5</kbd> Season</button>
     </div>
     <div class="summary" id="summary"></div>
     <span class="status" id="status">Connecting…</span>
@@ -274,6 +275,21 @@
                             <option value="team">Only the team that picked them</option>
                         </select>
                     </label>
+                    <label class="field medium">Picks position
+                        <select data-bind="draft.layout">
+                            <option value="auto">Follow the design</option>
+                            <option value="bottom">Along the bottom</option>
+                            <option value="sides">Left and right edges</option>
+                        </select>
+                    </label>
+                    <label class="field medium">Centre stage (picks on the edges)
+                        <select data-bind="draft.stage">
+                            <option value="off">Off &ndash; leave it clear</option>
+                            <option value="story">Draft story</option>
+                            <option value="info">Season info</option>
+                            <option value="media">Media</option>
+                        </select>
+                    </label>
                     <label class="field small">Bans per team
                         <select data-bind="draft.banCount" data-num id="ban-count">
                             <option value="5">5</option>
@@ -283,9 +299,11 @@
                     <label class="field small">Ban time (s)<input type="number" min="5" max="300" data-bind="draft.banTime" data-num></label>
                     <label class="field small">Pick time (s)<input type="number" min="5" max="300" data-bind="draft.pickTime" data-num></label>
                 </div>
+                <label class="check"><input type="checkbox" data-bind="draft.background"> Animated background behind the draft (fills the whole screen, in the show design)</label>
                 <label class="check"><input type="checkbox" data-bind="draft.autoTimer"> Start the timer automatically on each new phase</label>
                 <label class="check"><input type="checkbox" data-bind="draft.autoAdvance"> Skip to the next phase when the timer hits 0</label>
-                <p class="hint">Bans per team can only be changed before the draft starts.</p>
+                <p class="hint" id="stage-hint"></p>
+                <p class="hint">Picks position works with every design. &ldquo;Follow the design&rdquo; puts them along the bottom, except in Studio where they go down the left and right edges. Bans per team can only be changed before the draft starts.</p>
             </div>
 
             <div class="card">
@@ -353,6 +371,50 @@
                 <div class="url-row"><span>Waiting</span><code id="url-idle"></code><button type="button" class="btn" data-copy="url-idle">Copy</button><a class="btn ghost" href="idle.html" target="_blank">Open</a></div>
                 <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS. <a href="index.html">Setup guide</a></p>
             </div>
+        </div>
+    </section>
+
+    <!-- ================= SEASON: standings, schedule, bracket ================= -->
+    <section class="panel" data-panel="season">
+        <p class="lead">The whole season in one place. It shows in the middle of the draft overlay when the centre stage is set to &ldquo;Season info&rdquo;. Any section left empty is skipped.</p>
+        <div class="card">
+            <div class="card-head">
+                <h2>Season file</h2>
+                <div class="actions">
+                    <button type="button" class="btn" id="season-export">Export</button>
+                    <label class="btn">Import<input type="file" accept=".json,application/json" id="season-import" hidden></label>
+                    <button type="button" class="btn ghost danger" data-act="season-clear">Clear season</button>
+                </div>
+            </div>
+            <div class="options">
+                <label class="field medium">Season name<input type="text" data-bind="season.title" placeholder="e.g. Season 3"></label>
+                <label class="field small">Seconds per page<input type="number" min="4" max="120" data-bind="season.seconds" data-num></label>
+            </div>
+            <p class="hint" id="season-note">Export saves everything on this tab to a file. Import replaces it with a file you exported earlier.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h2>Hero records</h2><button type="button" class="btn ghost danger" id="season-heroes-clear" data-act="season-heroes-clear">Clear hero records</button></div>
+            <div class="htable" id="season-heroes"></div>
+            <p class="hint">Counted for you: each time you press who won on the Live game tab, that game&rsquo;s picks and bans are added. The draft overlay shows a hero&rsquo;s record when it is picked or banned. Undo takes a game back out, and the records travel with Export and Import.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h2>Standings</h2><button type="button" class="btn" data-act="season-add" data-list="standings">+ Add team</button></div>
+            <div class="stable" id="season-standings"></div>
+            <p class="hint">Shown sorted by points, then wins. Leave points empty if you only track wins and losses.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h2>Schedule</h2><button type="button" class="btn" data-act="season-add" data-list="schedule">+ Add match</button></div>
+            <div class="stable" id="season-schedule"></div>
+            <p class="hint">Dates and times are Philippine time and show that way for everyone, whatever the computer&rsquo;s own clock is set to. Matches are listed in date order. &ldquo;Score&rdquo; can be a result such as 2 &ndash; 1, or left empty for a match still to play.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h2>Bracket</h2><button type="button" class="btn" data-act="season-add" data-list="bracket">+ Add match</button></div>
+            <div class="stable" id="season-bracket"></div>
+            <p class="hint">Matches with the same round name share a column, in the order the rounds first appear. Up to four rounds of four matches fit on a page.</p>
         </div>
     </section>
 </main>

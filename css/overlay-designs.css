@@ -100,23 +100,26 @@
 /* ====================================================================
    DRAFT - Towers: picks stacked down both edges, the middle stays clear
    ==================================================================== */
-.draft[data-design="towers"] { top: 20px; }
-/* the draft fills the screen here, so the effect panel goes at its top */
-.draft[data-design="towers"] .fxp { bottom: auto; top: 0; margin: 0; }
-.draft[data-design="towers"] .main { order: 1; flex: 1 1 0; height: auto; min-height: 0; }
-.draft[data-design="towers"] .fearless { order: 2; }
-.draft[data-design="towers"] .top { order: 3; }
-.draft[data-design="towers"] .main .half,
-.draft[data-design="towers"] .main .half.red { flex: none; width: 340px; flex-direction: column; gap: 8px; }
-.draft[data-design="towers"] .main .mid { align-self: flex-end; margin: 0 auto; height: 252px; }
+.draft[data-layout="sides"][data-design] { top: 20px; }
+/* each design's bottom-row spacing does not apply to the columns */
+.draft[data-layout="sides"][data-design] .main .half.blue,
+.draft[data-layout="sides"][data-design] .main .half.red { padding: 0; }
+/* the draft fills the screen in this layout, so the effect panel goes at its top */
+.draft[data-layout="sides"][data-design] .fxp { bottom: auto; top: 0; margin: 0; }
+.draft[data-layout="sides"][data-design] .main { order: 1; flex: 1 1 0; height: auto; min-height: 0; }
+.draft[data-layout="sides"][data-design] .fearless { order: 2; }
+.draft[data-layout="sides"][data-design] .top { order: 3; }
+.draft[data-layout="sides"][data-design] .main .half,
+.draft[data-layout="sides"][data-design] .main .half.red { flex: none; width: 340px; flex-direction: column; gap: 8px; }
+.draft[data-layout="sides"][data-design] .main .mid { align-self: flex-end; margin: 0 auto; height: 252px; }
 
-.draft[data-design="towers"] .pick { box-shadow: inset 6px 0 0 var(--team); }
-.draft[data-design="towers"] .red .pick { box-shadow: inset -6px 0 0 var(--team); }
-.draft[data-design="towers"] .pick > img { object-position: 50% 21%; animation-name: tower-in-left; }
-.draft[data-design="towers"] .red .pick > img { animation-name: tower-in-right; }
-.draft[data-design="towers"] .pick .order { inset: 0; justify-content: flex-end; padding-right: 26px; font-size: 120px; }
-.draft[data-design="towers"] .red .pick .order { justify-content: flex-start; padding: 0 0 0 26px; }
-.draft[data-design="towers"] .pick .label {
+.draft[data-layout="sides"][data-design] .pick { box-shadow: inset 6px 0 0 var(--team); }
+.draft[data-layout="sides"][data-design] .red .pick { box-shadow: inset -6px 0 0 var(--team); }
+.draft[data-layout="sides"][data-design] .pick > img { object-position: 50% 21%; animation-name: tower-in-left; }
+.draft[data-layout="sides"][data-design] .red .pick > img { animation-name: tower-in-right; }
+.draft[data-layout="sides"][data-design] .pick .order { inset: 0; justify-content: flex-end; padding-right: 26px; font-size: 120px; }
+.draft[data-layout="sides"][data-design] .red .pick .order { justify-content: flex-start; padding: 0 0 0 26px; }
+.draft[data-layout="sides"][data-design] .pick .label {
     top: 0;
     padding: 0 0 0 6px;
     display: flex;
@@ -125,10 +128,53 @@
     text-align: left;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 34px, rgba(0, 0, 0, 0) 60%);
 }
-.draft[data-design="towers"] .red .pick .label { padding: 0 6px 0 0; text-align: right; }
-.draft[data-design="towers"] .pick .hero { padding: 0 14px; font-size: 34px; line-height: 34px; }
-.draft[data-design="towers"] .pick .nick { margin: 4px 0 0; padding: 0 14px; justify-content: flex-start; }
-.draft[data-design="towers"] .red .pick .nick { justify-content: flex-end; }
+.draft[data-layout="sides"][data-design] .red .pick .label { padding: 0 6px 0 0; text-align: right; }
+.draft[data-layout="sides"][data-design] .pick .hero { padding: 0 14px; font-size: 34px; line-height: 34px; }
+.draft[data-layout="sides"][data-design] .pick .nick { margin: 4px 0 0; padding: 0 14px; justify-content: flex-start; }
+.draft[data-layout="sides"][data-design] .red .pick .nick { justify-content: flex-end; }
+
+/* Slant in side columns: the strips keep a slanted inner end instead of leaning */
+.draft[data-layout="sides"][data-design="slant"] .pick { transform: none; clip-path: polygon(0 0, 100% 0, calc(100% - 28px) 100%, 0 100%); }
+.draft[data-layout="sides"][data-design="slant"] .red .pick { transform: none; clip-path: polygon(0 0, 100% 0, 100% 100%, 28px 100%); }
+.draft[data-layout="sides"][data-design="slant"] .pick > img,
+.draft[data-layout="sides"][data-design="slant"] .red .pick > img,
+.draft[data-layout="sides"][data-design="slant"] .pick .hero,
+.draft[data-layout="sides"][data-design="slant"] .red .pick .hero,
+.draft[data-layout="sides"][data-design="slant"] .pick .nick span,
+.draft[data-layout="sides"][data-design="slant"] .red .pick .nick span,
+.draft[data-layout="sides"][data-design="slant"] .pick .order,
+.draft[data-layout="sides"][data-design="slant"] .red .pick .order { transform: none; }
+.draft[data-layout="sides"][data-design="slant"] .pick > img { animation-name: tower-in-left; }
+.draft[data-layout="sides"][data-design="slant"] .red .pick > img { animation-name: tower-in-right; }
+/* Championship in side columns: the gold frame runs the full strip */
+.draft[data-layout="sides"][data-design="championship"] .pick,
+.draft[data-layout="sides"][data-design="championship"] .red .pick { box-shadow: none; }
+.draft[data-layout="sides"][data-design="championship"] .pick .order { padding: 0 26px; }
+.draft[data-layout="sides"][data-design="prestige"] .pick { box-shadow: inset 6px 0 0 var(--team); }
+.draft[data-layout="sides"][data-design="prestige"] .red .pick { box-shadow: inset -6px 0 0 var(--team); }
+.draft[data-layout="sides"][data-design="prestige"] .pick > img { top: 0; }
+
+/* ====================================================================
+   DRAFT - Studio: flat panels, no gradients (pairs with the thin scoreboard)
+   ==================================================================== */
+.draft[data-design="studio"] .plate,
+.draft[data-design="studio"] .red .plate { background: #0d1017; box-shadow: inset 10px 0 0 var(--team); padding-left: 10px; }
+.draft[data-design="studio"] .red .plate { box-shadow: inset -10px 0 0 var(--team); padding: 0 10px 0 16px; }
+.draft[data-design="studio"] .plate .logo { background: none; }
+.draft[data-design="studio"] .plate .logo span { color: var(--team); }
+.draft[data-design="studio"] .plate .tname { text-shadow: none; }
+.draft[data-design="studio"] .pip { transform: none; width: 10px; height: 10px; border-radius: 50%; }
+.draft[data-design="studio"] .pip.on { box-shadow: none; }
+.draft[data-design="studio"] .ban { background: #0d1017; box-shadow: inset 0 -3px 0 var(--team); }
+.draft[data-design="studio"] .title { background: #0d1017; box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.2); }
+.draft[data-design="studio"] .title .stage-name { color: var(--muted); letter-spacing: 3px; }
+.draft[data-design="studio"] .pick { background: #0d1017; }
+.draft[data-design="studio"] .pick .nick { background: #0d1017; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.draft[data-design="studio"] .center { background: #0d1017; box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.2); }
+.draft[data-design="studio"] .center .timer { text-shadow: none; }
+.draft[data-design="studio"] .flabel { color: var(--muted); background: #0d1017; letter-spacing: 3px; box-shadow: inset 0 -2px 0 var(--gold); }
+.draft[data-design="studio"] .ptile { background: #0d1017; }
+.draft[data-design="studio"] .pgame { color: var(--muted); background: #0d1017; }
 
 @keyframes tower-in-left { from { transform: translateX(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes tower-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -1032,3 +1078,156 @@
 }
 .mvp[data-design="championship"].show .mvp-win-name { animation: mvp-win-name 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) 0.6s both, champ-shine 4s linear infinite; }
 .mvp[data-design="championship"] .mvp-win-label { background: var(--champ); }
+
+/* ####################################################################
+   CENTRE STAGE in each show design. The base look in overlay.css is
+   "classic"; these restyle the same panels (rows, plates, names, cards).
+   #################################################################### */
+
+/* ---------------- Slant ---------------- */
+.draft[data-design="slant"] .cstage :is(.cs-team, .cs-turn-team, .cs-spot-hero),
+.draft[data-design="slant"] .cstage :is(.cs-turn-clock, .cs-series b, .cs-lineup-team, .cs-who b, .cs-rec b, .cs-stat b, .cs-spot-by) { font-style: italic; }
+.draft[data-design="slant"] .cstage :is(.cs-info-title, .cs-spot-tag, .cs-series span) { font-style: italic; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); padding-left: 44px; padding-right: 44px; box-shadow: none; }
+.draft[data-design="slant"] .cstage :is(.cs-tr:not(.head), .cs-tie, .cs-lineup-row, .cs-stat) { border: 0; padding-left: 30px; padding-right: 30px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); background: linear-gradient(90deg, color-mix(in srgb, var(--team, #ffc94d) 85%, transparent) 0 10px, rgba(13, 16, 23, 0.9) 10px); }
+.draft[data-design="slant"] .cstage .cs-lineup-col.red .cs-lineup-row { background: linear-gradient(270deg, var(--team) 0 10px, rgba(13, 16, 23, 0.9) 10px); }
+.draft[data-design="slant"] .cstage .cs-lineup-row { padding-left: 18px; }
+.draft[data-design="slant"] .cstage .cs-tr.lead { background: linear-gradient(90deg, #ffc94d 0 10px, rgba(60, 46, 10, 0.92) 10px); box-shadow: none; }
+.draft[data-design="slant"] .cstage .cs-tr.live { background: linear-gradient(90deg, var(--red) 0 10px, rgba(60, 12, 20, 0.92) 10px); box-shadow: none; }
+.draft[data-design="slant"] .cstage .cs-tr.next { box-shadow: none; }
+.draft[data-design="slant"] .cstage .cs-tie { padding: 0 18px; }
+.draft[data-design="slant"] .cstage .cs-card { transform: skewX(-6deg); box-shadow: 0 0 0 5px #ffc94d, 16px 16px 0 rgba(0, 0, 0, 0.5); }
+.draft[data-design="slant"] .cstage .cs-card img { transform: skewX(6deg) scale(1.18); }
+.draft[data-design="slant"] .cstage .cs-spot.pop .cs-card { animation: cs-card-slant 0.6s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+.draft[data-design="slant"] .cstage .logo { transform: skewX(-6deg); border-bottom: 0; box-shadow: 0 0 0 4px #ffc94d, 12px 12px 0 rgba(0, 0, 0, 0.5); }
+.draft[data-design="slant"] .cstage .logo > * { transform: skewX(6deg); }
+.draft[data-design="slant"] .cstage :is(.cs-match.on .cs-side .logo, .cs-turn.on .logo) { animation: none; }
+@keyframes cs-card-slant { from { opacity: 0; transform: translateX(-120px) skewX(-6deg); } to { opacity: 1; transform: skewX(-6deg); } }
+
+/* ---------------- Glass ---------------- */
+.draft[data-design="glass"] .cstage :is(.cs-tr:not(.head), .cs-tie, .cs-lineup-row, .cs-stat) {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 18px;
+    background: rgba(16, 20, 30, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: none;
+}
+.draft[data-design="glass"] .cstage .cs-lineup-row { overflow: hidden; background: linear-gradient(90deg, color-mix(in srgb, var(--team) 34%, rgba(16, 20, 30, 0.5)), rgba(16, 20, 30, 0.5) 60%); }
+.draft[data-design="glass"] .cstage .cs-lineup-col.red .cs-lineup-row { background: linear-gradient(270deg, color-mix(in srgb, var(--team) 34%, rgba(16, 20, 30, 0.5)), rgba(16, 20, 30, 0.5) 60%); }
+.draft[data-design="glass"] .cstage .cs-tr.lead { background: rgba(255, 201, 77, 0.2); border-color: rgba(255, 201, 77, 0.6); }
+.draft[data-design="glass"] .cstage .cs-tr.live { background: rgba(255, 61, 85, 0.2); border-color: rgba(255, 61, 85, 0.6); }
+.draft[data-design="glass"] .cstage .cs-tr.next { border-color: rgba(255, 201, 77, 0.6); }
+.draft[data-design="glass"] .cstage .cs-tie { overflow: hidden; }
+.draft[data-design="glass"] .cstage :is(.cs-info-title, .cs-spot-tag, .cs-series span) { border-radius: 999px; background: rgba(255, 201, 77, 0.92); box-shadow: none; }
+.draft[data-design="glass"] .cstage .cs-spot.is-ban .cs-spot-tag { background: rgba(255, 61, 85, 0.92); }
+.draft[data-design="glass"] .cstage :is(.cs-tr span.score em) { border-radius: 999px; }
+.draft[data-design="glass"] .cstage .cs-card { border-radius: 30px; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45), 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 100px color-mix(in srgb, var(--team) 55%, transparent); }
+.draft[data-design="glass"] .cstage .logo { border-radius: 30px; border-bottom: 0; background: color-mix(in srgb, var(--team) 40%, rgba(8, 10, 15, 0.5)); }
+.draft[data-design="glass"] .cstage .cs-lineup-team { border-bottom: 0; }
+.draft[data-design="glass"] .cstage .cs-info-bar { border-radius: 3px; }
+
+/* ---------------- Studio: flat ---------------- */
+.draft[data-design="studio"] .cstage :is(.cs-tr:not(.head), .cs-tie, .cs-lineup-row, .cs-stat) { background: #0d1017; box-shadow: none; }
+.draft[data-design="studio"] .cstage .cs-stat { border-bottom: 0; border-left: 4px solid var(--gold); text-align: left; }
+.draft[data-design="studio"] .cstage :is(.cs-tr.lead, .cs-tr.next, .cs-tr.live) { box-shadow: none; }
+.draft[data-design="studio"] .cstage :is(.cs-tr.lead, .cs-tr.next, .cs-tr.live)::after { display: none; }
+.draft[data-design="studio"] .cstage :is(.cs-info-title, .cs-spot-tag, .cs-series span) { padding-left: 0; padding-right: 0; color: var(--muted); background: none; box-shadow: none; letter-spacing: 10px; }
+.draft[data-design="studio"] .cstage .cs-info-title::after { display: none; }
+.draft[data-design="studio"] .cstage .cs-spot-tag { color: var(--gold); }
+.draft[data-design="studio"] .cstage .cs-spot.is-ban .cs-spot-tag { color: var(--red); background: none; }
+.draft[data-design="studio"] .cstage .cs-series span { color: var(--muted); animation: none; }
+.draft[data-design="studio"] .cstage :is(.cs-team, .cs-turn-team, .cs-spot-hero),
+.draft[data-design="studio"] .cstage :is(.cs-turn-clock, .cs-series b) { text-shadow: none; }
+.draft[data-design="studio"] .cstage .cs-card { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); border-bottom: 6px solid var(--team); }
+.draft[data-design="studio"] .cstage .logo { background: none; box-shadow: none; border-bottom: 4px solid var(--team); }
+.draft[data-design="studio"] .cstage :is(.cs-match.on .cs-side .logo, .cs-turn.on .logo) { animation: none; }
+.draft[data-design="studio"] .cstage :is(.cs-lineup-title, .cs-round-name) { color: var(--muted); }
+.draft[data-design="studio"] .cstage .cs-rec b { color: #fff; }
+
+/* ---------------- Neon ---------------- */
+.draft[data-design="neon"] .cstage :is(.cs-tr:not(.head), .cs-tie, .cs-lineup-row, .cs-stat) {
+    background: rgba(4, 7, 13, 0.86);
+    border: 2px solid var(--team, var(--gold));
+    box-shadow: 0 0 14px color-mix(in srgb, var(--team, var(--gold)) 60%, transparent), inset 0 0 18px color-mix(in srgb, var(--team, var(--gold)) 18%, transparent);
+}
+.draft[data-design="neon"] .cstage :is(.cs-tr:not(.head), .cs-tie) { border-width: 1px; border-color: rgba(246, 255, 77, 0.45); box-shadow: 0 0 10px rgba(246, 255, 77, 0.2); }
+.draft[data-design="neon"] .cstage .cs-tr.lead { border-width: 2px; border-color: var(--gold); box-shadow: 0 0 20px rgba(246, 255, 77, 0.6); }
+.draft[data-design="neon"] .cstage .cs-tr.live { border-width: 2px; border-color: var(--red); box-shadow: 0 0 20px var(--red); }
+.draft[data-design="neon"] .cstage .cs-tr.next { border-width: 2px; border-color: var(--gold); }
+.draft[data-design="neon"] .cstage .cs-stat { border-color: var(--gold); box-shadow: 0 0 14px rgba(246, 255, 77, 0.5); }
+.draft[data-design="neon"] .cstage :is(.cs-info-title, .cs-spot-tag, .cs-series span) { color: var(--gold); background: rgba(4, 7, 13, 0.86); border: 2px solid var(--gold); box-shadow: 0 0 18px rgba(246, 255, 77, 0.6); text-shadow: 0 0 12px var(--gold); }
+.draft[data-design="neon"] .cstage .cs-spot.is-ban .cs-spot-tag { color: var(--red); background: rgba(4, 7, 13, 0.86); border-color: var(--red); box-shadow: 0 0 18px var(--red); text-shadow: 0 0 12px var(--red); }
+.draft[data-design="neon"] .cstage :is(.cs-team, .cs-turn-team, .cs-spot-hero) { text-shadow: 0 0 30px color-mix(in srgb, var(--team, #fff) 80%, transparent), 0 0 6px #fff; }
+.draft[data-design="neon"] .cstage .cs-team { color: var(--team); }
+.draft[data-design="neon"] .cstage :is(.cs-turn-clock, .cs-series b, .cs-stat b, .cs-rec b) { text-shadow: 0 0 24px currentColor; }
+.draft[data-design="neon"] .cstage .cs-card { box-shadow: 0 0 0 3px var(--team), 0 0 50px 6px var(--team); }
+.draft[data-design="neon"] .cstage .cs-card::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 4px, rgba(0, 0, 0, 0.25) 4px 6px); }
+.draft[data-design="neon"] .cstage .cs-spot.is-ban .cs-card::after { background: linear-gradient(to top right, transparent calc(50% - 7px), var(--red) calc(50% - 7px), var(--red) calc(50% + 7px), transparent calc(50% + 7px)); }
+.draft[data-design="neon"] .cstage .logo { background: rgba(4, 7, 13, 0.82); border: 3px solid var(--team); box-shadow: 0 0 34px var(--team), inset 0 0 30px color-mix(in srgb, var(--team) 30%, transparent); }
+.draft[data-design="neon"] .cstage .cs-lineup-team { text-shadow: 0 0 16px var(--team); }
+
+/* ---------------- Prestige and Championship: black and gold ---------------- */
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage :is(.cs-tr:not(.head), .cs-tie, .cs-lineup-row, .cs-stat) {
+    background: linear-gradient(180deg, #1b170d, #0b0a07);
+    border: 1px solid rgba(255, 215, 102, 0.6);
+    box-shadow: inset 0 0 0 3px #0b0a07, inset 0 0 0 4px rgba(255, 215, 102, 0.2);
+}
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-lineup-row { border-left: 8px solid var(--team); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-lineup-col.red .cs-lineup-row { border-left: 1px solid rgba(255, 215, 102, 0.6); border-right: 8px solid var(--team); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-stat { border-bottom: 4px solid #ffd766; }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-tr.lead { border-color: #ffd766; box-shadow: inset 0 0 0 3px #0b0a07, inset 0 0 0 4px rgba(255, 215, 102, 0.5), 0 0 30px rgba(255, 201, 77, 0.3); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-tr.live { border-color: var(--red); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage :is(.cs-info-title, .cs-series span) { color: #ffd766; background: #0b0a07; border: 1px solid rgba(255, 215, 102, 0.7); box-shadow: inset 0 0 0 4px #0b0a07, inset 0 0 0 5px rgba(255, 215, 102, 0.3); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage :is(.cs-team, .cs-turn-team, .cs-spot-hero),
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-turn-clock:not(.low) {
+    color: #ffd766;
+    background: linear-gradient(180deg, #ffffff 0%, #fff3c4 40%, #ffc94d 72%, #b8862b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.4));
+}
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-card { box-shadow: 0 0 0 2px #ffd766, 0 0 0 10px #0b0a07, 0 0 0 12px rgba(255, 215, 102, 0.7), 0 0 0 20px #0b0a07, 0 0 0 21px var(--team), 0 30px 70px rgba(0, 0, 0, 0.7), 0 0 110px rgba(255, 201, 77, 0.35); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .logo { background: linear-gradient(180deg, #1b170d, #0b0a07); box-shadow: 0 0 0 2px #ffd766, 0 0 0 10px #0b0a07, 0 0 0 12px rgba(255, 215, 102, 0.6), 0 0 80px rgba(255, 201, 77, 0.3); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .logo span { color: #ffd766; }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage :is(.cs-who i, .cs-rec i, .cs-stat i, .cs-spot-roles, .cs-sub, .cs-turn-act) { color: rgba(255, 233, 160, 0.8); }
+.draft:is([data-design="prestige"], [data-design="championship"]) .cstage .cs-lineup-team span { color: #ffd766; }
+
+/* Championship adds the moving gold: shimmering names, metallic plates,
+   light crossing every row, and rays behind the stage */
+.draft[data-design="championship"] .cstage::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1700px;
+    height: 1700px;
+    margin: -850px 0 0 -850px;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 201, 77, 0.16) 0deg 4deg, transparent 4deg 16deg);
+    -webkit-mask-image: radial-gradient(circle, #000 4%, transparent 44%);
+    mask-image: radial-gradient(circle, #000 4%, transparent 44%);
+    animation: mvp-spin 60s linear infinite;
+    pointer-events: none;
+}
+.draft[data-design="championship"] .cstage :is(.cs-team, .cs-turn-team, .cs-spot-hero) {
+    background: var(--shimmer) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+.draft[data-design="championship"] .cstage .cs-spot-hero { animation: cs-line 0.5s ease-out 0.2s both, champ-shine 4s linear infinite; }
+.draft[data-design="championship"] .cstage .cs-team { animation: champ-shine 5s linear infinite; }
+.draft[data-design="championship"] .cstage .cs-turn.on .cs-turn-team { animation: cs-rise 0.5s ease-out 0.1s both, champ-shine 4s linear infinite; }
+.draft[data-design="championship"] .cstage :is(.cs-info-title, .cs-series span, .cs-spot-tag) { color: var(--c-ink); background: var(--champ); border: 0; box-shadow: 0 0 30px rgba(255, 201, 77, 0.45); clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); padding-left: 44px; padding-right: 44px; }
+.draft[data-design="championship"] .cstage .cs-spot.is-ban .cs-spot-tag { color: #fff; background: linear-gradient(180deg, #ff6b7e, #b0122a); }
+.draft[data-design="championship"] .cstage :is(.cs-lineup-row, .cs-stat, .cs-tie) { position: relative; overflow: hidden; }
+.draft[data-design="championship"] .cstage :is(.cs-lineup-row, .cs-stat, .cs-tr:not(.head):not(.lead):not(.next):not(.live))::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 244, 200, 0.3) 50%, transparent 58%) 150% 0 / 300% 100% no-repeat;
+    animation: champ-sweep 6s ease-in-out 1.4s infinite;
+}
+.draft[data-design="championship"] .cstage .cs-lineup-row:nth-child(odd)::after { animation-delay: 2.2s; }
+.draft[data-design="championship"] .cstage .cs-info-bar i { background: var(--champ); }

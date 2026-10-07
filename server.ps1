@@ -24,6 +24,8 @@ $mime = @{
     '.webp' = 'image/webp'
     '.svg'  = 'image/svg+xml'
     '.ico'  = 'image/x-icon'
+    '.mp4'  = 'video/mp4'
+    '.webm' = 'video/webm'
     '.woff' = 'font/woff'
     '.woff2'= 'font/woff2'
     '.ttf'  = 'font/ttf'
@@ -95,6 +97,21 @@ function Handle-Request($ctx) {
         return
     }
 
+    # The centre stage of the draft overlay plays whatever is in Assets\Media.
+    if ($path -eq '/api/media') {
+        $dir = Join-Path $root 'Assets\Media'
+        $kinds = @('.mp4', '.webm', '.png', '.jpg', '.jpeg', '.gif', '.webp')
+        $items = @()
+        if (Test-Path -LiteralPath $dir) {
+            $items = @(Get-ChildItem -LiteralPath $dir -File |
+                Where-Object { $kinds -contains $_.Extension.ToLowerInvariant() } |
+                Sort-Object Name |
+                ForEach-Object { '"Assets/Media/' + [Uri]::EscapeDataString($_.Name) + '"' })
+        }
+        Send-Text $res 200 ('[' + ($items -join ',') + ']') 'application/json; charset=utf-8'
+        return
+    }
+
     if ($path -eq '/') { $path = '/index.html' }
     $full = [IO.Path]::GetFullPath((Join-Path $root ($path.TrimStart('/') -replace '/', '\')))
     $ext = [IO.Path]::GetExtension($full).ToLowerInvariant()
@@ -107,7 +124,7 @@ function Handle-Request($ctx) {
     $type = $mime[$ext]
     if (-not $type) { $type = 'application/octet-stream' }
     $cache = 'no-cache'
-    if ($type.StartsWith('image/') -or $type.StartsWith('font/')) { $cache = 'max-age=300' }
+    if ($type.StartsWith('image/') -or $type.StartsWith('font/') -or $type.StartsWith('video/')) { $cache = 'max-age=300' }
     Send-Bytes $res 200 $type ([IO.File]::ReadAllBytes($full)) $cache
 }
 

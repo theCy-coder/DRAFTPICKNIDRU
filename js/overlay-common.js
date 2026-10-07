@@ -69,12 +69,12 @@
     // Put the chosen design on the overlay root. Adding ?design=name to the
     // page URL overrides the control panel, e.g. to preview a design or to
     // give one OBS scene its own look. Returns true when the design changed.
-    // `kind` is 'draft', 'scoreboard' or 'mvp'. A show design can use a
-    // differently named look on one overlay: Studio is the side-column draft
-    // ("towers") with the thin scoreboard ("minimal").
+    // `kind` is 'draft', 'scoreboard', 'mvp' or 'idle'. A show design can use
+    // a differently named look on one overlay: Studio's scoreboard is the
+    // thin strip called "minimal".
     const DESIGNS = {
         classic: {}, slant: {}, glass: {}, neon: {}, prestige: {}, championship: {},
-        studio: { draft: 'towers', scoreboard: 'minimal' }
+        studio: { scoreboard: 'minimal' }
     };
     const OLD_NAMES = { towers: 'studio', minimal: 'studio' };
 
@@ -85,6 +85,21 @@
         const look = DESIGNS[name][kind] || name;
         if (root.dataset.design === look) return false;
         root.dataset.design = look;
+        return true;
+    }
+
+    // Where the draft puts the picks: along the bottom, or stacked down the
+    // left and right edges. 'auto' follows the show design (Studio uses the
+    // edges). ?layout=sides or ?layout=bottom on the URL overrides it.
+    function applyDraftLayout(root, layout, design) {
+        const params = new URLSearchParams(location.search);
+        let choice = params.get('layout') || layout || 'auto';
+        if (choice !== 'sides' && choice !== 'bottom') {
+            const name = OLD_NAMES[params.get('design') || design] || params.get('design') || design;
+            choice = name === 'studio' ? 'sides' : 'bottom';
+        }
+        if (root.dataset.layout === choice) return false;
+        root.dataset.layout = choice;
         return true;
     }
 
@@ -112,6 +127,7 @@
         renderLogo: renderLogo,
         renderPips: renderPips,
         applyDesign: applyDesign,
+        applyDraftLayout: applyDraftLayout,
         renderEffect: renderEffect,
         seriesText: seriesText
     };

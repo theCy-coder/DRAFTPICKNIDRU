@@ -27,6 +27,9 @@
             teams: { blue: emptyTeam('Blue Team', 'BLU'), red: emptyTeam('Red Team', 'RED') },
             draft: {
                 visible: true,
+                layout: 'auto',          // picks 'bottom' | 'sides' | 'auto' (follow the design)
+                stage: 'story',          // centre of the side layout: 'off' | 'story' | 'info' | 'media'
+                background: false,       // animated full-screen backdrop in the show design
                 mode: 'normal',          // 'normal' | 'fearless'
                 fearlessScope: 'both',   // 'both' | 'team'
                 step: 0,
@@ -46,6 +49,13 @@
             // the moment it was pressed, so an overlay only plays a fresh one.
             event: { id: '', side: '', at: 0 },
             banner: { top: 136, seconds: 5 },
+            // The whole season, edited on the Season tab and shown by the centre
+            // stage. Rows are plain text: standings { team, w, l, pts },
+            // schedule { when, a, b, score }, bracket { round, a, sa, b, sb }.
+            // `when` is Philippine wall-clock time, "2026-10-10T18:00".
+            // heroes: this season's record per hero, { id, p: picked, w: won, b: banned },
+            // counted by the control panel each time a game's winner is entered.
+            season: { title: '', seconds: 10, standings: [], schedule: [], bracket: [], heroes: [] },
             // Waiting screen (idle.html): headline, optional bottom line and a countdown.
             idle: { title: 'Starting soon', message: '', minutes: 5, showTimer: true,
                 timer: { running: false, endsAt: 0, remaining: 300000 } },

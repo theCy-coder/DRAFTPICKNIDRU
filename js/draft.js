@@ -100,7 +100,11 @@
         const d = state.draft;
         const step = Store.currentStep(state);
         $('draft').classList.toggle('hidden', !d.visible);
-        const restyled = Overlay.applyDesign($('draft'), state.design, 'draft');
+        // The backdrop takes the waiting screen's look for the chosen design.
+        Overlay.applyDesign($('dbg'), state.design, 'idle');
+        $('dbg').classList.toggle('on', !!d.background && d.visible);
+        const moved = Overlay.applyDraftLayout($('draft'), d.layout, state.design);
+        const restyled = Overlay.applyDesign($('draft'), state.design, 'draft') || moved;
         $('fearless').classList.toggle('off', d.mode !== 'fearless');
         Store.SIDES.forEach(function (side) { renderPlayed(side, state.teams[side]); });
 
@@ -137,7 +141,22 @@
         Overlay.setText($('phase'), step ? (step.side + ' ' + step.type) : 'Draft complete');
         // Each design has different box widths, so measure the text again.
         if (restyled) refit();
+        CentreStage.render(state);
         tick();
+    }
+
+    // Sparks (or confetti, in the Championship design) for the backdrop.
+    function buildSparks() {
+        const box = $('dbg-sparks');
+        for (let i = 0; i < 40; i++) {
+            const spark = el('i');
+            const size = 3 + Math.random() * 7;
+            spark.style.left = (Math.random() * 100) + '%';
+            spark.style.width = spark.style.height = size + 'px';
+            spark.style.animationDuration = (7 + Math.random() * 9) + 's';
+            spark.style.animationDelay = (-Math.random() * 16) + 's';
+            box.appendChild(spark);
+        }
     }
 
     function refit() {
@@ -150,6 +169,7 @@
     }
 
     function tick() {
+        CentreStage.tick();
         const state = Store.get();
         const step = Store.currentStep(state);
         const timer = $('timer');
@@ -168,6 +188,7 @@
 
     Overlay.setupStage($('stage'));
     build();
+    buildSparks();
     Store.subscribe(render);
     Store.init().then(function () {
         // Re-fit once the display font is in so widths are measured correctly.
