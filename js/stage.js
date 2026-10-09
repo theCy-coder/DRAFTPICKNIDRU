@@ -43,12 +43,17 @@
             '</div>' +
             '<div class="cs-panel cs-turn" data-name="turn">' +
             '  <div class="logo" id="cs-turn-logo"></div>' +
+            '  <div class="cs-turn-players" id="cs-turn-players"></div>' +
             '  <div class="cs-turn-team fit" id="cs-turn-team"></div>' +
             '  <div class="cs-turn-act" id="cs-turn-act"></div>' +
             '  <div class="cs-turn-clock" id="cs-turn-clock"></div>' +
             '</div>' +
             '<div class="cs-panel cs-spot" data-name="spot">' +
-            '  <div class="cs-card"><img id="cs-spot-img" alt=""></div>' +
+            '  <div class="cs-cards">' +
+            '    <div class="cs-card"><img id="cs-spot-img" alt=""></div>' +
+            '    <div class="cs-pcard" id="cs-spot-pcard"><img class="cs-photo" id="cs-spot-photo" alt=""><span id="cs-spot-nick"></span></div>' +
+            '    <i class="cs-link"></i>' +
+            '  </div>' +
             '  <div class="cs-spot-text">' +
             '    <div class="cs-spot-tag" id="cs-spot-tag"></div>' +
             '    <div class="cs-spot-hero fit" id="cs-spot-hero"></div>' +
@@ -58,7 +63,6 @@
             '  </div>' +
             '</div>' +
             '<div class="cs-panel cs-lineup" data-name="lineup">' +
-            '  <div class="cs-lineup-title">Lineups</div>' +
             '  <div class="cs-lineup-cols"><div class="cs-lineup-col blue" id="cs-lineup-blue"></div><div class="cs-lineup-col red" id="cs-lineup-red"></div></div>' +
             '</div>' +
             '<div class="cs-panel cs-info" data-name="info"><div class="cs-info-title" id="cs-info-title"></div><div class="cs-info-bar"><i id="cs-info-bar"></i></div><div class="cs-info-body" id="cs-info-body"></div></div>' +
@@ -114,6 +118,12 @@
         $('cs-spot-roles').textContent = hero.roles.join(' · ');
         const player = !banned && team.players[spot.i];
         $('cs-spot-by').textContent = (player ? player + ' · ' : 'by ') + team.name;
+        // the player's photo, for a pick that has a named player
+        // "player picks hero": the player's card, an arrow, then the hero's card
+        const pic = player ? Overlay.setPlayerImage($('cs-spot-photo'), state, player) : { src: '' };
+        $('cs-spot-pcard').hidden = !pic.src;
+        $('cs-spot-nick').textContent = player || '';
+        panel.classList.toggle('has-player', !!pic.src);
         Overlay.fitText($('cs-spot-by'), 54, 26);
         spotStat(state, spot.hero, banned);
         // replay the entrance for every lock-in
@@ -139,8 +149,34 @@
         panel.classList.toggle('blue', step.side === 'blue');
         panel.classList.toggle('red', step.side === 'red');
         Overlay.renderLogo($('cs-turn-logo'), team);
-        if (Overlay.setText($('cs-turn-team'), team.name)) Overlay.fitText($('cs-turn-team'), 110, 44);
         Overlay.setText($('cs-turn-act'), step.type === 'ban' ? 'is banning' : (step.slots.length > 1 ? 'picks two' : 'is picking'));
+
+        // On a pick, show who is about to choose instead of the team logo.
+        const box = $('cs-turn-players');
+        const upNext = step.type === 'pick'
+            ? step.slots.filter(function (i) { return !state.draft.picks[step.side][i] && team.players[i]; })
+                .map(function (i) { return { name: team.players[i], pic: Overlay.playerPicture(state, team.players[i]) }; })
+                .filter(function (p) { return p.pic.src; })
+            : [];
+        const key = JSON.stringify(upNext.map(function (p) { return [p.name, p.pic.src.length, p.pic.src.slice(-24), p.pic.logo]; }));
+        if (box.dataset.key !== key) {
+            box.dataset.key = key;
+            box.textContent = '';
+            upNext.forEach(function (p) {
+                const card = el('div', 'cs-pcard');
+                const img = el('img', 'cs-photo' + (p.pic.logo ? ' is-logo' : ''));
+                img.alt = '';
+                img.src = p.pic.src;
+                card.appendChild(img);
+                card.appendChild(el('span', '', p.name));
+                box.appendChild(card);
+            });
+        }
+        panel.classList.toggle('has-players', upNext.length > 0);
+        if (Overlay.setText($('cs-turn-team'), team.name) || box.dataset.fit !== key) {
+            box.dataset.fit = key;
+            Overlay.fitText($('cs-turn-team'), upNext.length ? 80 : 110, 40);
+        }
     }
 
     // ---- season hero records ------------------------------------------------
@@ -169,7 +205,10 @@
         } else {
             add('0', 'times picked');
         }
-        add(String(row.b), row.b === 1 ? 'ban' : 'bans');
+        // every game has ten picks, so the picks give the number of games counted
+        const games = Math.round(state.season.heroes.reduce(function (sum, r) { return sum + (r.p || 0); }, 0) / 10);
+        if (games) add(Math.round(row.b / games * 100) + '%', 'ban rate');
+        else add(String(row.b), row.b === 1 ? 'ban' : 'bans');
     }
 
     // After the draft: who is playing what, and how that hero has done this
@@ -185,7 +224,9 @@
             })[0];
             const record = standing && (String(standing.w).trim() || String(standing.l).trim())
                 ? (standing.w || 0) + ' \u2013 ' + (standing.l || 0) : '';
-            const key = JSON.stringify([team.name, team.players, picks, record, state.season.heroes]);
+            const photos = team.players.map(function (name) { return Overlay.playerPicture(state, name); });
+            const key = JSON.stringify([team.name, team.players, picks, record, state.season.heroes,
+                photos.map(function (pic) { return pic.src.length + pic.src.slice(-24) + pic.logo; })]);
             if (box.dataset.key === key) return;
             box.dataset.key = key;
             box.textContent = '';
@@ -193,20 +234,33 @@
             head.appendChild(el('span', '', team.name));
             if (record) head.appendChild(el('b', '', record));
             box.appendChild(head);
+            const cards = el('div', 'cs-lineup-cards');
+            box.appendChild(cards);
             picks.forEach(function (id, i) {
                 const hero = Heroes.get(id);
                 if (!hero) return;
+                // One card per player: their picture fills the left side. A player
+                // with no picture gets their hero's portrait there instead.
                 const row = el('div', 'cs-lineup-row');
-                const face = el('div', 'cs-face');
-                const img = el('img');
-                img.alt = '';
-                img.src = hero.img;
-                face.appendChild(img);
-                row.appendChild(face);
-                const who = el('div', 'cs-who');
-                who.appendChild(el('b', '', team.players[i] || hero.name));
-                who.appendChild(el('i', '', team.players[i] ? hero.name : hero.roles.join(' \u00b7 ')));
-                row.appendChild(who);
+                const mug = el('div', 'cs-face player');
+                const mugImg = el('img', photos[i].logo ? 'is-logo' : '');
+                mugImg.alt = '';
+                mugImg.src = photos[i].src || hero.img;
+                mug.appendChild(mugImg);
+                row.appendChild(mug);
+                const body = el('div', 'cs-who');
+                body.appendChild(el('b', '', team.players[i] || hero.name));
+                const on = el('div', 'cs-on');
+                if (photos[i].src) {
+                    const face = el('div', 'cs-face hero');
+                    const img = el('img');
+                    img.alt = '';
+                    img.src = hero.img;
+                    face.appendChild(img);
+                    on.appendChild(face);
+                }
+                on.appendChild(el('i', '', team.players[i] ? hero.name : hero.roles.join(' \u00b7 ')));
+                body.appendChild(on);
                 const rec = heroRecord(state, id);
                 const stat = el('div', 'cs-rec');
                 if (rec && rec.p) {
@@ -214,10 +268,10 @@
                     stat.appendChild(el('i', '', rec.w + ' \u2013 ' + (rec.p - rec.w)));
                 } else if (state.season.heroes.length) {
                     stat.appendChild(el('b', 'new', 'New'));
-                    stat.appendChild(el('i', '', 'this season'));
                 }
-                row.appendChild(stat);
-                box.appendChild(row);
+                body.appendChild(stat);
+                row.appendChild(body);
+                cards.appendChild(row);
             });
         });
     }

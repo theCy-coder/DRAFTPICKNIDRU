@@ -407,6 +407,28 @@ input::placeholder { color: #5d6676; }
 .srow.head span { padding: 0 10px; font-size: 12px; color: var(--muted); }
 .srow .btn, .srow.head i { flex: none; width: 38px; padding: 0; }
 .hint.bad { color: #ff8090; }
+.prow b { flex: none; width: 44px; height: 55px; overflow: hidden; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); }
+.trow b { flex: none; width: 44px; height: 44px; overflow: hidden; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); }
+.trow b img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.trow em { flex: none; display: flex; gap: 6px; width: 250px; font-style: normal; }
+.trow em .btn { flex: 1 1 auto; width: auto; padding: 0 10px; }
+.trow em .btn.danger { flex: none; width: 38px; }
+.prow select { flex: 2 1 0; width: 0; min-width: 0; }
+.prow b.is-logo img { object-fit: contain; padding: 3px; }
+.prow b.is-none { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 400; color: var(--muted); }
+.srow.prow em { width: 38px; }
+.prow select.player-show { flex: 2.4 1 0; }
+.prow { margin-bottom: 6px; }
+.pgroup-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 700; white-space: pre; }
+.pgroup-head:first-child { margin-top: 0; }
+.pgroup-head .btn { height: 30px; font-size: 13px; }
+.pgroup-empty { margin: 0 0 6px; }
+.field.loader { margin: 12px 0 0; }
+.prow b img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.prow em { flex: none; display: flex; gap: 6px; width: 250px; font-style: normal; }
+.prow em .btn { flex: 1 1 auto; width: auto; padding: 0 10px; }
+.prow em .btn.danger { flex: none; width: 38px; }
+.prow.head b { height: 0; border: 0; }
 .htable { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 2px 24px; }
 .hrow { display: flex; gap: 8px; padding: 5px 10px; font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
 .hrow span { flex: 0 0 62px; text-align: right; }
@@ -474,3 +496,177 @@ input[type='datetime-local'] { color-scheme: dark; }
     .ecol.neutral .ecol-title, .ecol.red .ecol-title { text-align: left; }
     .summary { margin-left: 0; }
 }
+
+/* =====================================================================
+   Layout pass: a header that always says where the show is, one job per
+   screen, and explanations folded away until they are asked for.
+   ===================================================================== */
+:root { --top: 104px; }
+main { padding-bottom: 24px; }
+h3 { margin: 0 0 10px; font-size: 13px; font-weight: 700; color: var(--text); }
+h3 small { margin-left: 6px; font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---- header: tabs on top, the "now" strip under them ---- */
+.topbar { display: block; padding: 0; }
+.topbar-main { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 8px 20px; }
+.topbar-main .status { margin-left: auto; }
+.tabs { align-items: center; }
+.tab-arrow { width: 8px; height: 8px; margin: 0 2px 0 0; border-top: 2px solid var(--line); border-right: 2px solid var(--line); transform: rotate(45deg); }
+.tabs.quiet { background: transparent; border-color: transparent; padding-left: 0; }
+.tabs.quiet .tab { height: 34px; padding: 0 12px; font-size: 14px; font-weight: 600; }
+.nowbar { display: flex; align-items: center; gap: 10px 28px; flex-wrap: wrap; padding: 6px 20px; background: #12161e; border-top: 1px solid var(--line); }
+.now { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.now > span { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.now b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#now-phase { text-transform: capitalize; }
+.now .summary { margin: 0; white-space: pre; }
+.now.blue b, .now.red b { color: var(--team); }
+.now.onscreen { margin-left: auto; gap: 8px; }
+/* on-screen switches: one press, and the state is spelled out */
+.now .check.onair { margin: 0; height: 30px; padding: 0 10px 0 12px; gap: 8px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--muted); background: var(--card); user-select: none; }
+.now .check.onair input { position: absolute; opacity: 0; pointer-events: none; }
+.now .check.onair::after { content: 'OFF'; min-width: 30px; padding: 1px 6px; font-size: 10px; letter-spacing: 0.08em; text-align: center; color: var(--muted); background: var(--card-2); border-radius: 999px; }
+.now .check.onair:hover { border-color: #55627a; color: var(--text); }
+.now .check.onair:has(input:checked) { color: #fff; background: rgba(54, 194, 117, 0.16); border-color: var(--ok); }
+.now .check.onair:has(input:checked)::after { content: 'ON'; color: #06210f; background: var(--ok); }
+.now .check.onair:has(input:focus-visible) { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+/* ---- sub-tabs inside Settings and Season ---- */
+.subtabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.subtab { height: 38px; padding: 0 16px; color: var(--muted); background: transparent; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.subtab:hover { color: var(--text); }
+.subtab.on { color: var(--text); border-bottom-color: var(--blue); }
+.subtab.push { margin-left: auto; }
+.subtab[data-n]::after { content: attr(data-n); margin-left: 8px; padding: 1px 7px; font-size: 11px; color: var(--muted); background: var(--card-2); border-radius: 999px; }
+.subtab[data-n="0"]::after { content: 'empty'; background: transparent; border: 1px dashed var(--line); }
+
+/* ---- explanations: closed until wanted ---- */
+details.help, details.more { margin-top: 12px; }
+details.help summary, details.more summary { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; list-style: none; user-select: none; }
+details.help summary::-webkit-details-marker, details.more summary::-webkit-details-marker { display: none; }
+details.help summary::before { content: '?'; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 11px; border: 1px solid currentColor; border-radius: 50%; }
+details.more summary::before { content: ''; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 0.15s; }
+details.more[open] summary::before { transform: rotate(45deg); }
+details.help summary:hover, details.more summary:hover, details[open] > summary { color: var(--text); }
+details.help p { margin: 8px 0 0; max-width: 78ch; font-size: 12px; color: var(--muted); }
+details.more summary { font-size: 13px; }
+details.more .options { margin-top: 12px; }
+
+/* ---- groups inside a card ---- */
+.group + .group { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.group > .check + .check { margin-top: 10px; }
+.group .options:last-child, .card > .options:last-child { margin-bottom: 0; }
+.card h2 .when { display: block; margin-bottom: 3px; font-size: 11px; color: var(--gold); }
+.btn.strong { background: var(--text); border-color: var(--text); color: var(--bg); }
+.btn.strong:hover { background: #fff; border-color: #fff; }
+.btn.strong:disabled { background: var(--card-2); border-color: var(--line); color: var(--muted); }
+
+/* ---- setup: waiting screen in two halves ---- */
+.idle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.idle-grid .group + .group { margin: 0; padding: 0 0 0 28px; border-top: 0; border-left: 1px solid var(--line); }
+.idle-grid .field:last-child { margin-bottom: 0; }
+.idle-row { margin-bottom: 12px; }
+
+/* ---- draft: the board stays put, the hero list scrolls under it ---- */
+.draft-head { gap: 12px; }
+.draft-head .actions.fixes { margin-left: auto; gap: 4px; }
+.draft-head .btn.primary, .draft-head .btn.strong { height: 40px; padding: 0 18px; font-size: 15px; }
+.draft-foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+.draft-foot .hint { flex: 1 1 320px; margin: 0; }
+.draft-foot .effect-row { margin: 0; }
+.slot.pick { height: 108px; }
+.picker { margin-top: 12px; padding-top: 12px; }
+.hero { height: 84px; }
+@media (min-width: 1101px) and (min-height: 760px) {
+    .panel[data-panel="draft"] { height: calc(100vh - var(--top) - 40px); }
+    .card.draft { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+    .card.draft > * { flex: none; }
+    .card.draft > .picker { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+    .picker-head { flex: none; }
+    .hero-grid { flex: 1 1 0; min-height: 0; overflow-y: auto; align-content: start; padding: 2px 6px 2px 2px; scrollbar-color: var(--line) transparent; }
+}
+
+/* ---- live: score strip, then "during" beside "when it ends" ---- */
+.scorecard { gap: 16px; padding: 12px; align-items: stretch; }
+.score-side { gap: 4px; padding: 8px 12px 10px; }
+.score-name { font-size: 17px; }
+.stepper.huge { gap: 10px; }
+.stepper.huge button { width: 34px; height: 34px; font-size: 20px; background: transparent; color: var(--muted); }
+.stepper.huge button:hover { color: var(--text); }
+.stepper.huge output { min-width: 64px; font-size: 52px; }
+.stats-ctl { gap: 8px 20px; margin-top: 2px; }
+.stat .stepper button { width: 32px; height: 32px; }
+.score-mid { justify-content: center; }
+.score-mid .effect-row { flex-direction: column; gap: 6px; margin: 10px 0 0; }
+.score-mid .effect-select, .score-mid .effect-input { width: 210px !important; }
+.live-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+.events { gap: 10px; }
+.ebtn { height: 48px; padding: 0 10px; gap: 10px; font-size: 14px; position: relative; min-width: 0; }
+.ebtn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ebtn i { width: 26px; height: 26px; }
+.ebtn.live::after { position: absolute; top: 3px; right: 6px; margin: 0; font-size: 9px; }
+.endgame > h2 { margin-bottom: 0; }
+.step { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.step-head > b { flex: none; display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; font-size: 14px; color: var(--bg); background: var(--gold); border-radius: 50%; }
+.step-head h3 { margin: 0; font-size: 16px; }
+.step-head .btn { margin-left: auto; height: 30px; font-size: 13px; }
+.endgame .mvp-picks { gap: 8px; margin-bottom: 12px; }
+.endgame .mvp-side { gap: 6px; }
+.endgame .mvp-pick { height: 84px; }
+.endgame .mvp-pick:disabled b { line-height: 80px; }
+.endgame .field.medium { width: 200px; }
+.endgame .field.small { width: 100px; }
+.mvp-loop { margin-top: 0; padding-top: 0; border-top: 0; }
+.winners { margin-bottom: 12px; }
+.step > .hint { margin-top: 12px; }
+
+/* ---- settings ---- */
+.card > .hint:first-of-type { margin-top: 0; }
+.options + .hint { margin-top: -4px; }
+.url-row:last-of-type { margin-bottom: 0; }
+
+@media (max-width: 1250px) {
+    .live-cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 1100px) {
+    .idle-grid { grid-template-columns: 1fr; }
+    .idle-grid .group + .group { padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .now.onscreen { margin-left: 0; }
+}
+.endgame .mvp-fields:not(.mvp-loop) { display: grid; grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 0.7fr)) repeat(3, minmax(0, 1fr)); gap: 10px; }
+.endgame .mvp-fields:not(.mvp-loop) .field { width: auto; }
+.played { margin-top: 10px; padding: 10px 12px; gap: 6px 20px; }
+.played-row { margin-bottom: 0; }
+
+/* ---- setup: a side is one choice, the rest comes from the Season tab ---- */
+.team-now { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.team-now .logo-preview { flex: none; width: 72px; height: 72px; }
+.team-now > div:last-child { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.team-now b { font-size: 22px; line-height: 1.2; color: var(--team); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-now span { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); }
+.team .field.loader { margin: 0; }
+.team .field.loader select { height: 40px; font-size: 15px; }
+.team details.more > .inline, .match details.more > .field:first-of-type { margin-top: 12px; }
+.team details.more .field:last-child, .match details.more .field:last-child { margin-bottom: 0; }
+.match .btn.swap { width: 100%; }
+/* ---- chosen, not typed: season rows and draft nicknames ---- */
+.srow select { flex: 1 1 0; width: 0; min-width: 0; }
+.pick-col select { height: 30px; padding: 0 4px; font-size: 13px; text-align: center; text-align-last: center; }
+#load-match { height: 40px; font-size: 15px; }
+/* ---- standings worked out from the schedule: shown, not edited ---- */
+#season-standings.auto input, #season-standings.auto select { background: transparent; border-color: transparent; appearance: none; pointer-events: none; }
+#season-standings.auto .btn { visibility: hidden; }
+#season-standings.auto .srow:not(.head) { border-bottom: 1px solid var(--line); }
+.team-pick { display: flex; align-items: flex-end; gap: 8px; }
+.team-pick .field.loader { flex: 1 1 0; }
+.team-pick .btn { height: 40px; }
+/* ---- hotkeys: every key is printed on the button it presses ---- */
+.ebtn kbd, .btn[data-key]::after { flex: none; min-width: 24px; padding: 1px 6px; font: 700 11px Consolas, monospace; line-height: 16px; text-align: center; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; }
+.ebtn kbd { margin-left: auto; }
+.ebtn kbd:empty { display: none; }
+.ebtn.live kbd { visibility: hidden; }
+.btn[data-key]::after { content: attr(data-key); margin-left: 10px; }
+.btn.primary[data-key]::after, .btn.strong[data-key]::after { color: inherit; background: rgba(0, 0, 0, 0.18); border-color: rgba(0, 0, 0, 0.25); }
+body.no-keys .ebtn kbd, body.no-keys .btn[data-key]::after { display: none; }
+.now.keys { margin-left: 0; }

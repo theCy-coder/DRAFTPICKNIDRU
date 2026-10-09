@@ -25,12 +25,16 @@
             </div>
         </div>
 
-        <div class="mvp-card" id="mvp-card">
-            <img id="mvp-hero" alt="">
-            <div class="mvp-card-name" id="mvp-hero-name"></div>
+        <!-- Left column: the profile. One framed portrait (the player, or the
+             hero when there is no photo), the hero overlapping its corner, and
+             the "played" caption underneath. -->
+        <div class="mvp-profile" id="mvp-profile">
+            <div class="mvp-card" id="mvp-card"><img id="mvp-hero" alt=""></div>
+            <div class="mvp-inset"><img id="mvp-inset" alt=""></div>
+            <div class="mvp-played"><i>Played</i><span class="fit" id="mvp-hero-name"></span></div>
         </div>
 
-        <div class="mvp-info">
+        <div class="mvp-info" id="mvp-info">
             <div class="mvp-tag">
                 <svg class="mvp-crown" viewBox="0 0 64 48" aria-hidden="true"><path d="M4 12l14 12L32 2l14 22 14-12-6 28H10z"/><rect x="10" y="42" width="44" height="6" rx="2"/></svg>
                 <b>MVP</b>

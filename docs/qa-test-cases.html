@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MLBB Overlay – QA Test Cases</title>
+<style>
+    @page { size: A4; margin: 14mm 12mm 16mm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html { background: #fff; }
+    body { margin: 0; font: 10pt/1.42 'Segoe UI', Arial, sans-serif; color: #16181d; }
+    h1 { margin: 0 0 2mm; font-size: 24pt; }
+    h2 { margin: 8mm 0 2mm; padding-bottom: 1.5mm; font-size: 14pt; border-bottom: 2px solid #2f6fd6; page-break-after: avoid; }
+    h3 { margin: 5mm 0 1.5mm; font-size: 11pt; page-break-after: avoid; }
+    p { margin: 0 0 2.5mm; }
+    ul, ol { margin: 0 0 2.5mm; padding-left: 5.5mm; }
+    li { margin-bottom: 0.8mm; }
+    code, kbd { font: 9pt Consolas, monospace; background: #eef1f6; padding: 0 1.2mm; border-radius: 2px; }
+    kbd { border: 1px solid #c3c9d4; border-bottom-width: 2px; }
+    .sub { color: #5a6270; font-size: 11pt; margin-bottom: 6mm; }
+    .box { margin: 3mm 0; padding: 3mm 4mm; background: #f3f6fb; border-left: 4px solid #2f6fd6; page-break-inside: avoid; }
+    .box.warn { background: #fff6e3; border-left-color: #d99a00; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3mm; font-size: 9pt; }
+    th, td { border: 1px solid #c9ced8; padding: 1.4mm 1.8mm; vertical-align: top; text-align: left; }
+    th { background: #e8edf5; font-size: 8.5pt; }
+    tr { page-break-inside: avoid; }
+    td.id { width: 13mm; font: 8.5pt Consolas, monospace; white-space: nowrap; }
+    td.pf { width: 15mm; }
+    col.steps { width: 44%; }
+    .keys td, .keys th { text-align: center; }
+    .keys td:first-child, .keys th:first-child { text-align: left; }
+    .toc { columns: 2; column-gap: 10mm; padding-left: 5.5mm; }
+    .new { color: #b05a00; font-weight: 600; }
+    .foot { margin-top: 8mm; font-size: 8.5pt; color: #5a6270; }
+</style>
+</head>
+<body>
+
+<h1>MLBB Overlay – QA Test Cases</h1>
+<div class="sub">Control panel and OBS overlays · Version tested: working copy of 9 October 2026</div>
+
+<div class="box">
+    <b>What this covers.</b> Every operator-facing function of the control panel (Setup, Draft, Live game, Settings, Season) and all six overlays (draft, scoreboard, MVP, waiting, loading, plus the centre stage inside the draft). Cases marked <span class="new">NEW</span> are features added in this release and deserve the closest look.
+</div>
+
+<h2>Contents</h2>
+<ol class="toc">
+    <li>How to simulate a broadcast (recommended)</li>
+    <li>Setup before testing</li>
+    <li>Smoke test (5 minutes)</li>
+    <li>Header strip and navigation</li>
+    <li>Setup tab</li>
+    <li>Draft tab and draft overlay</li>
+    <li>Loading screen</li>
+    <li>Live game tab and scoreboard</li>
+    <li>Hotkeys</li>
+    <li>MVP screen</li>
+    <li>Ending a game and a series</li>
+    <li>Season tab</li>
+    <li>Waiting screen</li>
+    <li>Settings and show designs</li>
+    <li>Two operators, reloads and recovery</li>
+    <li>Full rehearsal script</li>
+    <li>Known limits (not bugs)</li>
+</ol>
+
+<h2>1. How to simulate a broadcast (recommended)</h2>
+<p>The tool has two halves: the <b>control panel</b> the operator clicks, and the <b>overlays</b> the audience sees. A test only counts if the tester watches the overlay change, not just the control panel. The recommended arrangement:</p>
+<ul>
+    <li><b>Two screens, or one screen split in half.</b> Left: the control panel. Right: the overlay under test.</li>
+    <li><b>Best: use OBS.</b> Add each overlay as a Browser source at 1920 × 1080 (links are in Settings → OBS links), one scene per overlay, and watch OBS’s preview. This is the real environment and catches transparency and performance problems a browser tab hides.</li>
+    <li><b>Acceptable: browser tabs.</b> Open each overlay in its own tab or window. It shows a dark backdrop instead of transparency; everything else behaves the same.</li>
+    <li><b>Play a real match alongside.</b> For the Live game cases, run an MLBB replay or spectate a match, and press the buttons as events happen. Timing mistakes and awkward button placement only show up under real pressure.</li>
+    <li><b>Test as a rehearsal, in show order.</b> Sections 5–11 follow one series from start to finish. Run them in order with the same data instead of resetting between cases; section 16 is the same flow as a single script.</li>
+    <li><b>Record the session</b> (OBS recording is enough). When something looks wrong, the recording shows exactly which press caused it.</li>
+</ul>
+<div class="box warn">
+    <b>Never test on show data.</b> Everything the panel changes is saved straight to <code>data/state.json</code>. Back that file up first (section 2), and restore it when testing is finished.
+</div>
+
+<h2>2. Setup before testing</h2>
+<ol>
+    <li>Close the server window if it is open. Copy <code>data/state.json</code> to <code>data/state.backup.json</code>.</li>
+    <li>Double-click <b>Start Overlay Server.bat</b>. Leave the window open.</li>
+    <li>Open <code>http://localhost:8777/control.html</code> in Chrome, Edge or Opera.</li>
+    <li>Load the test season: <b>Season → Save / load → Import</b> and choose <code>season-finals.json</code> from the project folder. It contains 6 teams, 30 players, 18 scheduled matches (17 played, the Grand Final still to play), a bracket and hero records from 47 games.</li>
+    <li>Open the overlays you will watch: <code>draft.html</code>, <code>scoreboard.html</code>, <code>mvp.html</code>, <code>idle.html</code>, <code>loading.html</code>.</li>
+    <li>After testing: close the server, copy <code>state.backup.json</code> back over <code>state.json</code>, start the server again.</li>
+</ol>
+<p><b>Reloading a page</b> (F5) never loses match data; it is all stored on the server.</p>
+<p><b>Destructive buttons</b> (Reset draft, Reset series, Clear played heroes, Clear season, Clear hero records) need a second click within 3 seconds. Check both the confirm and the “do nothing and let it time out” path once.</p>
+
+<h2>3. Smoke test (5 minutes)</h2>
+<p>Run this first. If any step fails, stop and report before doing the full pass.</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">SM-01</td><td>Open the control panel.</td><td>Top right shows “Connected to overlay server” in green. Five tabs. A strip under the tabs shows Series, Draft and On screen.</td><td class="pf"></td></tr>
+<tr><td class="id">SM-02</td><td>Setup → <b>Scheduled match</b> → choose “Galunggong vs Bulate”.</td><td>Blue becomes Galunggong, Red becomes Bulate, each with logo, tag and five players. Stage / round reads “Grand Final”.</td><td class="pf"></td></tr>
+<tr><td class="id">SM-03</td><td>Draft tab: click any six heroes, then ten more.</td><td>Bans then picks fill in phase order. Draft overlay shows each one. “Draft complete.” appears.</td><td class="pf"></td></tr>
+<tr><td class="id">SM-04</td><td>Live game tab: press “Turtle slain” for blue.</td><td>Banner plays once on the scoreboard overlay. Blue’s Turtles counter becomes 1.</td><td class="pf"></td></tr>
+<tr><td class="id">SM-05</td><td>Press “Galunggong won ▶”.</td><td>Score 1–0, game number 2, draft cleared, panel jumps to the Draft tab.</td><td class="pf"></td></tr>
+<tr><td class="id">SM-06</td><td>Open each overlay page.</td><td>All five load with no blank or broken page.</td><td class="pf"></td></tr>
+</table>
+
+<h2>4. Header strip and navigation</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">NV-01</td><td>Click each tab. Then press keys <kbd>1</kbd>–<kbd>5</kbd> with no box focused.</td><td>Each shows its own screen. Setup › Draft › Live game are joined by arrows; Settings and Season sit apart.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-02</td><td>Reload the page (F5) on the Live game tab.</td><td>Reopens on Live game.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-03 <span class="new">NEW</span></td><td>Watch the strip under the tabs while changing score and draft phase.</td><td>“Series” shows game number, both tags and score. “Draft” shows whose turn it is in that team’s colour, or “Complete”. Visible on every tab.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-04 <span class="new">NEW</span></td><td>Click the <b>Draft</b>, <b>Scoreboard</b> and <b>MVP</b> pills under “On screen”, from any tab.</td><td>Pill turns green and reads ON / grey and reads OFF. The matching overlay appears / disappears within a second.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-05 <span class="new">NEW</span></td><td>Settings and Season: click each sub-tab. Reload.</td><td>One group of cards shows at a time. The last sub-tab is remembered. Season sub-tabs show a row count, or “empty”.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-06 <span class="new">NEW</span></td><td>Click a small “?” link on any card.</td><td>The explanation opens; clicking again closes it.</td><td class="pf"></td></tr>
+<tr><td class="id">NV-07 <span class="new">NEW</span></td><td>Open <code>control.html#live</code> and <code>control.html#season/players</code> in a new tab.</td><td>Opens directly on that tab / sub-tab.</td><td class="pf"></td></tr>
+</table>
+
+<h2>5. Setup tab</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">SU-01 <span class="new">NEW</span></td><td>Choose a match in <b>Scheduled match</b>.</td><td>Both sides fill (name, tag, logo, five players). Unplayed matches are listed first; played ones show their score. Round name is set when the bracket has that pairing.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-02 <span class="new">NEW</span></td><td>Blue side → <b>Team</b> dropdown → pick another team.</td><td>Card shows that team’s logo, name and tag. Draft tab nicknames change to its players.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-03 <span class="new">NEW</span></td><td>Open Red’s Team dropdown.</td><td>The team on the Blue side is greyed out and labelled “(on the other side)”. It cannot be chosen.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-04 <span class="new">NEW</span></td><td>Press <b>Clear</b> on a side.</td><td>Name, tag, logo and players are emptied; the card reads “No team yet”; the series score is unchanged. Clear greys out.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-05</td><td>Open “Type a team in by hand”. Type a name and tag, upload a logo, press Remove.</td><td>The card and the overlays follow as you type. Logo appears, then is removed and the tag shows in its place.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-06 <span class="new">NEW</span></td><td>With a season team on a side, edit that team’s tag on Season → Teams.</td><td>The Setup card and overlays pick up the new tag by themselves.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-07</td><td>Change <b>Series</b> to Best of 3, 5, 7. Change Stage / round.</td><td>Scoreboard and draft overlays show the new series length and stage.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-08</td><td>Press <b>⇄ Swap sides</b>.</td><td>Teams change sides with their logo, score, players and played heroes.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-09</td><td>Open “Tournament name and logo”. Change the name; upload a logo; press Use default.</td><td>Overlays show the new name and logo; default logo returns.</td><td class="pf"></td></tr>
+<tr><td class="id">SU-10</td><td>Press <b>Go to draft ▶</b>.</td><td>Draft tab opens.</td><td class="pf"></td></tr>
+</table>
+
+<h2>6. Draft tab and draft overlay</h2>
+<p>Watch <code>draft.html</code> throughout. Turn the Draft pill ON first.</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">DR-01</td><td>Click a hero in the grid.</td><td>It goes to the gold-outlined slot named in the hint line. The hero greys out in the grid. The overlay shows it.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-02</td><td>Complete a whole draft by clicking heroes.</td><td>Phase box advances through every ban and pick in the correct MLBB order for 3 or 5 bans. Ends on “Draft complete”.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-03</td><td>Type in the search box; press <kbd>Enter</kbd>. Press <kbd>/</kbd> from another tab. Press <kbd>Esc</kbd>.</td><td>Grid filters as you type; Enter locks the first available result; <kbd>/</kbd> jumps to the search; Esc clears it.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-04</td><td>Click the role chips (Tank, Fighter …).</td><td>Grid shows only that class; All restores it.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-05</td><td>Click a filled slot, then a hero. Right-click a filled slot. Drag one pick onto another of the same team.</td><td>Hero is replaced; slot is cleared; the two picks swap.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-06</td><td>Press <b>Start timer</b>, <b>Restart timer</b>, <b>Next phase ▶</b>, <b>◀ Back</b>.</td><td>Countdown runs on panel and overlay, turns red under 10 s. Restart resets it. Phase moves forward and back.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-07</td><td>Press <b>Undo</b> after a pick. Press <b>Reset draft</b> once and wait; then twice.</td><td>Last pick is removed. One click only arms the button (“Click again to confirm”) and reverts after 3 s. Two clicks clear the draft.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-08 <span class="new">NEW</span></td><td>With a season team loaded, open a nickname dropdown under a pick.</td><td>Lists that team’s season players. Choosing one changes the name on the overlay. With a hand-typed team the field is a text box instead.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-09 <span class="new">NEW</span></td><td>Scroll the hero list on a normal-size window.</td><td>The phase box, buttons and both teams’ slots stay in place; only the hero list scrolls.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-10</td><td>Choose a <b>Battlefield effect</b>; type one that is not listed.</td><td>The effect panel appears on the draft and scoreboard overlays (if enabled in Settings).</td><td class="pf"></td></tr>
+<tr><td class="id">DR-11</td><td>Settings → Draft rules → Fearless. Play game 1, press who won, start game 2.</td><td>Game 1’s picked heroes are locked and tagged “Played G1” in the grid, and listed under “already played”. Scope “Only the team that picked them” locks them for that team only.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-12</td><td>In fearless, press Reset draft in game 2. Then <b>Clear played heroes</b> (two clicks).</td><td>Reset keeps earlier games’ heroes locked. Clear played heroes unlocks them all.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-13</td><td>Settings → Look → Picks position: bottom, then left and right edges.</td><td>Picks move on the overlay. With edges and Centre stage “Draft story”, the middle shows matchup → whose turn → a spotlight per pick/ban → both lineups.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-14 <span class="new">NEW</span></td><td>In the side layout with Draft story, pick and ban heroes that have season records.</td><td>Spotlight shows win rate, won–lost and <b>ban rate as a percentage</b>. A hero with no record shows “New”.</td><td class="pf"></td></tr>
+<tr><td class="id">DR-15 <span class="new">NEW</span></td><td>In the side layout, check both columns with players that have photos.</td><td>Each pick shows the player’s portrait and nickname. On <b>both</b> sides the hero name is fully readable (the portrait must not cover it).</td><td class="pf"></td></tr>
+<tr><td class="id">DR-16</td><td>Centre stage: Season info, then Media, then Off.</td><td>Season info rotates standings / schedule / bracket / heroes. Media plays files from <code>Assets/Media</code>. Off leaves the middle clear.</td><td class="pf"></td></tr>
+</table>
+
+<h2>7. Loading screen <span class="new">NEW</span></h2>
+<p>Open <code>loading.html</code> after completing a draft. Leave it running for at least one full rotation (about a minute at the default 9 seconds per slide).</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">LD-01</td><td>Open the loading screen with a complete draft.</td><td>Blue’s five picks along the top, red’s five along the bottom, each with class tag, nickname and hero name. They stay on screen the whole time.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-02</td><td>Watch one card for 20 seconds.</td><td>Every 6 seconds it changes: hero → player photo → hero’s season win rate (with won–lost, pick % and ban %) → hero. The change wipes across the row one card after the next.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-03</td><td>Watch the centre through a full rotation.</td><td>In order: Versus (logos, series score, records) → Draft comparison (six bars, lineup rating, draft win rate) → The bans (struck through, ban rate) → The road here (win rates, last five, earlier meetings) → Most contested heroes. A thin bar along the bottom fills as each slide runs.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-04</td><td>On “The road here”, read the centre panel.</td><td>Titled “Earlier meetings”. Each number sits over its own team’s tag, and results name the winner (“GLG won 3–1”). It must not be mistakable for today’s series score.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-05</td><td>Open it with an empty draft (Reset draft first).</td><td>Cards show the player’s photo, slot number and “Not picked yet” — never a blank card. Slides that need picks are skipped.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-06</td><td>While it is open, pick a hero on the Draft tab.</td><td>That card updates to the hero within a second, without reloading.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-07</td><td>Settings → Look → Loading screen → Seconds per slide: set 5, then 20.</td><td>Slides change at the new pace.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-08</td><td>Change the show design while it is open (try all seven).</td><td>Backdrop and panels restyle; all text stays readable; nothing overlaps the two rows of picks.</td><td class="pf"></td></tr>
+<tr><td class="id">LD-09</td><td>Clear the season (on test data only) and reload it.</td><td>Still shows Versus and Draft comparison; the season slides are skipped; cards never show a win-rate face.</td><td class="pf"></td></tr>
+</table>
+
+<h2>8. Live game tab and scoreboard</h2>
+<p>Watch <code>scoreboard.html</code>. Turn the Scoreboard pill ON.</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">LG-01</td><td>Press each announcement button in all three columns.</td><td>The matching banner plays once on the scoreboard in the right team colour. The pressed button is marked “ON SCREEN” while it is up.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-02</td><td>Press Turtle slain, Lord slain and Turret destroyed for one team.</td><td>That team’s Turtles / Lords / Turrets counter goes up by one each. First blood, Savage and Wipe out do not change counters.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-03</td><td>Use the − / + beside each counter.</td><td>Counter changes without playing a banner; stays between 0 and 9. Shows under the team on the scoreboard when enabled in Settings.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-04</td><td>Press <b>Hide banner now</b> while a banner is up.</td><td>Banner disappears at once.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-05</td><td>Use the small − / + beside a team’s series score.</td><td>Score changes. It can never exceed the wins needed; + is disabled once a team has won the series.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-06</td><td>Use Game − / +.</td><td>Game number changes, never past the series length.</td><td class="pf"></td></tr>
+<tr><td class="id">LG-07 <span class="new">NEW</span></td><td>Look at the layout on a wide window.</td><td>Score strip on top; “During the game” on the left; “When the game ends” on the right with step 1 (MVP) and step 2 (Who won). No scrolling needed at 1440 × 900.</td><td class="pf"></td></tr>
+</table>
+
+<h2>9. Hotkeys <span class="new">NEW</span></h2>
+<p>Use a physical keyboard for this section. Click on an empty part of the page first so no box is focused.</p>
+<table class="keys">
+<tr><th>Live game tab</th><th>Turtle slain</th><th>Lord slain</th><th>Turret</th><th>First blood</th><th>Savage</th><th>Wipe out</th></tr>
+<tr><td>Blue team</td><td><kbd>Q</kbd></td><td><kbd>W</kbd></td><td><kbd>E</kbd></td><td><kbd>R</kbd></td><td><kbd>T</kbd></td><td><kbd>Y</kbd></td></tr>
+<tr><td>Red team</td><td><kbd>A</kbd></td><td><kbd>S</kbd></td><td><kbd>D</kbd></td><td><kbd>F</kbd></td><td><kbd>G</kbd></td><td><kbd>H</kbd></td></tr>
+<tr><td>Map</td><td colspan="6" style="text-align:left"><kbd>Z</kbd> Turtle spawned · <kbd>X</kbd> Lord spawned · <kbd>C</kbd> Luminous Lord · <kbd>Esc</kbd> hide banner</td></tr>
+<tr><td>Draft tab</td><td colspan="6" style="text-align:left"><kbd>Space</kbd> start / pause timer · <kbd>→</kbd> next phase · <kbd>←</kbd> back</td></tr>
+</table>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">HK-01</td><td>On Live game, press every key in the table above.</td><td>Each plays the banner printed on that button, for the right team. Slain / turret keys also add to the counter.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-02</td><td>Check each button on Live game and the Draft tab.</td><td>Every button with a key shows that key on it.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-03</td><td>Click into an MVP box (e.g. Kills) and type letters such as q, a, z.</td><td>Letters are typed into the box. <b>No banner plays.</b></td><td class="pf"></td></tr>
+<tr><td class="id">HK-04</td><td>On Setup, Settings and Season, press Q, A, Z and Space.</td><td>Nothing happens.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-05</td><td>On Draft: press Space, →, ←.</td><td>Timer starts / pauses; phase moves forward / back.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-06</td><td>On Draft: click “Next phase ▶” with the mouse, then press Space.</td><td>Only the timer toggles. The phase must <b>not</b> advance a second time.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-07</td><td>On Draft: type “la” in the hero search, including a space.</td><td>Space is typed into the search; the timer is not touched. With the search empty, Space toggles the timer.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-08</td><td>Turn the <b>Hotkeys</b> pill OFF. Press Q on Live game. Reload.</td><td>Nothing plays; key labels disappear from the buttons; the setting is remembered after reload. Keys 1–5 for tabs still work.</td><td class="pf"></td></tr>
+<tr><td class="id">HK-09</td><td>Hold a key down for two seconds.</td><td>The banner plays once, not repeatedly, and the counter goes up by one.</td><td class="pf"></td></tr>
+</table>
+
+<h2>10. MVP screen</h2>
+<p>Watch <code>mvp.html</code>. Do this <b>before</b> pressing who won.</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">MV-01</td><td>Step 1: click one of the ten picked heroes.</td><td>Card is marked MVP. Player name fills in from the nickname. Empty slots cannot be clicked.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-02</td><td>Type Kills, Deaths, Assists, Gold, Damage, Rating. Turn the MVP pill ON.</td><td>Overlay shows the player, team, hero and the stats in a four-column grid with KDA worked out.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-03</td><td>Use a player who has an uploaded photo, then one without.</td><td>With a photo: the player’s portrait is the main image and the hero is the small inset. Without: the hero is the main image.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-04</td><td>Open “MVP screen options”. Tick KDA only.</td><td>Gold / Damage / Rating boxes grey out and leave the overlay.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-05</td><td>Tick “Alternate with the winning team”, set Seconds each to 5, choose the winning team.</td><td>Overlay loops: winning team slide (“GAME n WINNER”, logo, series score) ↔ MVP slide, 5 seconds each.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-06</td><td>Press who won, then look at the MVP overlay.</td><td>The MVP stays (it is a copy), and the winning team is filled in for you.</td><td class="pf"></td></tr>
+<tr><td class="id">MV-07</td><td>Press <b>Clear MVP</b>.</td><td>Fields empty; overlay shows nothing.</td><td class="pf"></td></tr>
+</table>
+
+<h2>11. Ending a game and a series</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">EG-01</td><td>Press “<i>Team</i> won ▶” mid-series.</td><td>That team +1. Game number +1. Draft, counters and battlefield effect cleared. Panel moves to the Draft tab. Season hero records gain this game’s picks and bans.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-02</td><td>Tick “Swap sides for the next game”, then press who won.</td><td>Same as EG-01 and the teams change sides.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-03</td><td>Press who won for the deciding game (e.g. 2–0 in a best of 3).</td><td>“Series over – <i>Team</i> win 2–0.” Game number does <b>not</b> advance. Both won buttons, the score +, and “Next game without a result” are disabled.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-04 <span class="new">NEW</span></td><td>After EG-03, open Season → Schedule and Bracket.</td><td>The first unplayed row for these two teams now has the score, the right way round even if sides were swapped. For a playoff pairing the bracket row has it too. The result line ends “Saved to the season schedule.”</td><td class="pf"></td></tr>
+<tr><td class="id">EG-05 <span class="new">NEW</span></td><td>Press <b>Undo</b> on the Draft tab straight after EG-03.</td><td>Score, game number, draft and hero records go back; the schedule and bracket scores are blank again.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-06</td><td>Press “Next game without a result”.</td><td>Game number +1 and draft cleared, no score change. Disabled on the last game.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-07</td><td>Press <b>Reset series</b> twice.</td><td>Game 1, 0–0, draft and played heroes cleared.</td><td class="pf"></td></tr>
+<tr><td class="id">EG-08</td><td>Play a best of 7 to 4–3.</td><td>Total games never exceed 7; neither score can pass 4.</td><td class="pf"></td></tr>
+</table>
+
+<h2>12. Season tab</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">SE-01</td><td>Teams: + Add team; type name and tag; upload and remove a logo; delete a team.</td><td>Team appears in every team dropdown. Deleting it leaves its players on the roster without a team.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-02</td><td>Teams: “Add the two teams playing now”.</td><td>The Blue and Red teams and their nicknames are added if not already there; no duplicates.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-03</td><td>Players: + Add player under a team; type a nickname; change team with the dropdown.</td><td>Player moves to the chosen team’s group.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-04</td><td>Players: picture dropdown → Upload a photo…; then choose Default, Own photo, Team logo, Nothing; then Delete the uploaded photo.</td><td>Thumbnail follows each choice. The photo shows on the draft, loading, MVP and waiting screens wherever that nickname appears.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-05 <span class="new">NEW</span></td><td>Schedule: + Add match. Use the team dropdowns, the date picker and type a score like <code>2 - 1</code>.</td><td>Team cells are dropdowns of season teams. Date/time is Philippine time. Rows list in date order on the overlays.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-06 <span class="new">NEW</span></td><td>Standings with “Work these out from the schedule’s scores” ticked: change a schedule score so the other team wins.</td><td>Wins, losses and points update by themselves. The table is read-only and “+ Add team” is hidden. Every season team is listed.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-07 <span class="new">NEW</span></td><td>Change “Points per win” from 3 to 1.</td><td>Points column recalculates.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-08 <span class="new">NEW</span></td><td>Enter a score on a schedule row whose pairing is also in the Bracket (e.g. the Grand Final).</td><td>Standings do <b>not</b> change: playoff matches are left out.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-09 <span class="new">NEW</span></td><td>Untick the standings box.</td><td>Table becomes editable; “+ Add team” returns; typed values stay.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-10 <span class="new">NEW</span></td><td>Bracket: + Add match; choose teams; choose “TBD”.</td><td>Dropdowns list season teams plus TBD. Matches with the same round name share a column on the overlay.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-11</td><td>Hero records: check after pressing who won. Press Clear hero records twice.</td><td>Picked / won / banned counts rise by one game. Clear empties the table.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-12</td><td>Save / load: Export. Then Clear season (twice). Then Import the exported file.</td><td>A <code>.json</code> file downloads. Clear empties every sub-tab. Import restores teams, players with photos, schedule, bracket, standings and hero records, and reports the counts.</td><td class="pf"></td></tr>
+<tr><td class="id">SE-13</td><td>Import a file that is not a season export (any other .json or a .txt).</td><td>A red message says nothing was changed; the season is untouched.</td><td class="pf"></td></tr>
+</table>
+
+<h2>13. Waiting screen</h2>
+<p>Watch <code>idle.html</code>. Controls are in the Waiting screen card on Setup.</p>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">WS-01</td><td>Set Headline and Bottom line. Set Minutes to 1. Press Start, Pause / Resume, +1 min, Reset.</td><td>Overlay shows both teams, rosters with portraits, series score, headline and countdown. Each button does what it says. Under 10 s the clock turns red; at zero it turns gold.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-02</td><td>Untick “Show the countdown on the screen”.</td><td>Clock disappears from the overlay.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-03 <span class="new">NEW</span></td><td>Tick “Take turns with today’s schedule and the standings”. Watch for 40 seconds.</td><td>Matchup → schedule page (“Today’s matches”, or “Coming up” on a day with none) → Standings → matchup. The match about to be played is badged “Up next”; the two teams playing are highlighted in the standings. The matchup is fully hidden while a page shows.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-04 <span class="new">NEW</span></td><td>While a schedule or standings page is up, look top right.</td><td>The headline and countdown are shown there, so the clock is never off screen.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-05 <span class="new">NEW</span></td><td>Let a running countdown fall under 10 seconds while a season page is showing.</td><td>The screen returns to the matchup and the big clock for the final seconds.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-06 <span class="new">NEW</span></td><td>Tick “Run results and coming matches along the bottom”.</td><td>A ticker scrolls recent results and coming matches smoothly with no visible jump at the loop. The Bottom line text joins it.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-07 <span class="new">NEW</span></td><td>Change “Seconds each”. Untick both options.</td><td>Pages change at the new pace. With both off the screen is the still matchup with a plain bottom line.</td><td class="pf"></td></tr>
+<tr><td class="id">WS-08 <span class="new">NEW</span></td><td>With an empty season, leave both options ticked.</td><td>Stays on the matchup; no empty pages; no ticker unless a Bottom line is typed.</td><td class="pf"></td></tr>
+</table>
+
+<h2>14. Settings and show designs</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">ST-01</td><td>Look → Show design: choose each of Classic, Slant, Glass, Studio, Neon, Prestige, Championship. Check every overlay for each.</td><td>Draft, scoreboard, MVP, waiting and loading all restyle together. Text readable, nothing clipped or overlapping, in all seven.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-02</td><td>Look → Animated background behind the draft.</td><td>Draft overlay gains / loses the full-screen moving backdrop.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-03</td><td>Draft rules → Bans per team 3 / 5 before a draft starts; try to change it mid-draft.</td><td>Ban slots and phase order follow. The dropdown is disabled once the draft has started.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-04</td><td>Draft timer → change ban and pick time; tick “Start the timer automatically” and “Skip to the next phase when the timer hits 0”.</td><td>New phases start with the new length; timer auto-starts; at 0 the phase advances by itself.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-05</td><td>Scoreboard → Layout Split / Bar; Centre gap; Top offset.</td><td>Scoreboard moves and changes shape as set. In Split, the gap leaves room for the game’s own score.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-06</td><td>Scoreboard → “What it shows” ticks; Centre of the bar: text / tournament logo / custom image (upload, remove).</td><td>Info and objective counters show / hide. In Bar layout the centre shows the chosen content.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-07</td><td>Battlefield effect panel: show, corner, top. Announcement banner: top offset, stays for.</td><td>Panel and banner appear where and for as long as set.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-08</td><td>OBS links: press Copy and Open on each of the five rows.</td><td>The address is copied; Open opens that overlay. Five rows: Draft, Scoreboard, MVP, Waiting, Loading.</td><td class="pf"></td></tr>
+<tr><td class="id">ST-09</td><td>Add <code>?design=neon</code> to one overlay’s address.</td><td>Only that overlay uses Neon, whatever the show design is.</td><td class="pf"></td></tr>
+</table>
+
+<h2>15. Two operators, reloads and recovery</h2>
+<table>
+<colgroup><col><col class="steps"><col><col></colgroup>
+<tr><th>ID</th><th>Steps</th><th>Expected</th><th>Pass / Fail</th></tr>
+<tr><td class="id">RC-01</td><td>Open the control panel in two browser windows. Change something in one.</td><td>The other window shows the change within a second.</td><td class="pf"></td></tr>
+<tr><td class="id">RC-02</td><td>In window A type a player nickname; at the same moment in window B press an announcement.</td><td>Both changes survive; neither overwrites the other.</td><td class="pf"></td></tr>
+<tr><td class="id">RC-03</td><td>Close the server window. Watch the control panel. Start the server again.</td><td>Status turns red / amber while it is down. After restart it goes green and the match is exactly as it was.</td><td class="pf"></td></tr>
+<tr><td class="id">RC-04</td><td>Mid-draft, reload the control panel and each overlay.</td><td>Everything returns in the same state.</td><td class="pf"></td></tr>
+<tr><td class="id">RC-05</td><td>In OBS, run the Championship design with the animated background for 10 minutes on the stream PC while the game is running.</td><td>No dropped frames in OBS’s stats. If there are, note the design and scene; lighter designs are the fallback.</td><td class="pf"></td></tr>
+</table>
+
+<h2>16. Full rehearsal script</h2>
+<p>One pass through a best-of-3 as the operator would run it on show day. Use it as the final sign-off after the individual cases pass.</p>
+<ol>
+    <li><b>Before the show.</b> Season → Save / load → Import the season. Settings → Look → pick the show design. Setup → Scheduled match → today’s match. Set Series to Best of 3.</li>
+    <li><b>Pre-show.</b> OBS scene: Waiting. Setup → Waiting screen → Minutes 2 → Start. Confirm the rotation and ticker run and the last 10 seconds return to the matchup.</li>
+    <li><b>Draft.</b> OBS scene: Draft. Draft pill ON. Press <kbd>Space</kbd> to start the timer. Enter every ban and pick as called. Fix one deliberate mistake using a slot click and Undo.</li>
+    <li><b>Loading.</b> OBS scene: Loading. Leave it for one full rotation. Check all ten heroes, the three card faces and five centre slides.</li>
+    <li><b>Game 1.</b> OBS scene: game + Scoreboard. Scoreboard pill ON. Use only hotkeys for announcements while a real match or replay plays.</li>
+    <li><b>Post-game.</b> Step 1: click the MVP’s hero and type the stats. MVP pill ON; OBS scene: MVP. Step 2: press who won. Confirm the panel moves to the Draft tab and game is 2.</li>
+    <li><b>Game 2.</b> Repeat steps 3–6. In fearless mode confirm game 1’s heroes are locked.</li>
+    <li><b>Series end.</b> After the deciding win confirm “Series over … Saved to the season schedule.”, then check Season → Schedule and Standings.</li>
+    <li><b>Wrap.</b> Season → Save / load → Export, and keep the file.</li>
+</ol>
+
+<h2>17. Known limits (not bugs)</h2>
+<ul>
+    <li><b>Draft comparison bars are estimates.</b> The six ratings on the loading screen come from each hero’s class, not from game data, so two heroes of the same class score the same. Only “Draft win rate” is real season data. Per-hero corrections go in <code>js/hero-ratings.js</code>.</li>
+    <li><b>No counter index.</b> There is no data on which heroes counter which.</li>
+    <li><b>Hotkeys need the control panel focused.</b> They do not work while another program (the game, OBS) has the keyboard.</li>
+    <li><b>Only the “who won” buttons write a result to the schedule.</b> The small − / + score corrections do not.</li>
+    <li><b>The playoff rule is by pairing.</b> A scheduled match is treated as a playoff when its two teams also appear together in the Bracket (taking that pairing’s latest match).</li>
+    <li><b>Undo</b> after a draft action only rewinds picks and bans; after a “who won” press it rewinds the whole game.</li>
+    <li><b>The loading screen’s card timing</b> (6 seconds per face) is fixed.</li>
+    <li><b>Sample player photos</b> in <code>Assets/Players</code> are AI-generated placeholders for testing, not real players.</li>
+</ul>
+
+<div class="foot">Report a failure with: the case ID, the show design in use, the browser or OBS version, what you pressed, what you saw, and a screenshot or the recording time.</div>
+
+</body>
+</html>

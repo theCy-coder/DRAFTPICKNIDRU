@@ -122,13 +122,19 @@
         const restyled = Overlay.applyDesign(root, state.design, 'mvp');
 
         if (hero) {
-            if ($('mvp-hero').getAttribute('src') !== hero.img) {
-                $('mvp-hero').src = hero.img;
+            // A real portrait leads the card; a team logo or no picture leaves the hero there.
+            const pic = Overlay.playerPicture(state, m.player);
+            const led = !!pic.src && !pic.logo && pic.src !== Overlay.PLAYER_TEMPLATE;
+            const main = led ? pic.src : hero.img;
+            if ($('mvp-hero').getAttribute('src') !== main) $('mvp-hero').src = main;
+            if ($('mvp-inset').getAttribute('src') !== hero.img) {
+                $('mvp-inset').src = hero.img;
                 $('mvp-bg').style.backgroundImage = 'url("' + hero.img + '")';
             }
-            Overlay.setText($('mvp-hero-name'), hero.name);
+            $('mvp-profile').classList.toggle('player-led', led);
+            if (Overlay.setText($('mvp-hero-name'), hero.name) || restyled) Overlay.fitText($('mvp-hero-name'), 68, 34);
             // A player with no nickname entered is shown by hero name.
-            if (Overlay.setText($('mvp-player'), m.player || hero.name) || restyled) Overlay.fitText($('mvp-player'), 176, 70);
+            if (Overlay.setText($('mvp-player'), m.player || hero.name) || restyled) Overlay.fitText($('mvp-player'), 132, 60);
             Overlay.setText($('mvp-game'), 'Game ' + m.game);
             Overlay.setText($('mvp-team'), m.team);
 
@@ -182,7 +188,7 @@
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {
-                Overlay.fitText($('mvp-player'), 176, 70);
+                Overlay.fitText($('mvp-player'), 132, 60);
                 Overlay.fitText($('win-name'), 230, 80);
             });
         }

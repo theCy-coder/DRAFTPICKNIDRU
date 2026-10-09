@@ -24,6 +24,10 @@
                 order.textContent = i + 1;
                 const label = el('div', 'label');
                 const nick = el('div', 'nick');
+                const face = el('img');   // the player's picture, beside their nickname
+                face.alt = '';
+                face.hidden = true;
+                nick.appendChild(face);
                 nick.appendChild(el('span'));
                 label.appendChild(el('div', 'hero fit'));
                 label.appendChild(nick);
@@ -124,6 +128,9 @@
                 setHero(pick, d.picks[side][i], true);
                 pick.classList.toggle('active', !!step && step.type === 'pick' && step.side === side && step.slots.indexOf(i) >= 0 && !d.picks[side][i]);
                 Overlay.setText(pick.querySelector('.nick span'), team.players[i] || '');
+                const face = pick.querySelector('.nick img');
+                if (team.players[i]) Overlay.setPlayerImage(face, state, team.players[i]);
+                else face.hidden = true;
             }
         });
 

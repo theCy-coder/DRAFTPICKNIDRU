@@ -43,7 +43,14 @@
             <ul class="idle-roster" id="roster-red"></ul>
         </div>
 
+        <!-- the pages the matchup takes turns with: today's schedule, the standings -->
+        <div class="idle-page" id="page"></div>
+        <!-- on those pages the countdown moves up here, so it is never off screen -->
+        <div class="idle-chip"><span id="chip-title"></span><b id="chip-clock"></b></div>
+
         <div class="idle-msg" id="msg"></div>
+        <!-- results and what is coming up, running along the bottom -->
+        <div class="idle-ticker" id="ticker"><div class="idle-ticker-run" id="ticker-run"></div></div>
     </div>
 </div>
 <script src="js/store.js"></script>

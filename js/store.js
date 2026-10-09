@@ -55,9 +55,20 @@
             // `when` is Philippine wall-clock time, "2026-10-10T18:00".
             // heroes: this season's record per hero, { id, p: picked, w: won, b: banned },
             // counted by the control panel each time a game's winner is entered.
-            season: { title: '', seconds: 10, standings: [], schedule: [], bracket: [], heroes: [] },
+            // teams: the season's teams, { id, name, tag, logo }.
+            // players: the roster, { name, team (a team id), photo, show }. A photo
+            // is a small data URL; `show` picks what the overlays display for the
+            // player: 'default' (template), 'own' (their photo), 'team' (the team
+            // logo) or 'none'. The overlays match a player by nickname.
+            // auto: the standings are worked out from the schedule's scores, with
+            // winPoints points for each match won.
+            season: { title: '', seconds: 10, auto: true, winPoints: 3, standings: [], schedule: [], bracket: [], heroes: [], teams: [], players: [] },
+            // Loading screen (loading.html): how long each slide stays up.
+            loading: { seconds: 9 },
             // Waiting screen (idle.html): headline, optional bottom line and a countdown.
-            idle: { title: 'Starting soon', message: '', minutes: 5, showTimer: true,
+            // rotate: the matchup takes turns with schedule and standings pages,
+            // pageSeconds each; ticker: results and coming matches along the bottom.
+            idle: { title: 'Starting soon', message: '', minutes: 5, showTimer: true, rotate: true, pageSeconds: 12, ticker: true,
                 timer: { running: false, endsAt: 0, remaining: 300000 } },
             // Player of the game for the MVP overlay. It is a copy taken when the
             // operator picks it, so it survives the draft being cleared.

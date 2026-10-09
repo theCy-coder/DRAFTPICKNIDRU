@@ -103,6 +103,39 @@
         return true;
     }
 
+    // A player's display photo, found by nickname in the Season tab's roster.
+    // Anyone without one gets the template portrait.
+    const PLAYER_TEMPLATE = 'Assets/Other/player-template.svg';
+
+    // What to show for a player: { src, logo }. `src` is '' when the roster
+    // says to show nothing; `logo` is true when it is the team's logo, which
+    // should be fitted whole rather than cropped like a portrait.
+    function playerPicture(state, name) {
+        const key = String(name || '').trim().toLowerCase();
+        const row = key && state.season.players.filter(function (p) { return String(p.name || '').trim().toLowerCase() === key; })[0];
+        if (!row) return { src: PLAYER_TEMPLATE, logo: false };
+        // a photo uploaded before the choice existed still shows
+        const show = row.show || (row.photo ? 'own' : 'default');
+        if (show === 'none') return { src: '', logo: false };
+        if (show === 'own' && row.photo) return { src: row.photo, logo: false };
+        if (show === 'team') {
+            const team = state.season.teams.filter(function (t) { return t.id === row.team; })[0];
+            if (team && team.logo) return { src: team.logo, logo: true };
+        }
+        return { src: PLAYER_TEMPLATE, logo: false };
+    }
+
+    function playerPhoto(state, name) { return playerPicture(state, name).src; }
+
+    // Point an <img> at a player's picture, hiding it when there is none.
+    function setPlayerImage(img, state, name) {
+        const pic = playerPicture(state, name);
+        img.hidden = !pic.src;
+        img.classList.toggle('is-logo', pic.logo);
+        if (pic.src && img.getAttribute('src') !== pic.src) img.src = pic.src;
+        return pic;
+    }
+
     // Battlefield effect panel: icon plus name. Shown while `show` is true and
     // the game has an effect set.
     function renderEffect(el, name, show) {
@@ -128,6 +161,10 @@
         renderPips: renderPips,
         applyDesign: applyDesign,
         applyDraftLayout: applyDraftLayout,
+        PLAYER_TEMPLATE: PLAYER_TEMPLATE,
+        playerPhoto: playerPhoto,
+        playerPicture: playerPicture,
+        setPlayerImage: setPlayerImage,
         renderEffect: renderEffect,
         seriesText: seriesText
     };
