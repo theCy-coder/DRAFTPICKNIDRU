@@ -40,7 +40,7 @@ static class Setup
         string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MLBB Overlay");
         foreach (string arg in args)
         {
-            if (arg.Equals("/quiet", StringComparison.OrdinalIgnoreCase)) quiet = true;
+            if (arg.TrimStart('/', '-').Equals("quiet", StringComparison.OrdinalIgnoreCase)) quiet = true;
             else folder = arg;
         }
 
