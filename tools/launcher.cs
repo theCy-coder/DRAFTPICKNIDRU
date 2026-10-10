@@ -17,7 +17,7 @@ using System.Reflection;
 
 static class Launcher
 {
-    public const string Publisher = "Dru Loloy";
+    public const string Publisher = "druloloy";
     const string Name = "MLBB Overlay Server";
 
     static int Main(string[] args)
