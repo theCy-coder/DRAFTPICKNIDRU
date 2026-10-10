@@ -2,12 +2,29 @@
 # OBS overlays in sync. No install needed: it only uses Windows PowerShell.
 param(
     [int]$Port = 8777,
-    [switch]$NoOpen
+    [switch]$NoOpen,
+    [switch]$NoUpdate     # start without checking GitHub for a newer version
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $dataDir = Join-Path $root 'data'
+
+# Before anything else: is there a newer version? The check gives up quickly
+# when there is no internet, and never stops the server from starting.
+$updater = Join-Path $root 'tools\update.ps1'
+if (-not $NoUpdate -and (Test-Path $updater)) {
+    $updated = $false
+    try { $updated = & $updater -Root $root | Select-Object -Last 1 } catch { $updated = $false }
+    if ($updated -eq $true) {
+        # This script may be one of the files that changed: start again on the new one.
+        Write-Host '  Restarting on the new version...'
+        $again = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath, '-Port', $Port, '-NoUpdate')
+        if ($NoOpen) { $again += '-NoOpen' }
+        & powershell.exe @again
+        exit $LASTEXITCODE
+    }
+}
 $stateFile = Join-Path $dataDir 'state.json'
 if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir | Out-Null }
 
@@ -144,8 +161,14 @@ Write-Host ''
 Write-Host '  MLBB overlay server is running' -ForegroundColor Green
 Write-Host ''
 Write-Host "  Control panel      $base/control.html"
-Write-Host "  Draft overlay      $base/draft.html        (OBS browser source, 1920x1080)"
-Write-Host "  Scoreboard overlay $base/scoreboard.html   (OBS browser source, 1920x1080)"
+Write-Host "  Setup guide        $base/index.html"
+Write-Host ''
+Write-Host '  OBS browser sources, each at 1920x1080:'
+Write-Host "  Draft              $base/draft.html"
+Write-Host "  Scoreboard         $base/scoreboard.html"
+Write-Host "  MVP                $base/mvp.html"
+Write-Host "  Waiting screen     $base/idle.html"
+Write-Host "  Loading screen     $base/loading.html"
 Write-Host ''
 Write-Host '  Keep this window open while streaming. Press Ctrl+C to stop.'
 Write-Host ''
