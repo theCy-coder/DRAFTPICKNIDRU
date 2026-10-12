@@ -1317,3 +1317,62 @@
 .mvp:is([data-design="prestige"], [data-design="championship"]) .mvp-stats > div { box-shadow: none; }
 .mvp[data-design="championship"] .mvp-kda .ratio { box-shadow: none; }
 .mvp[data-design="championship"] .mvp-rule { width: 620px; height: 6px; }
+
+/* ====================================================================
+   DRAFT, picks down the sides: the card
+   The hero art stands at the inner end of the card and fades out toward
+   the outer end, where the names are. Showing it at that width takes in
+   almost half the portrait's height, so the face is in frame wherever the
+   artist put it. The player's picture sits inside the name bar, at the
+   outer edge, in the same place on every card.
+   ==================================================================== */
+.draft[data-layout="sides"][data-design] .pick > img {
+    inset: 0 0 0 auto;
+    width: 66%;
+    object-position: 50% 14%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 46%);
+    mask-image: linear-gradient(to right, transparent 0, #000 46%);
+}
+.draft[data-layout="sides"][data-design] .red .pick > img {
+    inset: 0 auto 0 0;
+    -webkit-mask-image: linear-gradient(to left, transparent 0, #000 46%);
+    mask-image: linear-gradient(to left, transparent 0, #000 46%);
+}
+.draft[data-layout="sides"][data-design] .pick .label {
+    padding: 0;
+    background: linear-gradient(to right, rgba(6, 8, 12, 0.92) 0, rgba(6, 8, 12, 0.55) 46%, rgba(6, 8, 12, 0) 78%);
+}
+.draft[data-layout="sides"][data-design] .red .pick .label {
+    padding: 0;
+    background: linear-gradient(to left, rgba(6, 8, 12, 0.92) 0, rgba(6, 8, 12, 0.55) 46%, rgba(6, 8, 12, 0) 78%);
+}
+.draft[data-layout="sides"][data-design] .pick .hero { padding: 0 16px 6px 20px; }
+.draft[data-layout="sides"][data-design] .red .pick .hero { padding: 0 20px 6px 16px; }
+.draft[data-layout="sides"][data-design] .pick .nick,
+.draft[data-layout="sides"][data-design] .red .pick .nick {
+    flex: none;
+    height: 44px;
+    margin: 0;
+    padding: 0 12px 0 16px;
+    gap: 10px;
+    overflow: hidden;
+    justify-content: flex-start;
+    font-size: 17px;
+    background: rgba(6, 8, 12, 0.9);
+}
+.draft[data-layout="sides"][data-design] .red .pick .nick { flex-direction: row-reverse; padding: 0 16px 0 12px; }
+.draft[data-layout="sides"][data-design] .pick .nick img,
+.draft[data-layout="sides"][data-design] .red .pick .nick img {
+    order: 0;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    transform: none;
+    box-shadow: 0 0 0 2px var(--team);
+}
+.draft[data-layout="sides"][data-design] .pick .nick span { flex: 1 1 0; min-width: 0; text-align: left; }
+.draft[data-layout="sides"][data-design] .red .pick .nick span { text-align: right; }
+/* a slot with nobody named yet has no bar, so the art gets the room */
+.draft[data-layout="sides"][data-design] .pick .nick:has(span:empty) { display: none; }
+/* the big slot number stays at the inner end, clear of the names */
+.draft[data-layout="sides"][data-design] .pick .order { inset: 0 0 44px 0; }

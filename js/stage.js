@@ -222,7 +222,7 @@
             const standing = state.season.standings.filter(function (r) {
                 return String(r.team || '').trim().toLowerCase() === team.name.trim().toLowerCase();
             })[0];
-            const record = standing && (String(standing.w).trim() || String(standing.l).trim())
+            const record = standing && Overlay.hasStandings(state) && (String(standing.w).trim() || String(standing.l).trim())
                 ? (standing.w || 0) + ' \u2013 ' + (standing.l || 0) : '';
             const photos = team.players.map(function (name) { return Overlay.playerPicture(state, name); });
             const key = JSON.stringify([team.name, team.players, picks, record, state.season.heroes,
@@ -301,6 +301,7 @@
     }
 
     function standingsPages(season) {
+        if (!Overlay.hasStandings({ season: season })) return [];   // nobody has played yet
         const rows = season.standings.filter(function (r) { return filled(r, ['team']); });
         const usesPoints = rows.some(function (r) { return num(r.pts) !== null; });
         rows.sort(function (a, b) {

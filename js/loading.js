@@ -109,6 +109,7 @@
         }).filter(Boolean).sort(function (x, y) { return String(x.when).localeCompare(String(y.when)); });
     }
     function rankOf(state, name) {
+        if (!Overlay.hasStandings(state)) return null;   // nobody has played yet
         const table = state.season.standings.filter(function (r) { return r.team; }).slice().sort(function (x, y) {
             return (Number(y.pts) || 0) - (Number(x.pts) || 0) || (Number(y.w) || 0) - (Number(x.w) || 0);
         });
@@ -190,13 +191,38 @@
             }
             card.appendChild(art);
 
-            const bar = el('div', 'ld-pickbar');
+            const shown = nick || (hero ? hero.name : 'Pick ' + (i + 1));
+            const bar = el('div', 'ld-pickbar' + (shown.length > 16 ? ' longer' : shown.length > 10 ? ' long' : ''));
             bar.appendChild(el('i', '', hero ? ROLE_TAG[hero.roles[0]] || '' : String(i + 1)));
-            bar.appendChild(el('b', '', nick || (hero ? hero.name : 'Pick ' + (i + 1))));
+            bar.appendChild(el('b', '', shown));
             if (nick) bar.appendChild(el('span', '', hero ? hero.name : 'Not picked yet'));
             card.appendChild(bar);
             row.appendChild(card);
         });
+    }
+
+    // A team name on the Versus slide: as large as fits on one line, and when
+    // even the smallest size is too wide it goes onto two lines, never cut.
+    function fitName(node) {
+        node.classList.remove('wrap');
+        let size = 96;
+        node.style.fontSize = size + 'px';
+        node.style.lineHeight = Math.round(size * 0.94) + 'px';
+        while (size > 58 && node.scrollWidth > node.clientWidth) {
+            size -= 4;
+            node.style.fontSize = size + 'px';
+            node.style.lineHeight = Math.round(size * 0.94) + 'px';
+        }
+        if (node.scrollWidth <= node.clientWidth) return;
+        node.classList.add('wrap');
+        size = 64;
+        node.style.fontSize = size + 'px';
+        node.style.lineHeight = Math.round(size * 0.94) + 'px';
+        while (size > 40 && (node.scrollWidth > node.clientWidth || node.scrollHeight > size * 2.1)) {
+            size -= 4;
+            node.style.fontSize = size + 'px';
+            node.style.lineHeight = Math.round(size * 0.94) + 'px';
+        }
     }
 
     // ---- centre slides ----------------------------------------------------
@@ -236,7 +262,6 @@
                 wrap.appendChild(block);
             });
             box.appendChild(wrap);
-            box.querySelectorAll('.ld-vname').forEach(function (n) { Overlay.fitText(n, 96, 44); });
         } },
 
         // How the two lineups compare.
@@ -414,7 +439,7 @@
     function sign(state) {
         return JSON.stringify([state.design, state.draft.picks, state.draft.bans, state.draft.banCount,
             SIDES.map(function (s) { const t = state.teams[s]; return [t.name, t.tag, t.score, t.players, (t.logo || '').length]; }),
-            state.season.heroes.length, state.season.schedule.map(function (r) { return r.score; }), state.season.standings.length,
+            state.season.heroes.length, state.season.schedule.map(function (r) { return r.score; }), state.season.standings,
             state.season.players.map(function (p) { return [p.name, p.show, (p.photo || '').length]; }),
             state.tournament.name, state.tournament.stage, state.tournament.game, state.tournament.bestOf]);
     }
@@ -430,6 +455,7 @@
         order = 0;
         slide.build(state, node);
         box.appendChild(node);
+        node.querySelectorAll('.ld-vname').forEach(fitName);   // sizes can only be measured once it is on the page
         runCounters(node);
 
         const fill = $('bar');
@@ -488,5 +514,7 @@
         Store.subscribe(render);
         render(Store.get());
         setInterval(tick, 250);
+        // the display font arrives a moment later and is narrower than the fallback
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { document.querySelectorAll('.ld-vname').forEach(fitName); });
     });
 })();

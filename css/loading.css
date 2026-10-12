@@ -214,3 +214,13 @@
 .ld-h2hscore u { margin-top: -6px; padding: 5px 10px 1px; font-size: 24px; line-height: 26px; letter-spacing: 2px; text-decoration: none; color: #fff; background: var(--team); }
 .ld-h2h > span { margin-top: 8px; }
 .ld-h2h em { font-size: 26px; line-height: 28px; letter-spacing: 2px; color: var(--team); }
+
+/* ---- names that do not fit: smaller and on two lines, never cut ---- */
+.ld-pickbar b { flex: 1 1 0; }
+.ld-pickbar span { flex: none; max-width: 46%; overflow: hidden; text-overflow: ellipsis; }
+.ld-pickbar.long b { font-size: 24px; line-height: 24px; }
+.ld-pickbar.longer b { font-size: 22px; line-height: 21px; padding-top: 3px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.ld-pickbar.long span, .ld-pickbar.longer span { font-size: 17px; max-width: 38%; }
+.ld-vtext { overflow: hidden; }
+.ld-vname { overflow: hidden; }
+.ld-vname.wrap { white-space: normal; overflow-wrap: anywhere; }

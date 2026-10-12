@@ -152,7 +152,16 @@
         return 'Game ' + state.tournament.game + ' · Best of ' + state.tournament.bestOf;
     }
 
+    // The standings only mean something once somebody has a result. Before
+    // that every team is "1st" on nothing, so the overlays leave them out.
+    function hasStandings(state) {
+        return state.season.standings.some(function (row) {
+            return row.team && [row.w, row.l, row.pts].some(function (v) { return Number(v) > 0; });
+        });
+    }
+
     global.Overlay = {
+        hasStandings: hasStandings,
         DEFAULT_TOURNAMENT_LOGO: DEFAULT_TOURNAMENT_LOGO,
         setupStage: setupStage,
         fitText: fitText,

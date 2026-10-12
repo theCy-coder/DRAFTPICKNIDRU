@@ -118,6 +118,7 @@
     }
 
     function standingsPage(state) {
+        if (!Overlay.hasStandings(state)) return null;   // nobody has played yet
         const rows = state.season.standings.filter(function (r) { return r.team; }).slice().sort(function (x, y) {
             return (Number(y.pts) || 0) - (Number(x.pts) || 0) || (Number(y.w) || 0) - (Number(x.w) || 0);
         }).slice(0, 8);
