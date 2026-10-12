@@ -224,3 +224,5 @@
 .ld-vtext { overflow: hidden; }
 .ld-vname { overflow: hidden; }
 .ld-vname.wrap { white-space: normal; overflow-wrap: anywhere; }
+
+.ld-pickbar i .roles { font-size: 28px; color: #fff; margin-top: -5px; }

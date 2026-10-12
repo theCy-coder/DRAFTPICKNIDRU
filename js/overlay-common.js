@@ -24,11 +24,20 @@
     // Shrink text until it fits its box.
     function fitText(el, maxPx, minPx) {
         let size = maxPx;
+        el.classList.remove('fit-wrap');
         el.style.fontSize = size + 'px';
         while (size > minPx && el.scrollWidth > el.clientWidth) {
             size -= 1;
             el.style.fontSize = size + 'px';
         }
+        // Still too long at the smallest size it should be: go a little
+        // smaller, and after that onto a second line. It is never cut.
+        const floor = Math.max(9, Math.round(minPx * 0.7));
+        while (size > floor && el.scrollWidth > el.clientWidth) {
+            size -= 1;
+            el.style.fontSize = size + 'px';
+        }
+        if (el.scrollWidth > el.clientWidth) el.classList.add('fit-wrap');
     }
 
     function setText(el, text) {
@@ -167,7 +176,128 @@
         return m && Number(m[1]) !== Number(m[2]) ? [Number(m[1]), Number(m[2])] : null;
     }
 
+    // ---- hero classes as icons ------------------------------------------------
+    // A class is drawn, not written: "Fighter / Assassin" never fitted the small
+    // places it has to go.
+    const ROLE_ICONS = {
+        Tank: '<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm0 3.2 5 1.9V11c0 3.4-2 6.5-5 7.8V5.2Z"/>',
+        Fighter: '<path d="M14.6 2H22v7.4L11.6 19.8l1.5 1.5-1.4 1.4-2.6-2.6-2.4 2.4H3.5v-3.2l2.4-2.4-2.6-2.6 1.4-1.4 1.5 1.5L14.6 2Zm.9 2.2L7.6 12.1l4.3 4.3 7.9-7.9V4.2h-4.3Z"/>',
+        Assassin: '<path d="M12 1 16 12l-2.5 2.5h3V17H13v6h-2v-6H7.5v-2.5h3L8 12 12 1Zm0 5.6L10.4 11.4 12 13l1.6-1.6L12 6.6Z"/>',
+        Mage: '<path d="m12 1 2.7 7.3L22 11l-7.3 2.7L12 21l-2.7-7.3L2 11l7.3-2.7L12 1Zm7 14 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/>',
+        Marksman: '<path d="M11 1h2v3.1A8 8 0 0 1 19.9 11H23v2h-3.1A8 8 0 0 1 13 19.9V23h-2v-3.1A8 8 0 0 1 4.1 13H1v-2h3.1A8 8 0 0 1 11 4.1V1Zm1 5.2a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6Zm0 3.8a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/>',
+        Support: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-1.6 5v3.4H7v3.2h3.4V17h3.2v-3.4H17v-3.2h-3.4V7h-3.2Z"/>'
+    };
+    function roleIcons(roles) {
+        const box = document.createElement('span');
+        box.className = 'roles';
+        (roles || []).forEach(function (role) {
+            if (!ROLE_ICONS[role]) return;
+            const mark = document.createElement('i');
+            mark.className = 'role';
+            mark.title = role;
+            mark.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true">' + ROLE_ICONS[role] + '</svg>';
+            box.appendChild(mark);
+        });
+        return box;
+    }
+
+    // ---- nothing on screen is cut off --------------------------------------------
+    // Text that a box would clip (a name longer than its space) is made smaller
+    // until it fits, and wraps if even the smallest size is too long. It runs by
+    // itself on every overlay, whenever text changes or a hidden panel appears,
+    // so a new screen is covered without having to remember to ask for it.
+    // Names sized by fitText (class "fit") look after themselves.
+    const fitted = new WeakMap();    // element -> the text it was last sized for
+    function clipsText(el) {
+        if (el.childElementCount || el.classList.contains('fit') || !el.textContent.trim()) return false;
+        const cs = getComputedStyle(el);
+        return cs.textOverflow === 'ellipsis' || cs.overflowX === 'hidden' || cs.overflowX === 'clip';
+    }
+    function overflows(el) { return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight + 2; }
+    // Text in a row or column that sizes itself to its words can grow past the
+    // box it sits in and run over its neighbour without ever being "clipped".
+    function spills(el) {
+        const parent = el.parentElement;
+        if (!parent || !/flex|grid/.test(getComputedStyle(parent).display)) return false;
+        return el.offsetWidth > parent.clientWidth + 1;   // laid-out sizes, so an entrance that scales it in does not count
+    }
+    function fitOne(el) {
+        if (!el.clientWidth) return;                 // hidden for now; the sweep comes back to it
+        // A name sized by fitText can be squeezed afterwards, when the layout
+        // around it changes without its words changing. Catch that here.
+        if (el.classList.contains('fit')) {
+            if (el.classList.contains('fit-wrap') || el.scrollWidth <= el.clientWidth) return;
+            let now = parseFloat(getComputedStyle(el).fontSize) || 16;
+            while (now > 9 && el.scrollWidth > el.clientWidth) {
+                now -= 1;
+                el.style.fontSize = now + 'px';
+            }
+            if (el.scrollWidth > el.clientWidth) el.classList.add('fit-wrap');
+            return;
+        }
+        const text = el.textContent;
+        if (fitted.get(el) === text) return;
+        if (el.dataset.autofit) {                    // sized for other words: start again
+            el.style.fontSize = '';
+            el.style.whiteSpace = '';
+            el.style.overflowWrap = '';
+            el.style.textOverflow = '';
+            el.style.maxWidth = '';
+            el.style.overflow = '';
+            delete el.dataset.autofit;
+        }
+        fitted.set(el, text);
+        if (!el.childElementCount && text.trim() && spills(el)) {   // hold it to its box, then size it
+            el.style.maxWidth = '100%';
+            el.style.overflow = 'hidden';
+            el.dataset.autofit = '1';
+        }
+        if (!clipsText(el) || !overflows(el)) return;
+        let size = parseFloat(getComputedStyle(el).fontSize) || 16;
+        const smallest = Math.max(9, size * 0.5);
+        el.dataset.autofit = '1';
+        while (size > smallest && overflows(el)) {
+            size -= 1;
+            el.style.fontSize = size + 'px';
+        }
+        if (!overflows(el) && size > smallest) el.style.fontSize = (size - 1) + 'px';   // a hair of slack, so no "…" on a rounding edge
+        if (overflows(el)) {                         // still too long: show all of it on more lines
+            el.style.whiteSpace = 'normal';
+            el.style.overflowWrap = 'anywhere';
+            el.style.textOverflow = 'clip';
+        }
+    }
+    function fitWithin(root) {
+        if (!root || root.nodeType !== 1) return;
+        if (!root.childElementCount) { fitOne(root); return; }
+        root.querySelectorAll('*').forEach(function (el) { if (!el.childElementCount) fitOne(el); });
+    }
+    function autoFit() {
+        if (!global.MutationObserver || !document.body) return;
+        const waiting = new Set();
+        let timer = null;
+        function flush() {
+            timer = null;
+            waiting.forEach(fitWithin);
+            waiting.clear();
+        }
+        new MutationObserver(function (records) {
+            records.forEach(function (r) {
+                const node = r.type === 'characterData' ? r.target.parentNode : r.target;
+                if (node) waiting.add(node);
+            });
+            if (!timer) timer = setTimeout(flush, 0);   // before the next frame is drawn, so a long name is never seen cut
+        }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
+        // panels that were hidden when their text arrived, and late fonts
+        setInterval(function () { fitWithin(document.body); }, 1500);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitWithin(document.body); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoFit);
+    else autoFit();
+
     global.Overlay = {
+        roleIcons: roleIcons,
+        fitWithin: fitWithin,
         hasStandings: hasStandings,
         matchResult: matchResult,
         DEFAULT_TOURNAMENT_LOGO: DEFAULT_TOURNAMENT_LOGO,

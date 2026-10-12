@@ -162,3 +162,4 @@
 .rs-fhero > * { flex: none; }
 .rs-champ > *, .rs-game > .rs-head, .rs-team > .rs-teamtop, .rs-team > .rs-foot { flex: none; }
 .rs-fheroes { align-self: stretch; }
+.rs-champname, .rs-fname { overflow: visible; }

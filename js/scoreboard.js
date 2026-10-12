@@ -138,9 +138,7 @@
             what.textContent = hero ? hero.name : 'No hero yet';
             if (what.textContent.length > 9) what.className = 'long';
             text.appendChild(what);
-            const role = document.createElement('span');
-            role.textContent = hero ? hero.roles.join(' / ') : '';
-            text.appendChild(role);
+            if (hero) text.appendChild(Overlay.roleIcons(hero.roles));
             body.appendChild(text);
             row.appendChild(body);
             box.appendChild(row);
@@ -228,7 +226,7 @@
                 text.appendChild(el('b', '', hero.name));
                 if (!games) {
                     if (pick.player) text.appendChild(el('em', 'who', pick.player));
-                    text.appendChild(el('span', '', hero.roles.join(' / ')));
+                    text.appendChild(Overlay.roleIcons(hero.roles));
                     card.appendChild(text);
                     return card;
                 }

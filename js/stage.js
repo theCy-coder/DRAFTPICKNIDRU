@@ -115,7 +115,10 @@
         $('cs-spot-tag').textContent = banned ? 'Banned' : 'Picked';
         $('cs-spot-hero').textContent = hero.name;
         Overlay.fitText($('cs-spot-hero'), 150, 60);
-        $('cs-spot-roles').textContent = hero.roles.join(' · ');
+        const rolesBox = $('cs-spot-roles');
+        rolesBox.textContent = '';
+        rolesBox.appendChild(Overlay.roleIcons(hero.roles));
+        rolesBox.appendChild(el('span', '', hero.roles.join(' \u00b7 ')));   // there is room for the words here
         const player = !banned && team.players[spot.i];
         $('cs-spot-by').textContent = (player ? player + ' · ' : 'by ') + team.name;
         // the player's photo, for a pick that has a named player
@@ -249,7 +252,9 @@
                 mug.appendChild(mugImg);
                 row.appendChild(mug);
                 const body = el('div', 'cs-who');
-                body.appendChild(el('b', '', team.players[i] || hero.name));
+                // a long name goes smaller and onto two lines instead of being cut
+                const shown = team.players[i] || hero.name;
+                body.appendChild(el('b', shown.length > 12 ? 'longer' : shown.length > 7 ? 'long' : '', shown));
                 const on = el('div', 'cs-on');
                 if (photos[i].src) {
                     const face = el('div', 'cs-face hero');
@@ -259,7 +264,9 @@
                     face.appendChild(img);
                     on.appendChild(face);
                 }
-                on.appendChild(el('i', '', team.players[i] ? hero.name : hero.roles.join(' \u00b7 ')));
+                // under the name: the hero they are on, or its class as icons when nobody is named
+                if (team.players[i]) on.appendChild(el('i', hero.name.length > 8 ? 'long' : '', hero.name));
+                else on.appendChild(Overlay.roleIcons(hero.roles));
                 body.appendChild(on);
                 const rec = heroRecord(state, id);
                 const stat = el('div', 'cs-rec');

@@ -42,6 +42,19 @@
 
     // Swap the portrait only when the hero actually changes so the entrance
     // animation plays once per lock-in.
+    // The side pick cards show a band of each portrait, starting 16% of the way
+    // down, which frames nearly every face. A hero whose face sits lower or
+    // higher gets its own figure here, by its id from js/heroes.js:
+    // a larger number moves the band down the portrait.
+    const FOCUS = {
+        beleric: 34,      // the face is under the antlers
+        grock: 22,
+        jawhead: 4,       // the pilot rides on top
+        kimmy: 8,
+        kadita: 8,
+        zilong: 8
+    };
+
     function setHero(slot, heroId, isPick) {
         const id = heroId || '';
         if (slot.dataset.hero === id) return;
@@ -62,6 +75,8 @@
         img.alt = hero.name;
         img.onerror = function () { slot.classList.add('noimg'); };
         img.src = hero.img;
+        // where the face is, for the wide cards down the sides (see FOCUS)
+        if (FOCUS[hero.id] != null) img.style.setProperty('--focus', FOCUS[hero.id] + '%');
         slot.insertBefore(img, slot.firstChild);
         if (isPick) {
             void slot.offsetWidth;

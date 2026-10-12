@@ -1376,3 +1376,17 @@
 .draft[data-layout="sides"][data-design] .pick .nick:has(span:empty) { display: none; }
 /* the big slot number stays at the inner end, clear of the names */
 .draft[data-layout="sides"][data-design] .pick .order { inset: 0 0 44px 0; }
+
+/* The side cards again: the art stops above the name bar instead of running
+   under it, so the band it shows is the band you see, and each hero can
+   move that band (--focus, set in js/draft.js). */
+.draft[data-layout="sides"][data-design] .pick > img { object-position: 50% var(--focus, 16%); }
+.draft[data-layout="sides"][data-design] .pick:has(.nick span:not(:empty)) > img { bottom: 44px; height: auto; }
+.draft[data-layout="sides"][data-design] .pick:has(.nick span:not(:empty)) .order { inset: 0 0 44px 0; }
+.draft[data-layout="sides"][data-design] .pick:not(:has(.nick span:not(:empty))) .order { inset: 0; }
+
+/* Big names carry a wide glow and, in Slant, lean to the right. The box that
+   keeps a fitted name on one line was cutting both off, so these names are
+   allowed to draw past it, and leaning names get room at each end. */
+.mvp-win-name, .mvp-player { overflow: visible; }
+[data-design="slant"] .fit { padding-left: 0.12em; padding-right: 0.12em; }

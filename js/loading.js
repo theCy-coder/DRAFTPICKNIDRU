@@ -123,7 +123,6 @@
     // What a draft is built to do, on a 1 to 3 scale. These are estimates from
     // each hero's class (js/hero-ratings.js), not figures from the game.
     const METRICS = HeroRatings.metrics;
-    const ROLE_TAG = { Tank: 'TNK', Fighter: 'FTR', Assassin: 'ASN', Mage: 'MAG', Marksman: 'MM', Support: 'SUP' };
 
     function rateLineup(state, side) {
         const heroes = picksOf(state, side).filter(Boolean);
@@ -192,7 +191,10 @@
 
             const shown = nick || (hero ? hero.name : 'Pick ' + (i + 1));
             const bar = el('div', 'ld-pickbar' + (shown.length > 16 ? ' longer' : shown.length > 10 ? ' long' : ''));
-            bar.appendChild(el('i', '', hero ? ROLE_TAG[hero.roles[0]] || '' : String(i + 1)));
+            // the slot's tag: the hero's main class as an icon, or the slot number
+            const tag = el('i', '', hero ? '' : String(i + 1));
+            if (hero) tag.appendChild(Overlay.roleIcons(hero.roles.slice(0, 1)));
+            bar.appendChild(tag);
             bar.appendChild(el('b', '', shown));
             if (nick) bar.appendChild(el('span', '', hero ? hero.name : 'Not picked yet'));
             card.appendChild(bar);
