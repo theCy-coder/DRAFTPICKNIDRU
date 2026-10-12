@@ -8,6 +8,24 @@
 </head>
 <body>
 <div class="stage" id="stage">
+    <!-- Frame layout: solid bars over the strips a phone capture leaves above
+         and below the game. The scoreboard sits on the top one; the bottom one
+         takes turns through what the season knows. -->
+    <div class="band top" id="band-top"></div>
+    <div class="band bottom" id="band-bottom">
+        <div class="bb-bg"><i></i><i></i><i></i></div>
+        <div class="bb-info">
+            <div class="bb-brand">
+                <img id="bb-logo" alt="">
+                <div class="bb-series" id="bb-series"></div>
+            </div>
+            <!-- one page of season info at a time; rebuilt so its entrance replays -->
+            <div class="bb-page" id="bb-page"></div>
+        </div>
+    </div>
+    <!-- each team's players down the left and right edges, as on a league broadcast -->
+    <div class="sidelist blue" id="side-blue"></div>
+    <div class="sidelist red" id="side-red"></div>
     <div class="sb split" id="sb">
         <div class="team blue">
             <div class="logo" id="logo-blue"></div>
@@ -48,6 +66,7 @@
         </div>
     </div>
 </div>
+<script src="js/heroes.js"></script>
 <script src="js/events.js"></script>
 <script src="js/store.js"></script>
 <script src="js/overlay-common.js"></script>

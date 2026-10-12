@@ -393,25 +393,43 @@
         <div class="card" data-subpanel="scoreboard">
             <h2>Scoreboard</h2>
             <div class="group">
-                <h3>Position</h3>
+                <h3>Layout</h3>
                 <div class="options">
                     <label class="field medium">Layout
                         <select data-bind="scoreboard.layout">
                             <option value="split">Split – either side of the in-game score</option>
                             <option value="bar">Bar – one solid strip</option>
+                            <option value="frame">Frame – solid bars above and below the game</option>
                         </select>
                     </label>
-                    <label class="field small">Centre gap (px)<input type="number" min="0" max="1200" step="10" data-bind="scoreboard.gap" data-num></label>
-                    <label class="field small">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
+                    <!-- each layout has its own few fields; the others are hidden -->
+                    <label class="field small" id="sb-gap-field">Centre gap (px)<input type="number" min="0" max="1200" step="10" data-bind="scoreboard.gap" data-num></label>
+                    <label class="field small" id="sb-top-field">Top offset (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.top" data-num></label>
+                    <label class="field small" data-frame>Top bar height (px)<input type="number" min="40" max="400" step="2" data-bind="scoreboard.frameTop" data-num></label>
+                    <label class="field small" data-frame>Bottom bar height (px)<input type="number" min="0" max="600" step="2" data-bind="scoreboard.frameBottom" data-num></label>
                 </div>
-                <p class="hint">In Split layout, widen the centre gap until the two plates clear the game’s own kill / gold display.</p>
+                <div class="options" data-frame>
+                    <label class="check"><input type="checkbox" data-bind="scoreboard.frameInfo"> Season info in the bottom bar</label>
+                    <label class="field small">Seconds per page<input type="number" min="4" max="120" data-bind="scoreboard.frameSeconds" data-num></label>
+                </div>
+                <p class="hint" id="layout-hint"></p>
+                <details class="help" data-frame><summary>About the Frame layout</summary><p>For a phone capture (scrcpy) that leaves black strips. Raise the two heights until the strips, and any part of the game you want hidden, are covered; a 20:9 phone at full width leaves 108 px above and below. Leave the bottom height at 0 to keep it twice the top. The bottom bar takes turns through the series so far (always shown), coming matches, latest results, earlier meetings of these two teams, the standings and the season record of each hero in this game; anything the season has no data for is skipped.</p></details>
+            </div>
+            <div class="group">
+                <h3>Players on the left and right</h3>
+                <div class="options">
+                    <label class="check"><input type="checkbox" data-bind="scoreboard.sides"> Show each player and their hero down the edges</label>
+                    <label class="field small" data-sides>From the top (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.sidesTop" data-num></label>
+                    <label class="field small" data-sides>Row height (px)<input type="number" min="56" max="200" step="1" data-bind="scoreboard.sidesRow" data-num></label>
+                </div>
+                <details class="help"><summary>How this works</summary><p>As on a league broadcast: a name strip in the team&rsquo;s colour over the hero each player picked, blue on the left edge and red on the right. It works with every layout, shows once the draft has picks or the players are named, and clears with the draft. Use &ldquo;From the top&rdquo; to sit it under the minimap.</p></details>
             </div>
             <div class="group">
                 <h3>What it shows</h3>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Tournament / game info</label>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showStats"> Turrets / turtles / lords under each team</label>
             </div>
-            <div class="group">
+            <div class="group" id="sb-centre-group">
                 <h3>Centre of the bar</h3>
                 <div class="options">
                     <label class="field medium">Show
@@ -444,6 +462,8 @@
                         </select>
                     </label>
                     <label class="field small">Top (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.effectTop" data-num></label>
+                    <label class="field small">From the edge (px)<input type="number" min="0" max="900" step="2" data-bind="scoreboard.effectEdge" data-num></label>
+                    <label class="field small">Size (%)<input type="number" min="40" max="200" step="5" data-bind="scoreboard.effectScale" data-num></label>
                 </div>
             </div>
             <div class="card">
@@ -451,8 +471,9 @@
                 <div class="options">
                     <label class="field small">Top offset (px)<input type="number" min="0" max="900" step="10" data-bind="banner.top" data-num></label>
                     <label class="field small">Stays for (s)<input type="number" min="2" max="20" data-bind="banner.seconds" data-num></label>
+                    <label class="field small">Size (%)<input type="number" min="40" max="200" step="5" data-bind="banner.scale" data-num></label>
                 </div>
-                <p class="hint">Where the Turtle / Lord banners appear and how long they stay.</p>
+                <p class="hint">Where the Turtle / Lord banners appear, how long they stay and how big they are. In the Frame layout the banner and the effect panel always start below the top bar, and the effect panel sits flush with its end.</p>
             </div>
         </div>
 

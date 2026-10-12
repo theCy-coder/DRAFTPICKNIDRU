@@ -1618,10 +1618,20 @@
         const sb = state.scoreboard;
         $('sb-image-field').hidden = sb.middle !== 'image';
         renderLogoPreview($('sb-image-preview'), sb.image, 'None');
-        $('sb-middle-hint').textContent = sb.layout !== 'bar' ? 'The centre only shows in the Bar layout. Split leaves it empty for the in-game score.'
-            : sb.middle === 'image' && !sb.image ? 'Upload an image to show it in the centre of the bar.'
+        $('sb-middle-hint').textContent = sb.middle === 'image' && !sb.image ? 'Upload an image to show it in the centre of the bar.'
             : sb.middle === 'logo' ? 'Uses the tournament logo from the Setup tab.' : '';
         $('sb-middle-hint').hidden = !$('sb-middle-hint').textContent;
+        const framed = sb.layout === 'frame';
+        document.querySelectorAll('[data-frame]').forEach(function (node) { node.hidden = !framed; });
+        document.querySelectorAll('[data-sides]').forEach(function (node) { node.hidden = !sb.sides; });
+        $('sb-gap-field').hidden = sb.layout !== 'split';
+        $('sb-top-field').hidden = framed;
+        $('sb-centre-group').hidden = sb.layout !== 'bar';
+        const barTop = Math.max(40, Math.min(400, Number(sb.frameTop) || 108));
+        $('layout-hint').textContent = framed
+            ? 'Top bar ' + barTop + ' px, bottom bar ' + (Number(sb.frameBottom) || barTop * 2) + ' px' + (Number(sb.frameBottom) ? '.' : ' (twice the top).')
+            : sb.layout === 'bar' ? 'One strip across the top, with the tournament text, logo or an image in the middle.'
+            : 'Widen the centre gap until the two plates clear the game’s own kill and gold display.';
 
         $('series-label').textContent = 'Best of ' + state.tournament.bestOf;
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +

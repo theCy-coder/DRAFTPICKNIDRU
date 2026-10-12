@@ -43,12 +43,23 @@
                 timer: { running: false, endsAt: 0, remaining: 60000 }
             },
             // middle: what the Bar layout shows in its centre: 'info' | 'logo' | 'image'
+            // layout 'frame' is for a phone capture that leaves black strips: a
+            // solid bar frameTop px high above the game and one below it,
+            // frameBottom px high (0 = twice the top).
             scoreboard: { visible: true, layout: 'split', gap: 640, top: 0, showInfo: true, showStats: true, middle: 'info', image: '',
-                showEffect: true, effectSide: 'right', effectTop: 20 },
+                frameTop: 108, frameBottom: 0,
+                // frameInfo: the bottom bar takes turns through what the season
+                // holds (coming matches, results, standings, heroes), frameSeconds each.
+                frameInfo: true, frameSeconds: 10,
+                // sides: each team's five players listed down the left and right
+                // edges during the game (name, hero), from sidesTop px down,
+                // each row sidesRow px high.
+                sides: false, sidesTop: 348, sidesRow: 89,
+                showEffect: true, effectSide: 'right', effectTop: 20, effectEdge: 20, effectScale: 100 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.
             event: { id: '', side: '', at: 0 },
-            banner: { top: 136, seconds: 5 },
+            banner: { top: 136, seconds: 5, scale: 100 },
             // The whole season, edited on the Season tab and shown by the centre
             // stage. Rows are plain text: standings { team, w, l, pts },
             // schedule { when, a, b, score }, bracket { round, a, sa, b, sb }.
