@@ -1095,6 +1095,11 @@
 
     // ---- results: the series writes itself into the season -----------------
     function blank(v) { return !String(v == null ? '' : v).trim(); }
+    // A score counts as a result only when somebody won: "0 - 0" is still to play.
+    function decided(score) {
+        const m = /(\d+)\D+(\d+)/.exec(String(score == null ? '' : score));
+        return !!m && Number(m[1]) !== Number(m[2]);
+    }
 
     // 1 when the row is blue v red as set up now, -1 when it is the other way round.
     function facing(state, row) {
@@ -1127,14 +1132,14 @@
     function recordResult(s) {
         const playoff = playoffRows(s.season);
         const open = s.season.schedule.map(function (r, i) { return { r: r, i: i }; })
-            .filter(function (x) { return facing(s, x.r) && blank(x.r.score); })
+            .filter(function (x) { return facing(s, x.r) && !decided(x.r.score); })
             .sort(function (x, y) { return String(x.r.when).localeCompare(String(y.r.when)) || x.i - y.i; })[0];
         if (open) {
             const way = facing(s, open.r);
             open.r.score = (way > 0 ? s.teams.blue.score : s.teams.red.score) + ' \u2013 ' + (way > 0 ? s.teams.red.score : s.teams.blue.score);
         }
         if (open && !playoff[open.i]) return;
-        const tie = s.season.bracket.filter(function (r) { return facing(s, r) && blank(r.sa) && blank(r.sb); })[0];
+        const tie = s.season.bracket.filter(function (r) { return facing(s, r) && !decided(r.sa + ' - ' + r.sb); })[0];
         if (tie) {
             const way = facing(s, tie);
             tie.sa = String(way > 0 ? s.teams.blue.score : s.teams.red.score);
@@ -1213,7 +1218,7 @@
         const select = $('load-match');
         const rows = state.season.schedule.map(function (m, i) { return { m: m, i: i }; })
             .filter(function (r) { return r.m.a && r.m.b; })
-            .sort(function (x, y) { return (x.m.score ? 1 : 0) - (y.m.score ? 1 : 0) || String(x.m.when).localeCompare(String(y.m.when)); });
+            .sort(function (x, y) { return (decided(x.m.score) ? 1 : 0) - (decided(y.m.score) ? 1 : 0) || String(x.m.when).localeCompare(String(y.m.when)); });
         $('load-match-field').hidden = !rows.length;
         const key = rows.map(function (r) { return [r.i, r.m.a, r.m.b, r.m.when, r.m.score].join(','); }).join(';');
         if (select.dataset.key !== key) {
@@ -1222,15 +1227,15 @@
             select.add(new Option('Choose a match\u2026', ''));
             rows.forEach(function (r) {
                 const when = shortWhen(r.m.when);
-                select.add(new Option(r.m.a + ' vs ' + r.m.b + (when ? '  \u00b7  ' + when : '') + (r.m.score ? '  \u00b7  played ' + r.m.score : ''), r.i));
+                select.add(new Option(r.m.a + ' vs ' + r.m.b + (when ? '  \u00b7  ' + when : '') + (decided(r.m.score) ? '  \u00b7  played ' + r.m.score : ''), r.i));
             });
         }
         if (select === document.activeElement) return;
         // show the scheduled match that is set up right now, if it is one
         const on = rows.filter(function (r) {
-            return !r.m.score && sameName(r.m.a, state.teams.blue.name) && sameName(r.m.b, state.teams.red.name);
+            return !decided(r.m.score) && sameName(r.m.a, state.teams.blue.name) && sameName(r.m.b, state.teams.red.name);
         })[0] || rows.filter(function (r) {
-            return !r.m.score && sameName(r.m.a, state.teams.red.name) && sameName(r.m.b, state.teams.blue.name);
+            return !decided(r.m.score) && sameName(r.m.a, state.teams.red.name) && sameName(r.m.b, state.teams.blue.name);
         })[0];
         select.value = on ? String(on.i) : '';
     }

@@ -61,7 +61,7 @@
         const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(when || '');
         return m ? Number(m[3]) + ' ' + MONTHS[Number(m[2]) - 1] : '';
     }
-    function played(row) { return /\d+\D+\d+/.test(row.score || ''); }
+    function played(row) { return !!Overlay.matchResult(row.score); }   // "0 - 0" is not a result
     function matches(state) {
         return state.season.schedule.filter(function (r) { return r.a && r.b; })
             .slice().sort(function (x, y) { return String(x.when).localeCompare(String(y.when)); });

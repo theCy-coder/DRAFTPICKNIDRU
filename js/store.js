@@ -53,8 +53,8 @@
                 frameInfo: true, frameSeconds: 10,
                 // sides: each team's five players listed down the left and right
                 // edges during the game (name, hero), from sidesTop px down,
-                // each row sidesRow px high, sidesEdge px in from the screen edge.
-                sides: false, sidesTop: 348, sidesRow: 89, sidesEdge: 0,
+                // each row sidesRow px high and sidesWidth px long, sidesEdge px in from the screen edge.
+                sides: false, sidesTop: 348, sidesRow: 89, sidesEdge: 0, sidesWidth: 180,
                 showEffect: true, effectSide: 'right', effectTop: 20, effectEdge: 20, effectScale: 100 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.

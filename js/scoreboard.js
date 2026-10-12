@@ -96,6 +96,9 @@
         const any = team.players.some(Boolean) || picks.some(Boolean);
         box.classList.toggle('on', !!sb.sides && sb.visible && any);
         box.style.top = (Number(sb.sidesTop) || 0) + 'px';
+        const width = Math.max(140, Math.min(600, Number(sb.sidesWidth) || 180));
+        box.style.width = width + 'px';
+        box.classList.toggle('wide', width >= 240);   // room for larger names
         // moved in toward the centre when the capture does not reach the screen edge
         box.style[side === 'blue' ? 'left' : 'right'] = Math.max(0, Math.min(800, Number(sb.sidesEdge) || 0)) + 'px';
         box.style.setProperty('--row', Math.max(56, Math.min(200, Number(sb.sidesRow) || 89)) + 'px');
@@ -153,7 +156,7 @@
         return node;
     }
     function same(a, b) { return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase(); }
-    function scoreOf(text) { const m = /(\d+)\D+(\d+)/.exec(text || ''); return m ? [Number(m[1]), Number(m[2])] : null; }
+    function scoreOf(text) { return Overlay.matchResult(text); }   // null until somebody has won
     function dayOf(when) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(when || ''); return m ? Number(m[3]) + ' ' + MONTHS[Number(m[2]) - 1] : ''; }
     function clockOf(when) { const m = /T(\d{2}:\d{2})/.exec(when || ''); return m ? m[1] : ''; }
     // Schedule times are Philippine wall-clock time, so "today" is the PH date.

@@ -160,8 +160,16 @@
         });
     }
 
+    // A schedule score as [a, b], only when it is a finished match: two numbers
+    // with a winner. "0 - 0", an empty box or anything else is not a result.
+    function matchResult(text) {
+        const m = /(\d+)\D+(\d+)/.exec(String(text == null ? '' : text));
+        return m && Number(m[1]) !== Number(m[2]) ? [Number(m[1]), Number(m[2])] : null;
+    }
+
     global.Overlay = {
         hasStandings: hasStandings,
+        matchResult: matchResult,
         DEFAULT_TOURNAMENT_LOGO: DEFAULT_TOURNAMENT_LOGO,
         setupStage: setupStage,
         fitText: fitText,

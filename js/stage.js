@@ -335,7 +335,7 @@
         // The match on screen right now is "Live"; the first other match still
         // to be played is "Next".
         const names = Store.SIDES.map(function (side) { return state.teams[side].name.trim().toLowerCase(); });
-        const open = rows.filter(function (r) { return !String(r.score || '').trim(); });
+        const open = rows.filter(function (r) { return !Overlay.matchResult(r.score); });
         const live = open.filter(function (r) {
             const pair = [String(r.a || '').trim().toLowerCase(), String(r.b || '').trim().toLowerCase()];
             return (pair[0] === names[0] && pair[1] === names[1]) || (pair[0] === names[1] && pair[1] === names[0]);
@@ -345,12 +345,12 @@
             return { title: 'Schedule \u00b7 PH time', build: function (body) {
                 const table = el('div', 'cs-table schedule');
                 part.forEach(function (r) {
-                    const played = !!String(r.score || '').trim();
+                    const played = !!Overlay.matchResult(r.score);
                     const tr = el('div', 'cs-tr' + (r === live ? ' live' : r === next ? ' next' : played ? ' played' : ''));
                     tr.appendChild(el('span', 'when', formatWhen(r.when)));
                     tr.appendChild(el('span', 'a', r.a || ''));
                     const score = el('span', 'score');
-                    score.appendChild(el('em', '', r.score || (r === live ? 'Live' : r === next ? 'Next' : 'vs')));
+                    score.appendChild(el('em', '', played ? r.score : (r === live ? 'Live' : r === next ? 'Next' : 'vs')));
                     tr.appendChild(score);
                     tr.appendChild(el('span', 'b', r.b || ''));
                     table.appendChild(tr);

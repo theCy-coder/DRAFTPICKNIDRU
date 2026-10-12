@@ -1735,3 +1735,11 @@ body.bg-green { background: #00ff00; }
 .hold[data-design="neon"] .hold-text span, .hold[data-design="neon"] .hold-box em { color: #f4ff3a; }
 .hold[data-design="neon"] .hold-icon { background: #f4ff3a; }
 .hold:is([data-design="prestige"], [data-design="championship"]) .hold-box { background: #0b0a07; border-bottom-color: #ffd766; box-shadow: 0 0 0 1px rgba(255, 215, 102, 0.6), 0 12px 34px rgba(0, 0, 0, 0.6); }
+/* longer side strips have room for larger names */
+.sidelist.wide .sl-head b { font-size: 24px; }
+.sidelist.wide .sl-head b.long { font-size: 22px; }
+.sidelist.wide .sl-head b.longer { font-size: 18px; }
+.sidelist.wide .sl-text b { font-size: 30px; line-height: 28px; }
+.sidelist.wide .sl-text b.long { font-size: 26px; line-height: 26px; white-space: nowrap; display: block; }
+.sidelist.wide .sl-text span { font-size: 13px; }
+.sidelist.wide .sl-row.empty .sl-text b { font-size: 20px; }

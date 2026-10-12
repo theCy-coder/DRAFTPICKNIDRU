@@ -96,8 +96,7 @@
         return Math.round(state.season.heroes.reduce(function (sum, r) { return sum + (r.p || 0); }, 0) / 10);
     }
     function score(text) {
-        const m = /(\d+)\D+(\d+)/.exec(text || '');
-        return m ? [Number(m[1]), Number(m[2])] : null;
+        return Overlay.matchResult(text);   // null until somebody has won
     }
     // A team's finished matches, oldest first: { won, gf, ga, vs, when }.
     function matchesOf(state, name) {
