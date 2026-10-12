@@ -670,3 +670,12 @@ details.more .options { margin-top: 12px; }
 .btn.primary[data-key]::after, .btn.strong[data-key]::after { color: inherit; background: rgba(0, 0, 0, 0.18); border-color: rgba(0, 0, 0, 0.25); }
 body.no-keys .ebtn kbd, body.no-keys .btn[data-key]::after { display: none; }
 .now.keys { margin-left: 0; }
+
+/* ---- live game: holds (technical pause, break) ---- */
+.holds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.btn.hold { height: 44px; justify-content: flex-start; border-left: 5px solid var(--gold); font-size: 14px; overflow: hidden; }
+.btn.hold.live { background: var(--gold); border-color: var(--gold); color: #1b1400; animation: hold-blink 1.4s ease-in-out infinite; }
+.btn.hold.live::after { color: inherit; background: rgba(0, 0, 0, 0.14); border-color: rgba(0, 0, 0, 0.2); }
+@keyframes hold-blink { 50% { filter: brightness(0.86); } }
+.now-hold { padding: 3px 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1b1400; background: var(--gold); border-radius: 999px; font-variant-numeric: tabular-nums; }
+.result-link { margin-top: 12px; }

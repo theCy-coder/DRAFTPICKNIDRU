@@ -30,6 +30,7 @@
         <a href="mvp.html" target="_blank">MVP</a>
         <a href="idle.html" target="_blank">Waiting</a>
         <a href="loading.html" target="_blank">Loading</a>
+        <a href="result.html" target="_blank">Result</a>
     </nav>
 </header>
 <main>
@@ -45,6 +46,7 @@
                     <tr><td>Loading</td><td><code>http://localhost:8777/loading.html</code></td><td>Between the draft and the game (full screen)</td></tr>
                     <tr><td>Scoreboard</td><td><code>http://localhost:8777/scoreboard.html</code></td><td>Your in-game scene</td></tr>
                     <tr><td>MVP</td><td><code>http://localhost:8777/mvp.html</code></td><td>Your post-game scene (full screen)</td></tr>
+                    <tr><td>Result</td><td><code>http://localhost:8777/result.html</code></td><td>After each game, and for the series winner (full screen)</td></tr>
                 </table>
             </li>
             <li>Run everything from the control panel. The overlays update on their own. The same links, with Copy buttons, are on Settings &rarr; OBS links, and the server window lists them when it starts.</li>
@@ -71,6 +73,8 @@
             <li><b>Centre stage</b>: with the picks on the left and right edges, the middle of the draft overlay can show the <i>Draft story</i> (matchup, whose turn it is, a spotlight on every pick and ban with that hero’s season record, then both lineups), the <i>Season info</i> pages, or <i>Media</i> (videos and images you put in <code>Assets/Media</code>). Choose it in Settings, or switch it off to leave room for player cameras. It follows the show design. Settings also has an <i>Animated background</i> switch that fills the whole draft scene with the design’s moving backdrop; leave it off if a camera or the game should show through.</li>
             <li><b>Season</b>: the Season tab holds the teams, their players, the schedule, the bracket and the standings, each on its own sub-tab. Teams and players are chosen from dropdowns everywhere else, so they are typed once. The standings are worked out from the schedule&rsquo;s scores (untick the box on that sub-tab to type them yourself), and when a series ends its result is written into the schedule and bracket for you. Player photos are matched by nickname; anyone without one shows a template portrait (replace <code>Assets/Other/player-template.svg</code> to change it). Hero records (picked, won, banned) are counted each time you enter who won a game. Save / load exports all of it to a file and imports one back; <code>season-finals.json</code> in this folder is a sample season to try.</li>
             <li><b>MVP</b>: on the Live game tab, click the MVP’s hero, type the kills, deaths and assists (and gold, damage and rating unless “KDA only” is ticked), then switch <b>MVP</b> on in the On screen strip at the top. Choose the MVP before pressing who won (they are steps 1 and 2 on that tab). With “Alternate with the winning team” ticked, the screen loops: the winning team for ten seconds, then the MVP for ten seconds.</li>
+            <li><b>Result screen</b>: <code>result.html</code> is one scene for after a game. It slides through the game that just finished (winner, both drafts and bans, objectives, series score) and that game&rsquo;s MVP, both recorded when you press who won. Once a team has won the series, the winner&rsquo;s screen and the series MVP you name on the Live game tab come first; they are titled &ldquo;Champions&rdquo; and &ldquo;Finals MVP&rdquo; when the stage is a final. Reset series clears the record. The separate MVP overlay still works if you prefer a scene of its own.</li>
+            <li><b>Technical pause and Break</b>: two buttons on the Live game tab (<code>P</code> for the pause) put a banner with a running clock on the scoreboard overlay. Press the same button again to take it off.</li>
             <li><b>Swap sides</b> moves each team (name, logo, score, nicknames) to the other side.</li>
         </ul>
     </div>

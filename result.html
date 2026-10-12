@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLBB Result Screen</title>
+    <link rel="stylesheet" href="css/overlay.css">
+    <link rel="stylesheet" href="css/overlay-designs.css">
+    <link rel="stylesheet" href="css/result.css">
+</head>
+<body>
+<div class="stage" id="stage">
+    <!-- Shares the waiting screen's backdrop, so it follows the show design. -->
+    <div class="idle res" id="res">
+        <div class="idle-bg"></div>
+        <div class="idle-rays"></div>
+        <div class="idle-sparks" id="idle-sparks"></div>
+        <div class="rs-confetti" id="confetti"></div>
+        <!-- one view at a time: the game just finished, or the series winner -->
+        <div class="rs-view" id="view"></div>
+    </div>
+</div>
+<script src="js/heroes.js"></script>
+<script src="js/events.js"></script>
+<script src="js/store.js"></script>
+<script src="js/overlay-common.js"></script>
+<script src="js/result.js"></script>
+</body>
+</html>

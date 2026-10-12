@@ -53,8 +53,8 @@
                 frameInfo: true, frameSeconds: 10,
                 // sides: each team's five players listed down the left and right
                 // edges during the game (name, hero), from sidesTop px down,
-                // each row sidesRow px high.
-                sides: false, sidesTop: 348, sidesRow: 89,
+                // each row sidesRow px high, sidesEdge px in from the screen edge.
+                sides: false, sidesTop: 348, sidesRow: 89, sidesEdge: 0,
                 showEffect: true, effectSide: 'right', effectTop: 20, effectEdge: 20, effectScale: 100 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.
@@ -76,6 +76,16 @@
             season: { title: '', seconds: 10, auto: true, winPoints: 3, standings: [], schedule: [], bracket: [], heroes: [], teams: [], players: [] },
             // Loading screen (loading.html): how long each slide stays up.
             loading: { seconds: 9 },
+            // Every finished game of this series, oldest first, recorded when "who
+            // won" is pressed: { game, winner, blue: {...}, red: {...}, mvp }. Each
+            // side holds { name, tag, won, score, picks, bans, players, stats }.
+            // The result screen (result.html) is built from it.
+            // mvp: the player named MVP of the whole series ('' = none).
+            series: { games: [], mvp: '' },
+            result: { seconds: 12 },
+            // A hold on the game, shown on the scoreboard overlay until it is
+            // lifted: kind '' (none), 'pause' (technical pause) or 'break'.
+            pause: { kind: '', at: 0 },
             // Waiting screen (idle.html): headline, optional bottom line and a countdown.
             // rotate: the matchup takes turns with schedule and standings pages,
             // pageSeconds each; ticker: results and coming matches along the bottom.

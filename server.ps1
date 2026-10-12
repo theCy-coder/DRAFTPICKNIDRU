@@ -169,6 +169,7 @@ Write-Host "  Scoreboard         $base/scoreboard.html"
 Write-Host "  MVP                $base/mvp.html"
 Write-Host "  Waiting screen     $base/idle.html"
 Write-Host "  Loading screen     $base/loading.html"
+Write-Host "  Result screen      $base/result.html"
 Write-Host ''
 Write-Host '  Keep this window open while streaming. Press Ctrl+C to stop.'
 Write-Host ''

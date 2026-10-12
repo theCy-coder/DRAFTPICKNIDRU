@@ -53,6 +53,28 @@
         return Math.round(bottom / scale) + 10;
     }
 
+    // A technical pause or a break: a banner with a running clock.
+    const HOLDS = {
+        pause: { title: 'Technical pause', sub: 'The game is paused' },
+        'break': { title: 'Break', sub: 'Back shortly' }
+    };
+    function renderHold(state) {
+        const box = $('hold');
+        const def = HOLDS[state.pause.kind];
+        box.classList.toggle('show', !!def && state.scoreboard.visible);
+        if (!def) return;
+        box.className = 'hold show ' + state.pause.kind + (state.scoreboard.visible ? '' : ' off');
+        box.classList.toggle('show', state.scoreboard.visible);
+        Overlay.applyDesign(box, state.design, 'scoreboard');
+        Overlay.setText($('hold-title'), def.title);
+        Overlay.setText($('hold-sub'), def.sub);
+        const total = Math.max(0, Math.floor((Store.now() - state.pause.at) / 1000));
+        const m = Math.floor(total / 60), sec = total % 60;
+        Overlay.setText($('hold-clock'), (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec);
+        // under the top bar in the Frame layout, otherwise where the banners go
+        box.style.top = Math.max(Number(state.banner.top) || 0, clearOfBar(state, true)) + 'px';
+    }
+
     // Turrets / turtles / lords taken by a team this game.
     function renderStats(box, stats) {
         if (!box.children.length) {
@@ -74,6 +96,8 @@
         const any = team.players.some(Boolean) || picks.some(Boolean);
         box.classList.toggle('on', !!sb.sides && sb.visible && any);
         box.style.top = (Number(sb.sidesTop) || 0) + 'px';
+        // moved in toward the centre when the capture does not reach the screen edge
+        box.style[side === 'blue' ? 'left' : 'right'] = Math.max(0, Math.min(800, Number(sb.sidesEdge) || 0)) + 'px';
         box.style.setProperty('--row', Math.max(56, Math.min(200, Number(sb.sidesRow) || 89)) + 'px');
         Overlay.applyDesign(box, state.design, 'scoreboard');
         const key = JSON.stringify([picks, team.players]);
@@ -447,11 +471,12 @@
         fxp.style.top = Math.max(Number(sb.effectTop) || 0, clearOfBar(state, false)) / fxSize + 'px';
         Overlay.renderEffect(fxp, t.effect, sb.visible && sb.showEffect);
         renderEvent(state);
+        renderHold(state);
     }
 
     Overlay.setupStage($('stage'));
     Store.subscribe(render);
-    setInterval(function () { renderInfo(withOverride(Store.get()), true); }, 500);
+    setInterval(function () { renderInfo(withOverride(Store.get()), true); renderHold(withOverride(Store.get())); }, 500);
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {

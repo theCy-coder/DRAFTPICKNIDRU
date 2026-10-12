@@ -6,6 +6,10 @@
 
     const $ = function (id) { return document.getElementById(id); };
     const KDA = ['k', 'd', 'a'];
+    // mvp.html?embed is the MVP as a slide inside the result screen: always on
+    // while it is there, and without its own "who won" slide, which the result
+    // screen already has.
+    const embed = new URLSearchParams(location.search).has('embed');
     let shown = '';        // which MVP is on screen, so the entrance replays for a new one
     let slide = 'mvp';     // 'win' | 'mvp'
     let loopKey = '';
@@ -116,7 +120,7 @@
         const m = state.mvp;
         const hero = Heroes.get(m.hero);
         const root = $('mvp');
-        const on = m.visible && !!hero;
+        const on = (embed || m.visible) && !!hero;
         const key = on ? m.hero + '|' + m.game + '|' + m.team : '';
         const entering = key !== shown && on;
         const restyled = Overlay.applyDesign(root, state.design, 'mvp');
@@ -157,7 +161,7 @@
 
         // Start, stop or re-time the two-slide loop when anything about it changes.
         const seconds = Math.max(3, Number(m.seconds) || 10);
-        const looping = on && m.loop;
+        const looping = on && m.loop && !embed;
         const nextKey = key + '|' + looping + '|' + seconds;
         if (nextKey !== loopKey) {
             loopKey = nextKey;

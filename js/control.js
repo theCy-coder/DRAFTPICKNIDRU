@@ -36,6 +36,7 @@
                 game: state.tournament.game,
                 effect: state.tournament.effect,
                 heroes: state.season.heroes,
+                games: state.series.games,
                 // only the scores, so other edits to the season survive an undo
                 scores: state.season.schedule.map(function (r) { return r.score; }),
                 bracket: state.season.bracket.map(function (r) { return [r.sa, r.sb]; }),
@@ -64,6 +65,7 @@
         state.tournament.game = snap.series.game;
         state.tournament.effect = snap.series.effect || '';
         if (snap.series.heroes) state.season.heroes = snap.series.heroes;
+        if (snap.series.games) state.series.games = snap.series.games;
         if (snap.series.scores && snap.series.scores.length === state.season.schedule.length) {
             state.season.schedule.forEach(function (r, i) { r.score = snap.series.scores[i]; });
         }
@@ -193,6 +195,72 @@
 
     // Add the finished game to the season's hero records: every pick counts as
     // played (and as a win for the winning side), every ban as a ban.
+    // Keep what the result screen needs from a game before the draft is cleared:
+    // who won, both drafts, the objectives, the MVP and the score after it.
+    function recordGame(s, winner) {
+        const game = { game: s.tournament.game, winner: s.teams[winner].name, mvp: null };
+        SIDES.forEach(function (side) {
+            const team = s.teams[side];
+            game[side] = {
+                name: team.name, tag: team.tag, won: side === winner, score: team.score,
+                picks: s.draft.picks[side].slice(), bans: s.draft.bans[side].slice(0, s.draft.banCount),
+                players: team.players.slice(),
+                stats: { towers: team.stats.towers, turtles: team.stats.turtles, lords: team.stats.lords }
+            };
+        });
+        if (s.mvp.hero && s.mvp.game === s.tournament.game) {
+            game.mvp = { hero: s.mvp.hero, player: s.mvp.player, team: s.mvp.team, k: s.mvp.k, d: s.mvp.d, a: s.mvp.a };
+        }
+        // a game entered twice (undo, then again) replaces its earlier record
+        s.series.games = s.series.games.filter(function (g) { return g.game !== game.game; }).concat([game]);
+    }
+
+    // Step 3 on the Live tab, once the series is decided: name its MVP. The
+    // list is the winners' players then the losers', and the player with the
+    // most game MVPs is pointed out.
+    function renderSeriesMvp(state) {
+        const winner = seriesWinner(state);
+        $('series-mvp-step').hidden = !winner;
+        if (!winner) return;
+        const final = /final/i.test(state.tournament.stage || '') && !/semi|quarter/i.test(state.tournament.stage || '');
+        $('series-mvp-title').firstChild.textContent = (final ? 'Finals MVP' : 'Series MVP') + ' ';
+        const loser = winner === 'blue' ? 'red' : 'blue';
+        const groups = [winner, loser].map(function (side) {
+            return { team: state.teams[side].name, players: state.teams[side].players.filter(Boolean) };
+        });
+        const counts = {};
+        state.series.games.forEach(function (g) { if (g.mvp && g.mvp.player) counts[g.mvp.player] = (counts[g.mvp.player] || 0) + 1; });
+        const select = $('series-mvp');
+        const key = JSON.stringify([groups, counts]);
+        if (select.dataset.key !== key) {
+            select.dataset.key = key;
+            select.textContent = '';
+            select.add(new Option('No series MVP', ''));
+            groups.forEach(function (group) {
+                if (!group.players.length) return;
+                const box = document.createElement('optgroup');
+                box.label = group.team;
+                group.players.forEach(function (name) {
+                    box.appendChild(new Option(name + (counts[name] ? '  ·  ' + counts[name] + ' game MVP' + (counts[name] > 1 ? 's' : '') : ''), name));
+                });
+                select.appendChild(box);
+            });
+        }
+        // a name that is no longer on either roster stays selectable
+        if (state.series.mvp && !Array.prototype.some.call(select.options, function (o) { return o.value === state.series.mvp; })) {
+            select.add(new Option(state.series.mvp, state.series.mvp));
+        }
+        if (select !== document.activeElement) select.value = state.series.mvp || '';
+        const best = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+        $('series-mvp-hint').textContent = state.series.mvp ? 'Shown on the result screen after the winner.'
+            : best ? 'Most game MVPs this series: ' + best + ' (' + counts[best] + ').' : 'Pick a player to add a slide for them on the result screen.';
+    }
+
+    // A hold on the game. The same button lifts it.
+    function hold(s, kind) {
+        s.pause = s.pause.kind === kind ? { kind: '', at: 0 } : { kind: kind, at: Store.now() };
+    }
+
     function recordHeroStats(s, winner) {
         const bySide = {};
         s.season.heroes.forEach(function (row) { bySide[row.id] = row; });
@@ -222,6 +290,8 @@
         },
         'score-down': function (s, b) { s.teams[b.dataset.side].score = clamp(s.teams[b.dataset.side].score - 1, 0, Store.winsNeeded(s)); },
         'logo-clear': function (s, b) { s.teams[b.dataset.side].logo = ''; },
+        'hold-pause': function (s) { hold(s, 'pause'); },
+        'hold-break': function (s) { hold(s, 'break'); },
         // Empty a side: no team, tag, logo or players. The score is left alone.
         'team-clear': function (s, b) {
             const team = s.teams[b.dataset.side];
@@ -323,11 +393,15 @@
             recordHeroStats(s, b.dataset.side);
             // The MVP screen's "who won" slide, if the MVP is from this game.
             if (s.mvp.hero && s.mvp.game === s.tournament.game) s.mvp.winner = s.teams[b.dataset.side].name;
+            recordGame(s, b.dataset.side);
             if (seriesWinner(s)) recordResult(s);
             if (!seriesOver(s)) advanceGame(s);
         },
         'reset-series': function (s) {
             snapshot(s, true);
+            s.series.games = [];
+            s.series.mvp = '';
+            s.pause = { kind: '', at: 0 };
             s.tournament.game = 1;
             SIDES.forEach(function (side) {
                 s.teams[side].score = 0;
@@ -441,6 +515,7 @@
         }
         if (currentTab === 'live' && !typing) {
             if (key === 'Escape') { hideBanner(); return true; }
+            if (key === 'p') { $('hold-pause').click(); return true; }
             const btn = document.querySelector('.ebtn[data-key="' + key + '"]');
             if (!btn) return false;
             announce(btn);
@@ -1581,6 +1656,7 @@
         renderTeamLoaders(state);
         renderMatchLoader(state);
         renderRosters(state);
+        renderSeriesMvp(state);
         syncStandings(state);
         renderHeroStats(state);
         document.querySelectorAll('[data-bind]').forEach(function (input) {
@@ -1890,6 +1966,11 @@
                 e.target.value = '';
                 return;
             }
+            if (e.target.id === 'series-mvp') {
+                const name = e.target.value;
+                Store.update(function (s) { s.series.mvp = name; });
+                return;
+            }
             if (e.target.id === 'mvp-winner') {
                 const name = e.target.value;
                 Store.update(function (s) { s.mvp.winner = name; });
@@ -2016,9 +2097,29 @@
         $('idle-toggle').disabled = !state.idle.timer.running && Store.idleLeft(state) <= 0;
     }
 
+    function clock(ms) {
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const m = Math.floor(total / 60), sec = total % 60;
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    // Live tab: which hold is on, and for how long.
+    function renderHold(state) {
+        const p = state.pause;
+        [['hold-pause', 'pause', 'Technical pause'], ['hold-break', 'break', 'Break']].forEach(function (row) {
+            const btn = $(row[0]);
+            const on = p.kind === row[1];
+            btn.classList.toggle('live', on);
+            btn.firstChild.textContent = on ? row[2] + ' – ' + clock(Store.now() - p.at) + ' – press to resume' : row[2];
+        });
+        $('now-hold').hidden = !p.kind;
+        if (p.kind) $('now-hold').textContent = (p.kind === 'break' ? 'Break ' : 'Paused ') + clock(Store.now() - p.at);
+    }
+
     function watchTimer() {
         const state = Store.get();
         renderTimer(state);
+        renderHold(state);
         renderIdleClock(state);
         const d = state.draft;
         if (!d.timer.running || Store.timerLeft(state) > 0) return;
@@ -2040,6 +2141,7 @@
         $('url-mvp').textContent = base + 'mvp.html';
         $('url-idle').textContent = base + 'idle.html';
         $('url-loading').textContent = base + 'loading.html';
+        $('url-result').textContent = base + 'result.html';
         if (local) {
             $('url-hint').textContent = 'OBS cannot sync with this page in local mode. Start “Start Overlay Server.bat” and open the control panel from the address it prints.';
         }

@@ -29,6 +29,7 @@
     <div class="nowbar">
         <div class="now"><span>Series</span><b class="summary" id="summary"></b></div>
         <div class="now" id="now-draft"><span>Draft</span><b id="now-phase"></b></div>
+        <b class="now-hold" id="now-hold" hidden></b>
         <div class="now onscreen">
             <span>On screen</span>
             <label class="check onair"><input type="checkbox" data-bind="draft.visible"> Draft</label>
@@ -241,7 +242,12 @@
                     <button type="button" class="btn ghost" id="event-hide" data-key="Esc">Hide banner now</button>
                 </div>
                 <div class="events" id="events"></div>
-                <details class="help"><summary>How this works</summary><p>Each button shows its key: the top letter row is the blue team, the middle row the red team, the bottom row the map. Keys only work on this tab, never while typing in a box, and can be switched off with Hotkeys at the top. One press plays the animation once on the scoreboard overlay. Nothing plays by itself. Turtle, Lord and turret presses also add one to that team&rsquo;s counter above.</p></details>
+                <!-- stops in play: stay on screen until the same button is pressed again -->
+                <div class="holds">
+                    <button type="button" class="btn hold" id="hold-pause" data-act="hold-pause" data-key="P">Technical pause</button>
+                    <button type="button" class="btn hold" id="hold-break" data-act="hold-break">Break</button>
+                </div>
+                <details class="help"><summary>How this works</summary><p>Technical pause and Break put a banner with a running clock on the scoreboard overlay; press the same button again to take it off. Each button shows its key: the top letter row is the blue team, the middle row the red team, the bottom row the map. Keys only work on this tab, never while typing in a box, and can be switched off with Hotkeys at the top. One press plays the animation once on the scoreboard overlay. Nothing plays by itself. Turtle, Lord and turret presses also add one to that team&rsquo;s counter above.</p></details>
             </div>
 
             <!-- right: the two things to do when it ends, in the order to do them -->
@@ -288,7 +294,17 @@
                         <button type="button" class="btn ghost" id="next-game" data-act="next-game">Next game without a result</button>
                         <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
                     </div>
-                    <details class="help"><summary>What does this do?</summary><p>One press adds the win, bumps the game number, clears the draft and takes you to the Draft tab. If that win decides the series, it only adds the win. It also clears the picks, which is why the MVP comes first. Pressed the wrong one? Use Undo on the Draft tab, or the &minus; next to the score.</p></details>
+                    <a class="btn ghost result-link" href="result.html" target="_blank">Open the result screen</a>
+                    <details class="help"><summary>What does this do?</summary><p>It also records the game for the result screen, which slides through the game just finished and its MVP and, once the series is decided, the winner and the series MVP you name in step 3. One press adds the win, bumps the game number, clears the draft and takes you to the Draft tab. If that win decides the series, it only adds the win. It also clears the picks, which is why the MVP comes first. Pressed the wrong one? Use Undo on the Draft tab, or the &minus; next to the score.</p></details>
+                </div>
+                <div class="step" id="series-mvp-step" hidden>
+                    <div class="step-head"><b>3</b><h3 id="series-mvp-title">Series MVP <small>optional</small></h3></div>
+                    <div class="options">
+                        <label class="field medium">Player
+                            <select id="series-mvp" aria-label="MVP of the series"></select>
+                        </label>
+                        <p class="hint" id="series-mvp-hint"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -356,6 +372,17 @@
             <details class="help"><summary>What is this?</summary><p>A full-screen scene for the wait between the draft and the game. The ten picked heroes stay on screen, blue along the top and red along the bottom, and each card takes turns showing the hero, the player and the hero&rsquo;s season win rate. Between the two rows it rotates through the matchup, how the two drafts compare, the bans with their ban rate, both teams&rsquo; results and head to head, and the season&rsquo;s most contested heroes. A slide with nothing to show yet is skipped. It follows the show design.</p></details>
         </div>
 
+        <div class="card" data-subpanel="look">
+            <div class="card-head">
+                <h2>Result screen</h2>
+                <a class="btn ghost" href="result.html" target="_blank">Open</a>
+            </div>
+            <div class="options">
+                <label class="field small">Seconds per view<input type="number" min="5" max="120" data-bind="result.seconds" data-num></label>
+            </div>
+            <details class="help"><summary>What is this?</summary><p>One full-screen scene for after a game, so the MVP no longer needs a scene of its own. It slides through the game that just finished (winner, both drafts and bans, turrets, turtles and lords, series score) and that game&rsquo;s MVP. Once a team has won the series, the winner&rsquo;s screen and the series MVP come first; they are titled &ldquo;Champions&rdquo; and &ldquo;Finals MVP&rdquo; when the stage is a final. Games are recorded when you press who won. Add <code>?view=game</code>, <code>mvp</code>, <code>champion</code> or <code>finals</code> to its address to hold one slide.</p></details>
+        </div>
+
         <div class="card" data-subpanel="draft">
             <h2>Draft rules</h2>
             <div class="options">
@@ -421,8 +448,9 @@
                     <label class="check"><input type="checkbox" data-bind="scoreboard.sides"> Show each player and their hero down the edges</label>
                     <label class="field small" data-sides>From the top (px)<input type="number" min="0" max="1000" step="2" data-bind="scoreboard.sidesTop" data-num></label>
                     <label class="field small" data-sides>Row height (px)<input type="number" min="56" max="200" step="1" data-bind="scoreboard.sidesRow" data-num></label>
+                    <label class="field small" data-sides>In from the edge (px)<input type="number" min="0" max="800" step="2" data-bind="scoreboard.sidesEdge" data-num></label>
                 </div>
-                <details class="help"><summary>How this works</summary><p>As on a league broadcast: a name strip in the team&rsquo;s colour over the hero each player picked, blue on the left edge and red on the right. It works with every layout, shows once the draft has picks or the players are named, and clears with the draft. Use &ldquo;From the top&rdquo; to sit it under the minimap.</p></details>
+                <details class="help"><summary>How this works</summary><p>As on a league broadcast: a name strip in the team&rsquo;s colour over the hero each player picked, blue on the left edge and red on the right. It works with every layout, shows once the draft has picks or the players are named, and clears with the draft. Use &ldquo;From the top&rdquo; to sit it under the minimap, and &ldquo;In from the edge&rdquo; to move both lists toward the centre when the game picture does not reach the sides of the screen.</p></details>
             </div>
             <div class="group">
                 <h3>What it shows</h3>
@@ -483,6 +511,7 @@
                 <div class="url-row"><span>Scoreboard</span><code id="url-scoreboard"></code><button type="button" class="btn" data-copy="url-scoreboard">Copy</button><a class="btn ghost" href="scoreboard.html" target="_blank">Open</a></div>
                 <div class="url-row"><span>MVP</span><code id="url-mvp"></code><button type="button" class="btn" data-copy="url-mvp">Copy</button><a class="btn ghost" href="mvp.html" target="_blank">Open</a></div>
                 <div class="url-row"><span>Waiting</span><code id="url-idle"></code><button type="button" class="btn" data-copy="url-idle">Copy</button><a class="btn ghost" href="idle.html" target="_blank">Open</a></div>
+                <div class="url-row"><span>Result</span><code id="url-result"></code><button type="button" class="btn" data-copy="url-result">Copy</button><a class="btn ghost" href="result.html" target="_blank">Open</a></div>
                 <div class="url-row"><span>Loading</span><code id="url-loading"></code><button type="button" class="btn" data-copy="url-loading">Copy</button><a class="btn ghost" href="loading.html" target="_blank">Open</a></div>
                 <p class="hint" id="url-hint">Add each as a Browser source at 1920 × 1080. The background is transparent inside OBS. <a href="index.html">Setup guide</a></p>
         </div>

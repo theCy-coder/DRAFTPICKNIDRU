@@ -1,0 +1,164 @@
+/* Result screen (result.html): the game just finished, and the series winner.
+   The backdrop is the waiting screen's, so it follows the show design. */
+.res .blue { --team: var(--blue); }
+.res .red { --team: var(--red); }
+.rs-view { position: absolute; inset: 0; }
+.rs-view [style*="--d"] { animation: rs-rise 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) var(--d) both; }
+@keyframes rs-rise { from { opacity: 0; transform: translateY(44px); } to { opacity: 1; transform: none; } }
+
+.rs-logo { display: flex; align-items: center; justify-content: center; overflow: hidden; background: rgba(8, 10, 15, 0.72); border-bottom: 6px solid var(--team, var(--gold)); }
+.rs-logo img { width: 100%; height: 100%; object-fit: contain; padding: 10%; }
+.rs-logo span { color: var(--team, #fff); }
+
+/* ---- the game that just finished ---- */
+.rs-game { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 34px 60px 44px; }
+.rs-head { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; }
+.rs-head i { font-style: normal; font-size: 28px; line-height: 30px; letter-spacing: 5px; color: var(--gold); white-space: pre; }
+.rs-head b { position: relative; font-weight: normal; font-size: 96px; line-height: 92px; text-shadow: 0 5px 0 rgba(0, 0, 0, 0.35), 0 8px 30px rgba(0, 0, 0, 0.6); }
+.rs-head b::after { content: ''; position: absolute; left: 8%; right: 8%; bottom: -4px; height: 5px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.rs-row { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px minmax(0, 1fr); gap: 30px; align-items: stretch; }
+.rs-team { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.rs-team.lost { opacity: 0.78; }
+.rs-teamtop { display: flex; align-items: center; gap: 22px; padding-bottom: 14px; border-bottom: 4px solid var(--team); }
+.rs-team.red .rs-teamtop { flex-direction: row-reverse; text-align: right; }
+.rs-teamtop .rs-logo { flex: none; width: 150px; height: 150px; }
+.rs-teamtop .rs-logo span { font-size: 54px; }
+.rs-teamtext { min-width: 0; flex: 1 1 0; display: flex; flex-direction: column; gap: 8px; }
+.rs-team.red .rs-teamtext { align-items: flex-end; }
+.rs-teamtext b { max-width: 100%; font-weight: normal; font-size: 86px; line-height: 80px; color: var(--team); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-teamtext b.long { font-size: 56px; line-height: 56px; }
+.rs-teamtext span { align-self: flex-start; padding: 8px 18px 3px; font-size: 30px; line-height: 32px; letter-spacing: 5px; color: var(--muted); background: rgba(8, 10, 15, 0.7); }
+.rs-team.red .rs-teamtext span { align-self: flex-end; }
+.rs-teamtext span.badge { color: var(--ink); background: var(--gold); box-shadow: 0 0 34px rgba(255, 201, 77, 0.65); animation: rs-pulse 1.8s ease-in-out infinite; }
+@keyframes rs-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+.rs-picks { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.rs-team.red .rs-picks { direction: rtl; }
+.rs-pick { direction: ltr; position: relative; min-width: 0; overflow: hidden; background: rgba(8, 10, 15, 0.82); border-bottom: 5px solid var(--team); }
+.rs-pick img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 10%; }
+.rs-team.lost .rs-pick img { filter: saturate(0.55) brightness(0.8); }
+.rs-picklabel { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 6px 6px; text-align: center; background: linear-gradient(to top, rgba(6, 8, 12, 0.96) 46%, transparent); }
+.rs-picklabel b { display: block; font-weight: normal; font-size: 28px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-picklabel span { display: block; font-family: var(--ui); font-size: 16px; font-weight: 700; letter-spacing: 0; color: var(--team); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.rs-foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 84px; padding: 0 18px; background: rgba(8, 10, 15, 0.8); }
+.rs-team.red .rs-foot { flex-direction: row-reverse; }
+.rs-bans { display: flex; align-items: center; gap: 8px; }
+.rs-team.red .rs-bans { flex-direction: row-reverse; }
+.rs-bans i { font-style: normal; font-size: 24px; letter-spacing: 3px; color: var(--muted); margin: 4px 6px 0; }
+.rs-ban { position: relative; width: 60px; height: 60px; overflow: hidden; background: #15171d; }
+.rs-ban img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 10%; filter: grayscale(1) brightness(0.7); transform: scale(1.3); transform-origin: 50% 20%; }
+.rs-ban::after { content: ''; position: absolute; left: -20%; right: -20%; top: 50%; height: 4px; margin-top: -2px; background: var(--red); transform: rotate(-40deg); }
+.rs-stats { display: flex; gap: 26px; }
+.rs-stats span { display: flex; align-items: center; gap: 8px; }
+.rs-stats svg { width: 34px; height: 34px; color: var(--team); }
+.rs-stats b { font-weight: normal; font-size: 46px; line-height: 40px; padding-top: 6px; }
+.rs-stats i { font-style: normal; font-family: var(--ui); font-size: 14px; letter-spacing: 0; color: var(--muted); }
+
+.rs-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.rs-mid > i { font-style: normal; font-size: 30px; letter-spacing: 6px; color: var(--muted); }
+.rs-score { display: flex; align-items: center; gap: 12px; }
+.rs-score b { font-weight: normal; font-size: 170px; line-height: 150px; padding-top: 14px; color: var(--team); text-shadow: 0 0 44px color-mix(in srgb, var(--team) 70%, transparent); }
+.rs-score span { font-size: 90px; color: var(--muted); }
+.rs-bo { font-size: 28px; letter-spacing: 4px; color: var(--gold); }
+.rs-mvp { margin-top: 34px; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 16px 12px 14px; background: rgba(8, 10, 15, 0.84); border-top: 5px solid var(--gold); }
+.rs-mvp > i { font-style: normal; font-size: 34px; line-height: 34px; letter-spacing: 8px; color: var(--gold); }
+.rs-face { width: 130px; height: 130px; margin: 10px 0; overflow: hidden; border-radius: 50%; background: #1a2030; box-shadow: 0 0 0 4px var(--team), 0 0 30px color-mix(in srgb, var(--team) 60%, transparent); }
+.rs-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; transform: scale(1.5); transform-origin: 50% 22%; }
+.rs-mvp b { max-width: 100%; font-weight: normal; font-size: 44px; line-height: 42px; color: var(--team); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-mvp span { font-size: 22px; letter-spacing: 3px; color: var(--muted); }
+.rs-mvp em { margin-top: 4px; font-style: normal; font-size: 40px; line-height: 40px; letter-spacing: 2px; }
+
+/* ---- the series winner ---- */
+.rs-champ { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 80px; text-align: center; }
+.rs-kicker { font-style: normal; font-size: 32px; line-height: 34px; letter-spacing: 6px; color: var(--gold); white-space: pre; }
+.rs-crown { margin-top: 6px; font-size: 130px; line-height: 122px; letter-spacing: 6px; background: linear-gradient(180deg, #fff6cf 0%, #ffd766 38%, #f0a92b 62%, #9b6410 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.45)); }
+.rs-logo.big { width: 300px; height: 300px; margin-top: 14px; border-bottom-width: 8px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--team) 60%, transparent), 0 0 120px color-mix(in srgb, var(--team) 60%, transparent); }
+.rs-champ [style*="--d"].rs-logo.big { animation: rs-rise 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) var(--d) both, rs-float 5s ease-in-out 1s infinite; }
+@keyframes rs-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.rs-logo.big span { font-size: 120px; }
+.rs-champname { max-width: 1700px; margin-top: 18px; font-size: 190px; line-height: 170px; white-space: nowrap; color: var(--team); text-shadow: 0 8px 0 rgba(0, 0, 0, 0.4), 0 0 80px color-mix(in srgb, var(--team) 55%, transparent); }
+.rs-final { display: flex; align-items: baseline; gap: 22px; margin-top: 4px; }
+.rs-final b { font-weight: normal; font-size: 96px; line-height: 90px; }
+.rs-final span { font-size: 40px; letter-spacing: 3px; color: var(--muted); }
+.rs-roster { margin-top: 10px; font-size: 34px; letter-spacing: 2px; white-space: pre; }
+.rs-games { display: flex; gap: 10px; margin-top: 22px; }
+.rs-chip { display: flex; flex-direction: column; align-items: center; min-width: 110px; padding: 8px 14px 6px; background: rgba(8, 10, 15, 0.82); border-bottom: 5px solid rgba(255, 255, 255, 0.25); }
+.rs-chip i { font-style: normal; font-size: 22px; letter-spacing: 3px; color: var(--muted); }
+.rs-chip b { font-weight: normal; font-size: 38px; line-height: 38px; color: var(--muted); white-space: nowrap; }
+.rs-chip.won { border-bottom-color: var(--team); }
+.rs-chip.won b { color: #fff; }
+
+.rs-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; display: none; }
+.res.champion .rs-confetti { display: block; }
+.rs-confetti i { position: absolute; top: -40px; opacity: 0.9; animation: rs-fall linear infinite; }
+@keyframes rs-fall { from { transform: translateY(-40px) rotate(0deg); } to { transform: translateY(1160px) rotate(720deg); } }
+
+/* ---- nothing to report yet ---- */
+.rs-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; }
+.rs-waitrow { display: flex; align-items: center; gap: 70px; }
+.rs-waitteam { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 560px; }
+.rs-waitteam .rs-logo { width: 280px; height: 280px; }
+.rs-waitteam .rs-logo span { font-size: 110px; }
+.rs-waitteam b { max-width: 100%; font-weight: normal; font-size: 90px; line-height: 86px; color: var(--team); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-vs { display: flex; align-items: center; justify-content: center; width: 150px; height: 150px; padding-top: 8px; font-size: 84px; color: var(--ink); background: var(--gold); border-radius: 50%; }
+.rs-waitnote { font-size: 34px; letter-spacing: 4px; color: var(--muted); white-space: pre; }
+
+/* ---- show designs: the backdrop changes by itself; these match the panels ---- */
+.res[data-design="slant"] :is(.rs-head b, .rs-teamtext b, .rs-champname, .rs-crown, .rs-score b) { font-style: italic; }
+.res[data-design="slant"] :is(.rs-foot, .rs-mvp, .rs-chip) { clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
+.res[data-design="glass"] :is(.rs-pick, .rs-foot, .rs-mvp, .rs-chip, .rs-logo, .rs-teamtext span) { border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 20px; background: rgba(255, 255, 255, 0.09); overflow: hidden; }
+.res[data-design="glass"] .rs-teamtext span.badge { background: rgba(255, 201, 77, 0.92); }
+.res[data-design="studio"] :is(.rs-pick, .rs-foot, .rs-mvp, .rs-chip) { background: #141821; }
+.res[data-design="studio"] :is(.rs-head b, .rs-champname) { text-shadow: none; }
+.res[data-design="studio"] .rs-logo { background: none; box-shadow: none; }
+.res[data-design="studio"] .rs-confetti { display: none; }
+.res[data-design="neon"] :is(.rs-pick, .rs-foot, .rs-mvp, .rs-chip) { background: rgba(6, 4, 18, 0.86); box-shadow: 0 0 0 2px var(--team, #f4ff3a), 0 0 24px color-mix(in srgb, var(--team, #f4ff3a) 60%, transparent); border-bottom-width: 0; }
+.res[data-design="neon"] :is(.rs-head b, .rs-champname) { text-shadow: 0 0 26px currentColor; }
+.res:is([data-design="prestige"], [data-design="championship"]) .rs-head b { background: linear-gradient(180deg, #fff6cf 0%, #ffd766 38%, #f0a92b 62%, #9b6410 100%); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.5)); }
+.res:is([data-design="prestige"], [data-design="championship"]) :is(.rs-pick, .rs-foot, .rs-mvp, .rs-chip) { background: #0b0a07; box-shadow: 0 0 0 1px rgba(255, 215, 102, 0.55); }
+
+/* ---- the game's MVP: the MVP overlay as a slide ---- */
+.rs-frame { position: absolute; inset: 0; width: 1920px; height: 1080px; border: 0; background: transparent; animation: rs-fade 0.5s ease-out both; }
+@keyframes rs-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- the MVP of the series ---- */
+.rs-fmvp { position: absolute; inset: 0; display: grid; grid-template-columns: 600px minmax(0, 1fr); gap: 70px; align-items: center; padding: 60px 110px 60px 120px; }
+.rs-fphoto { position: relative; width: 600px; height: 750px; overflow: hidden; background: linear-gradient(160deg, color-mix(in srgb, var(--team) 55%, #0b0e14), #0b0e14); box-shadow: 0 0 0 4px var(--gold), 0 0 0 12px rgba(11, 14, 20, 0.9), 0 0 110px color-mix(in srgb, var(--team) 60%, transparent), 0 30px 60px rgba(0, 0, 0, 0.6); }
+.rs-fmvp [style*="--d"].rs-fphoto { animation: rs-photo 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+@keyframes rs-photo { from { opacity: 0; transform: translateX(-120px) scale(0.94); } to { opacity: 1; transform: none; } }
+.rs-fphoto img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%; }
+.rs-fphoto::after { content: ''; position: absolute; top: 0; bottom: 0; left: -80%; width: 50%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent); animation: rs-sweep 1.2s ease-out 0.8s both; }
+@keyframes rs-sweep { to { left: 150%; } }
+.rs-ftext { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.rs-fmvp .rs-crown { font-size: 120px; line-height: 112px; letter-spacing: 4px; }
+.rs-fname { max-width: 100%; margin-top: 4px; font-size: 170px; line-height: 150px; white-space: nowrap; color: var(--team); text-shadow: 0 8px 0 rgba(0, 0, 0, 0.4), 0 0 80px color-mix(in srgb, var(--team) 55%, transparent); }
+.rs-fteam { display: flex; align-items: center; gap: 18px; margin-top: 6px; }
+.rs-fteam .rs-logo { width: 76px; height: 76px; border-bottom-width: 4px; }
+.rs-fteam .rs-logo span { font-size: 28px; }
+.rs-fteam b { font-weight: normal; font-size: 54px; line-height: 54px; padding-top: 6px; }
+.rs-ftiles { display: flex; gap: 14px; margin-top: 26px; }
+.rs-ftile { min-width: 200px; display: flex; flex-direction: column; align-items: center; padding: 16px 22px 12px; background: rgba(8, 10, 15, 0.84); border-bottom: 5px solid var(--team); }
+.rs-ftile:first-child { border-bottom-color: var(--gold); }
+.rs-ftile b { font-weight: normal; font-size: 84px; line-height: 76px; padding-top: 6px; white-space: nowrap; }
+.rs-ftile:first-child b { color: var(--gold); }
+.rs-ftile span { font-family: var(--ui); font-size: 17px; letter-spacing: 0; color: var(--muted); white-space: nowrap; }
+.rs-fheroes { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+.rs-fhero { display: flex; flex-direction: column; align-items: center; width: 150px; padding: 12px 8px 10px; text-align: center; background: rgba(8, 10, 15, 0.82); border-bottom: 5px solid rgba(255, 255, 255, 0.22); }
+.rs-fhero.won { border-bottom-color: var(--team); }
+.rs-fhero.mvp { box-shadow: inset 0 0 0 2px var(--gold); }
+.rs-fhero .rs-face { width: 92px; height: 92px; margin: 0 0 8px; box-shadow: 0 0 0 3px var(--team); }
+.rs-fhero b { max-width: 100%; font-weight: normal; font-size: 26px; line-height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-fhero span { font-family: var(--ui); font-size: 13px; letter-spacing: 0; color: var(--muted); white-space: nowrap; }
+.res[data-design="slant"] .rs-fname { font-style: italic; }
+.res[data-design="glass"] :is(.rs-ftile, .rs-fhero) { border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 20px; background: rgba(255, 255, 255, 0.09); }
+.res[data-design="glass"] .rs-fphoto { border-radius: 36px; }
+.res[data-design="studio"] :is(.rs-ftile, .rs-fhero) { background: #141821; }
+.res[data-design="studio"] .rs-fname { text-shadow: none; }
+.res[data-design="neon"] :is(.rs-ftile, .rs-fhero) { background: rgba(6, 4, 18, 0.86); box-shadow: 0 0 0 2px var(--team), 0 0 24px color-mix(in srgb, var(--team) 60%, transparent); border-bottom-width: 0; }
+.res:is([data-design="prestige"], [data-design="championship"]) :is(.rs-ftile, .rs-fhero) { background: #0b0a07; box-shadow: 0 0 0 1px rgba(255, 215, 102, 0.55); }
+/* every line of the series MVP keeps its own height; nothing is squeezed to make room */
+.rs-ftext > * { flex: none; }
+.rs-fhero > * { flex: none; }
+.rs-champ > *, .rs-game > .rs-head, .rs-team > .rs-teamtop, .rs-team > .rs-foot { flex: none; }
+.rs-fheroes { align-self: stretch; }
