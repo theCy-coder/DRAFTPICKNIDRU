@@ -55,13 +55,13 @@
         zilong: 8
     };
 
-    function setHero(slot, heroId, isPick) {
+    function setHero(slot, heroId, isPick, traded) {
         const id = heroId || '';
         if (slot.dataset.hero === id) return;
         slot.dataset.hero = id;
         const old = slot.querySelector(':scope > img');
         if (old) old.remove();
-        slot.classList.remove('noimg', 'flash');
+        slot.classList.remove('noimg', 'flash', 'traded');
         const hero = Heroes.get(id);
         slot.classList.toggle('filled', !!hero);
         slot.querySelector('.fallback').textContent = hero ? hero.name : '';
@@ -80,9 +80,11 @@
         slot.insertBefore(img, slot.firstChild);
         if (isPick) {
             void slot.offsetWidth;
-            slot.classList.add('flash');
+            // a hero traded between team-mates turns over; a new pick flashes
+            slot.classList.add(traded ? 'traded' : 'flash');
         }
     }
+    let lastPicks = null;     // the picks as last drawn, to tell a trade from a pick
 
     // Fearless row: one small tile per hero the team played in earlier games,
     // grouped by game so a game never splits across two lines.
@@ -129,6 +131,7 @@
 
         Store.SIDES.forEach(function (side) {
             const team = state.teams[side];
+            const trade = lastPicks && Overlay.swapOf(lastPicks[side], d.picks[side]);
             Overlay.renderLogo($('logo-' + side), team);
             if (Overlay.setText($('name-' + side), team.name)) Overlay.fitText($('name-' + side), 44, 20);
             Overlay.renderPips($('pips-' + side), team.score, Store.winsNeeded(state));
@@ -140,7 +143,7 @@
                 ban.classList.toggle('active', !!step && step.type === 'ban' && step.side === side && step.slots.indexOf(i) >= 0 && !d.bans[side][i]);
 
                 const pick = slots.pick[side][i];
-                setHero(pick, d.picks[side][i], true);
+                setHero(pick, d.picks[side][i], true, !!trade && trade.indexOf(i) >= 0);
                 pick.classList.toggle('active', !!step && step.type === 'pick' && step.side === side && step.slots.indexOf(i) >= 0 && !d.picks[side][i]);
                 Overlay.setText(pick.querySelector('.nick span'), team.players[i] || '');
                 const face = pick.querySelector('.nick img');
@@ -148,6 +151,8 @@
                 else face.hidden = true;
             }
         });
+
+        lastPicks = { blue: d.picks.blue.slice(), red: d.picks.red.slice() };
 
         if (Overlay.setText($('tour'), state.tournament.name)) Overlay.fitText($('tour'), 34, 16);
         if (Overlay.setText($('stage-name'), state.tournament.stage)) Overlay.fitText($('stage-name'), 18, 12);

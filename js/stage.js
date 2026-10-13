@@ -91,9 +91,12 @@
         const now = slots(state);
         let found = null;
         if (previous) {
+            const row = function (all, side) { return [0, 1, 2, 3, 4].map(function (i) { return all[side + '|pick|' + i]; }); };
             Object.keys(now).forEach(function (key) {
                 if (now[key] && now[key] !== previous[key]) {
                     const parts = key.split('|');
+                    // two team-mates trading heroes is not a new pick: no spotlight
+                    if (parts[1] === 'pick' && Overlay.swapOf(row(previous, parts[0]), row(now, parts[0]))) return;
                     found = { hero: now[key], side: parts[0], type: parts[1], i: Number(parts[2]) };
                 }
             });

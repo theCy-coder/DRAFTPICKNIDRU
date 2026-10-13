@@ -163,3 +163,5 @@
 .rs-champ > *, .rs-game > .rs-head, .rs-team > .rs-teamtop, .rs-team > .rs-foot { flex: none; }
 .rs-fheroes { align-self: stretch; }
 .rs-champname, .rs-fname { overflow: visible; }
+/* Slant: the names stand on wedges of their own team colour, so they are white there */
+.res[data-design="slant"] .rs-teamtext b { color: #fff; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45), 0 0 26px color-mix(in srgb, var(--team) 70%, transparent); }

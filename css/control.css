@@ -679,3 +679,10 @@ body.no-keys .ebtn kbd, body.no-keys .btn[data-key]::after { display: none; }
 @keyframes hold-blink { 50% { filter: brightness(0.86); } }
 .now-hold { padding: 3px 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1b1400; background: var(--gold); border-radius: 999px; font-variant-numeric: tabular-nums; }
 .result-link { margin-top: 12px; }
+
+/* ---- Draft: swap heroes between two team-mates ---- */
+#swap-toggle.on { color: #0b0e14; background: var(--gold); border-color: var(--gold); }
+.swap-note { margin: 8px 0 0; padding: 8px 12px; font-size: 14px; border-left: 4px solid var(--gold); background: rgba(255, 201, 77, 0.1); }
+body.swapping .slot.ban, body.swapping .slot.pick:not(.filled), body.swapping #hero-grid, body.swapping .slot.pick.swap-off { opacity: 0.35; }
+body.swapping .slot.pick.filled:not(.swap-off) { cursor: pointer; border-color: var(--gold); border-style: dashed; }
+body.swapping .slot.pick.swap-first { border-style: solid; box-shadow: 0 0 0 3px rgba(255, 201, 77, 0.55); }

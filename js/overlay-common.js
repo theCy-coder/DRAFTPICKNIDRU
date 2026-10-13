@@ -37,7 +37,15 @@
             size -= 1;
             el.style.fontSize = size + 'px';
         }
-        if (el.scrollWidth > el.clientWidth) el.classList.add('fit-wrap');
+        if (el.scrollWidth > el.clientWidth) {
+            el.classList.add('fit-wrap');
+            // where the box has only so much height (a thin strip), the lines
+            // have to fit in it as well
+            while (size > 9 && el.scrollHeight > el.clientHeight + 1) {
+                size -= 1;
+                el.style.fontSize = size + 'px';
+            }
+        }
     }
 
     function setText(el, text) {
@@ -295,7 +303,19 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoFit);
     else autoFit();
 
+    // Two team-mates trading heroes: the same five picks, with exactly two of
+    // them having changed places. Returns those two slots, or null.
+    function swapOf(before, after) {
+        if (!before || !after) return null;
+        const moved = [];
+        for (let i = 0; i < after.length; i++) if ((before[i] || '') !== (after[i] || '')) moved.push(i);
+        if (moved.length !== 2) return null;
+        const a = moved[0], b = moved[1];
+        return before[a] && before[b] && before[a] === after[b] && before[b] === after[a] ? [a, b] : null;
+    }
+
     global.Overlay = {
+        swapOf: swapOf,
         roleIcons: roleIcons,
         fitWithin: fitWithin,
         hasStandings: hasStandings,

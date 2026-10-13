@@ -155,6 +155,7 @@
                 <div class="actions fixes">
                     <button type="button" class="btn ghost" data-act="step-prev" data-key="←">◀ Back</button>
                     <button type="button" class="btn ghost" data-act="timer-restart">Restart timer</button>
+                    <button type="button" class="btn ghost" id="swap-toggle" title="Two team-mates trade heroes: press this, then click the two picks">⇄ Swap heroes</button>
                     <button type="button" class="btn ghost" data-act="undo" id="undo">Undo</button>
                     <button type="button" class="btn ghost danger" data-act="reset-draft">Reset draft</button>
                 </div>
@@ -189,6 +190,7 @@
                 <div class="hero-grid" id="hero-grid"></div>
             </div>
         </div>
+        <p class="swap-note" id="swap-note" hidden></p>
         <div class="next-step" id="draft-done" hidden>
             <span>Draft complete.</span>
             <a class="btn ghost" href="loading.html" target="_blank">Open the loading screen</a>

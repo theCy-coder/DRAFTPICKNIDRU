@@ -342,6 +342,44 @@
             items.appendChild(node);
         });
         box.appendChild(items);
+        fitInfo();
+    }
+
+    // Every page sits in the same bar, whatever height it was given: the
+    // cards keep their size and edges, and what is inside one is scaled down
+    // when it would not fit. So a page with more in it is never cut at the
+    // bottom, and the bar looks the same from one page to the next.
+    // Boxes are compared as laid out (offset...), which an entrance animation
+    // does not move and a tall letter does not stretch.
+    function outside(node, box, across) {
+        const cs = getComputedStyle(box);
+        const top = box.offsetTop + parseFloat(cs.paddingTop), bottom = box.offsetTop + box.offsetHeight - parseFloat(cs.paddingBottom);
+        const left = box.offsetLeft + parseFloat(cs.paddingLeft), right = box.offsetLeft + box.offsetWidth - parseFloat(cs.paddingRight);
+        return node.offsetTop < top - 1.5 || node.offsetTop + node.offsetHeight > bottom + 1.5
+            || (across && (node.offsetLeft < left - 1.5 || node.offsetLeft + node.offsetWidth > right + 1.5));
+    }
+    function spills(box) { return box.scrollHeight > box.clientHeight + 0.5; }
+    function fitInfo() {
+        const page = $('bb-page');
+        const title = page.querySelector('.bb-title');
+        const items = page.querySelector('.bb-items');
+        if (!title || !items || !items.clientHeight) return;
+        const scale = function (nodes, k) { nodes.forEach(function (n) { n.style.zoom = k < 1 ? k : ''; }); };
+        const words = Array.prototype.slice.call(title.children);
+        let k = 1;
+        scale(words, k);
+        // the title moves as one piece, so its words are measured where they are drawn
+        const loose = function (word) {
+            const a = word.getBoundingClientRect(), b = title.getBoundingClientRect();
+            return a.height > 0 && (a.top < b.top - 0.5 || a.bottom > b.bottom + 0.5 || a.left < b.left - 0.5 || a.right > b.right + 0.5);
+        };
+        while (k > 0.4 && words.some(loose)) { k -= 0.04; scale(words, k); }
+        const cards = Array.prototype.slice.call(items.children);
+        const inside = [];
+        cards.forEach(function (card) { Array.prototype.push.apply(inside, card.children); });
+        k = 1;
+        scale(inside, k);
+        while (k > 0.4 && cards.some(function (card) { return outside(card, items, false) || spills(card); })) { k -= 0.04; scale(inside, k); }
     }
 
     // Called on every change and twice a second: keeps the page current, and
@@ -366,6 +404,23 @@
     }
 
     // The frame: bar heights, the scoreboard scaled to fill the top one.
+    // A team name: one line if it can be, otherwise two lines as large as the
+    // plate has room for (its height is capped in the stylesheet).
+    function fitName(box) {
+        Overlay.fitText(box, 38, 18);
+        if (!box.classList.contains('fit-wrap')) return;
+        const fits = function () { return box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1; };
+        let size = parseFloat(box.style.fontSize) || 13;
+        box.style.overflowWrap = 'normal';       // while growing, a word is never split
+        while (size < 28) {
+            box.style.fontSize = (size + 1) + 'px';
+            if (!fits()) { box.style.fontSize = size + 'px'; break; }
+            size += 1;
+        }
+        box.style.overflowWrap = '';
+    }
+
+    let frameSized = '';
     function renderFrame(state, board, frame) {
         const sb = state.scoreboard;
         const top = Math.max(40, Math.min(400, Number(sb.frameTop) || 108));
@@ -395,7 +450,37 @@
         if ($('bb-logo').getAttribute('src') !== logo) $('bb-logo').src = logo;
         Overlay.setText($('bb-series'), (state.tournament.stage ? state.tournament.stage + '  ·  ' : '') + Overlay.seriesText(state));
         renderInfo(state, false);
+        const sized = top + '|' + bottom + '|' + bandBottom.dataset.design + '|' + sb.visible;
+        if (sized !== frameSized) { frameSized = sized; fitInfo(); }
+        frameFit = { k: k, base: base, top: top };
         return (top - base * k) / 2 / k;      // centres the plates in a bar taller than they can grow
+    }
+
+    // Plates scaled right up leave little room for a long team name. Before a
+    // name goes onto two lines the plates give some of that size back.
+    let frameFit = null, settledKey = '', settledK = 1;
+    function settleFrame(state, board, frame) {
+        if (!frame || !frameFit) { settledKey = ''; return; }
+        const names = ['name-blue', 'name-red'].map($);
+        const size = function (k) {
+            board.style.zoom = k;
+            board.style.width = (1920 / k) + 'px';
+            board.style.top = ((frameFit.top - frameFit.base * k) / 2 / k) + 'px';
+        };
+        const t = state.tournament, sb = state.scoreboard;
+        const key = [board.dataset.design, frameFit.top, frameFit.k, state.teams.blue.name, state.teams.red.name, t.name, t.stage, t.game, t.bestOf,
+            sb.showInfo, sb.showStats, sb.middle].join('|');
+        if (key === settledKey) { size(settledK); return; }
+        let k = frameFit.k;
+        names.forEach(fitName);
+        const least = Math.max(1, frameFit.k * 0.7);
+        while (k - 0.1 >= least && names.some(function (n) { return n.classList.contains('fit-wrap'); })) {
+            k -= 0.1;
+            size(k);
+            names.forEach(fitName);
+        }
+        settledKey = key;
+        settledK = k;
     }
 
     // ?layout=frame (or split, bar) on the address previews a layout in this
@@ -439,7 +524,7 @@
         Store.SIDES.forEach(function (side) {
             const team = state.teams[side];
             Overlay.renderLogo($('logo-' + side), team);
-            if (Overlay.setText($('name-' + side), team.name) || restyled) Overlay.fitText($('name-' + side), 38, 18);
+            if (Overlay.setText($('name-' + side), team.name) || restyled) fitName($('name-' + side));
             Overlay.renderPips($('pips-' + side), team.score, Store.winsNeeded(state));
             renderStats($('stats-' + side), team.stats);
             const score = $('score-' + side);
@@ -459,6 +544,7 @@
         Overlay.setText($('series'), (t.stage ? t.stage + ' · ' : '') + Overlay.seriesText(state));
         // Its box changes with the layout and the design, so measure it every time.
         Overlay.fitText($('series'), 18, 11);
+        settleFrame(state, board, frame);
         const fxp = $('fxp');
         // Size, and how far in from the edge. The Frame layout's bar runs edge to
         // edge, so there the panel hangs flush under its end.
@@ -481,7 +567,7 @@
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {
-                ['name-blue', 'name-red'].forEach(function (id) { Overlay.fitText($(id), 38, 18); });
+                ['name-blue', 'name-red'].forEach(function (id) { fitName($(id)); });
             });
         }
     });

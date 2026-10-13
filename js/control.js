@@ -49,6 +49,51 @@
         if (history.length > 60) history.shift();
     }
 
+    // ---- two team-mates trading heroes ---------------------------------------
+    // The players stay in their seats; the heroes in two of a team's picks
+    // change places. Press "Swap heroes", then the two picks (or drag one pick
+    // onto the other). It stays on for further trades until pressed again or Esc.
+    const swapMode = { on: false, first: null, note: '' };
+    function setSwapMode(on) {
+        swapMode.on = on;
+        swapMode.first = null;
+        if (on) { swapMode.note = ''; selected = null; }
+        render(Store.get());
+    }
+    // What was copied from the draft elsewhere follows the picks as they now are:
+    // this game's MVP is still the same hero, now with its new player, and a game
+    // already recorded (the deciding one keeps its draft up) shows the same pairing.
+    function followPicks(s) {
+        SIDES.forEach(function (side) {
+            const row = s.draft.picks[side];
+            if (s.mvp.game === s.tournament.game && s.mvp.side === side && s.mvp.hero && row.indexOf(s.mvp.hero) >= 0) {
+                s.mvp.player = s.teams[side].players[row.indexOf(s.mvp.hero)] || '';
+            }
+            s.series.games.forEach(function (g) {
+                const rec = g.game === s.tournament.game && g[side];
+                if (!rec || rec.name !== s.teams[side].name) return;
+                if (rec.picks.slice().sort().join() !== row.slice().sort().join()) return;
+                rec.picks = row.slice();
+                if (g.mvp && g.mvp.team === rec.name && row.indexOf(g.mvp.hero) >= 0) g.mvp.player = s.teams[side].players[row.indexOf(g.mvp.hero)] || '';
+            });
+        });
+    }
+    function swapHeroes(side, a, b) {
+        const row = Store.get().draft.picks[side];
+        if (a === b || !row[a] || !row[b]) return false;      // both players need a hero to trade
+        const names = [row[a], row[b]].map(function (id) { const h = Heroes.get(id); return h ? h.name : id; });
+        swapMode.note = 'Swapped ' + names[0] + ' and ' + names[1] + '. Undo puts them back.';
+        Store.update(function (s) {
+            snapshot(s);
+            const picks = s.draft.picks[side];
+            const held = picks[a];
+            picks[a] = picks[b];
+            picks[b] = held;
+            followPicks(s);
+        });
+        return true;
+    }
+
     function swapSides(state) {
         const blue = state.teams.blue;
         state.teams.blue = state.teams.red;
@@ -425,7 +470,10 @@
         'undo': function (s) {
             if (!history.length) return;
             restore(s, JSON.parse(history.pop()));
+            followPicks(s);
             selected = null;
+            swapMode.first = null;
+            swapMode.note = '';
         },
         'reset-draft': function (s) { snapshot(s); resetDraft(s); selected = null; },
         // Unlock every hero played earlier in the series (fearless).
@@ -1718,6 +1766,23 @@
         $('summary').textContent = 'Game ' + state.tournament.game + ' of ' + state.tournament.bestOf + '  \u00b7  ' +
             (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
         $('draft-done').hidden = !!step;
+        // Swap heroes: which picks can be pressed, and what just happened
+        if (swapMode.on && currentTab !== 'draft') { swapMode.on = false; swapMode.first = null; }
+        document.body.classList.toggle('swapping', swapMode.on);
+        $('swap-toggle').classList.toggle('on', swapMode.on);
+        $('swap-toggle').textContent = swapMode.on ? '⇄ Swapping – press to finish' : '⇄ Swap heroes';
+        SIDES.forEach(function (side) {
+            for (let i = 0; i < 5; i++) {
+                const btn = slotEls.pick[side][i];
+                btn.classList.toggle('swap-first', swapMode.on && !!swapMode.first && swapMode.first.side === side && swapMode.first.i === i);
+                btn.classList.toggle('swap-off', swapMode.on && !!swapMode.first && swapMode.first.side !== side);
+            }
+        });
+        const note = swapMode.on
+            ? (swapMode.first ? 'Now click the team-mate’s pick to trade with.' : 'Click the two picks of one team that are trading heroes.') + (swapMode.note ? '  ' + swapMode.note : '')
+            : swapMode.note;
+        $('swap-note').hidden = true;      // its words are shown in the hint line under the board
+        $('swap-note').textContent = note;
         renderMvp(state);
         $('design-hint').textContent = DESIGN_NOTES[state.design] || '';
         renderStageHint(state);
@@ -1805,10 +1870,14 @@
         if (t) {
             hint.textContent = 'Next hero goes to: ' + state.teams[t.side].name + ' ' + t.type + ' ' + (t.i + 1) +
                 (selected ? ' (selected manually – click the slot again to cancel).' : '.') +
-                ' Click any slot to change it, right-click to clear it, drag one pick onto another to swap them.';
+                ' Click any slot to change it, right-click to clear it. Team-mates trading heroes: Swap heroes, then the two picks.';
         } else {
-            hint.textContent = 'Draft complete. Click a slot to replace its hero, right-click to clear it, or drag one pick onto another to swap them.';
+            hint.textContent = 'Draft complete. Click a slot to replace its hero, right-click to clear it. Team-mates trading heroes: press Swap heroes, then the two picks.';
         }
+        // while trading heroes, and just after, this line says what to press or what happened
+        const swapNote = $('swap-note').textContent;
+        hint.classList.toggle('swap-note', !!swapNote);
+        if (swapNote) hint.textContent = swapNote;
         renderTimer(state);
     }
 
@@ -1857,7 +1926,19 @@
                 if (Store.get().tournament.game > game) showTab('draft');
                 return;
             }
+            if (e.target.closest('#swap-toggle')) { setSwapMode(!swapMode.on); return; }
             const slot = e.target.closest('.slot');
+            if (slot && swapMode.on) {
+                const s = slotOf(slot);
+                const filled = s.type === 'pick' && Store.get().draft.picks[s.side][s.i];
+                if (!filled) return;
+                if (!swapMode.first) swapMode.first = s;
+                else if (swapMode.first.side !== s.side) return;                 // team-mates only
+                else if (swapMode.first.i === s.i) swapMode.first = null;        // pressed again: let go
+                else { const first = swapMode.first; swapMode.first = null; swapHeroes(s.side, first.i, s.i); return; }
+                render(Store.get());
+                return;
+            }
             if (slot) {
                 const s = slotOf(slot);
                 const same = selected && selected.side === s.side && selected.type === s.type && selected.i === s.i;
@@ -1867,7 +1948,7 @@
                 return;
             }
             const hero = e.target.closest('.hero');
-            if (hero && !hero.disabled) { lockHero(hero.dataset.hero); return; }
+            if (hero && !hero.disabled && !swapMode.on) { lockHero(hero.dataset.hero); return; }
             const chip = e.target.closest('.chip');
             if (chip) {
                 roleFilter = chip.dataset.role;
@@ -2046,14 +2127,7 @@
             e.preventDefault();
             const from = dragging.i, to = Number(slot.dataset.i), side = dragging.side;
             dragging = null;
-            if (from === to) return;
-            Store.update(function (s) {
-                snapshot(s);
-                const row = s.draft.picks[side];
-                const tmp = row[from];
-                row[from] = row[to];
-                row[to] = tmp;
-            });
+            swapHeroes(side, from, to);
         });
         document.addEventListener('dragend', function () { dragging = null; });
 
@@ -2084,6 +2158,7 @@
         document.addEventListener('keydown', function (e) {
             const tag = (e.target.tagName || '').toLowerCase();
             const typing = tag === 'input' || tag === 'select' || tag === 'textarea';
+            if (e.key === 'Escape' && swapMode.on) { e.preventDefault(); setSwapMode(false); return; }
             if (hotkey(e, typing)) { e.preventDefault(); return; }
             if (typing) return;
             if (e.key === '/') { e.preventDefault(); showTab('draft'); search.focus(); }
