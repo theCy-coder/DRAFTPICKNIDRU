@@ -92,6 +92,10 @@
         return state.season.heroes.filter(function (r) { return r.id === id; })[0] || null;
     }
     // Every game has ten picks, so the picks give the number of games counted.
+    // A percentage from one or two games says little and reads oddly on air
+    // ("100% win rate", "banned 0%"). Below this many games a record is shown
+    // as plain wins and losses instead, and season-wide rates not at all.
+    const ENOUGH = 3;
     function gamesCounted(state) {
         return Math.round(state.season.heroes.reduce(function (sum, r) { return sum + (r.p || 0); }, 0) / 10);
     }
@@ -131,7 +135,8 @@
         });
         let p = 0, w = 0;
         heroes.forEach(function (hero) { const r = heroRow(state, hero.id); if (r) { p += r.p; w += r.w; } });
-        const winRate = p ? pct(w, p) : null;
+        // from enough games between the five heroes to mean something
+        const winRate = p >= ENOUGH * 2 ? pct(w, p) : null;
         // out of 10: mostly what the draft can do, partly how its heroes have fared
         const shape = score.reduce(function (sum, v) { return sum + v; }, 0) / score.length / 3;
         const rating = 10 * (winRate == null ? shape : shape * 0.6 + winRate / 100 * 0.4);
@@ -174,16 +179,21 @@
             if (hero && games) {
                 const r = heroRow(state, hero.id);
                 const face = el('div', 'ld-face rate');
-                if (r && r.p) {
+                // pick and ban rates only once the season has a few games, and only the ones that happened
+                const rates = games >= ENOUGH ? [r && r.p ? 'Picked ' + pct(r.p, games) + '%' : '', r && r.b ? 'Banned ' + pct(r.b, games) + '%' : ''].filter(Boolean) : [];
+                if (r && r.p >= ENOUGH) {
                     face.appendChild(el('b', '', pct(r.w, r.p) + '%'));
                     face.appendChild(el('i', '', 'win rate'));
                     face.appendChild(el('span', '', r.w + ' W – ' + (r.p - r.w) + ' L'));
-                    face.appendChild(el('em', '', 'Picked ' + pct(r.p, games) + '%  ·  Banned ' + pct(r.b, games) + '%'));
+                } else if (r && r.p) {
+                    // a game or two: the record itself, not a percentage
+                    face.appendChild(el('b', '', r.w + ' – ' + (r.p - r.w)));
+                    face.appendChild(el('i', '', 'won – lost this season'));
                 } else {
                     face.appendChild(el('b', 'new', 'New'));
                     face.appendChild(el('i', '', 'first pick this season'));
-                    if (r && r.b) face.appendChild(el('em', '', 'Banned ' + pct(r.b, games) + '%'));
                 }
+                if (rates.length) face.appendChild(el('em', '', rates.join('  ·  ')));
                 art.appendChild(face);
                 card.classList.add('has-rate');
             }
@@ -244,7 +254,7 @@
                 const line = el('div', 'ld-vline');
                 if (played.length) {
                     line.appendChild(el('span', '', wins + ' W  –  ' + (played.length - wins) + ' L'));
-                    line.appendChild(el('span', 'gold', pct(wins, played.length) + '% win rate'));
+                    if (played.length >= ENOUGH) line.appendChild(el('span', 'gold', pct(wins, played.length) + '% win rate'));
                 }
                 if (rank) line.appendChild(el('span', '', ordinal(rank.place) + ' in the standings'));
                 text.appendChild(line);
@@ -266,7 +276,8 @@
         } },
 
         // How the two lineups compare.
-        { id: 'analysis', has: function (state) { return SIDES.some(function (s) { return picksOf(state, s).some(Boolean); }); }, build: function (state, box) {
+        // Only once both drafts are complete: half a lineup rates as a weak one.
+        { id: 'analysis', has: function (state) { return SIDES.every(function (s) { return picksOf(state, s).every(Boolean); }); }, build: function (state, box) {
             const lineup = {};
             SIDES.forEach(function (side) { lineup[side] = rateLineup(state, side); });
             const summary = function (side) {
@@ -277,7 +288,9 @@
                 const other = lineup[side === 'blue' ? 'red' : 'blue'];
                 [['Lineup rating', lineup[side].rating.toFixed(1), lineup[side].rating > other.rating],
                     ['Draft win rate', lineup[side].winRate == null ? '–' : lineup[side].winRate + '%', lineup[side].winRate != null && (other.winRate == null || lineup[side].winRate > other.winRate)]
-                ].forEach(function (row) {
+                ].forEach(function (row, k) {
+                    // no draft win rate on either side yet: leave the line out rather than show two dashes
+                    if (k === 1 && lineup.blue.winRate == null && lineup.red.winRate == null) return;
                     const line = el('div', 'ld-sumline' + (row[2] ? ' up' : ''));
                     line.appendChild(el('span', '', row[0]));
                     line.appendChild(el('b', '', row[1]));
@@ -324,10 +337,10 @@
                     pic.appendChild(heroImg(hero));
                     card.appendChild(pic);
                     card.appendChild(el('b', '', hero.name));
-                    if (games && r && r.b) {
+                    if (games >= ENOUGH && r && r.b) {
                         card.appendChild(counter(pct(r.b, games), '%'));
                         card.appendChild(el('i', '', 'ban rate'));
-                    } else if (games) {
+                    } else if (games >= ENOUGH && !(r && r.b)) {
                         card.appendChild(el('b', 'ld-count new', 'New'));
                         card.appendChild(el('i', '', 'first ban'));
                     }
@@ -350,9 +363,12 @@
                 const half = el('div', 'ld-half ' + side);
                 half.appendChild(teamHead(state, side, rank ? ordinal(rank.place) + ' of ' + rank.of + ' in the standings' : 'Season so far'));
                 const tiles = el('div', 'ld-tiles');
-                [[counter(pct(wins, played.length), '%'), 'match win rate'],
-                    [el('b', 'ld-count', wins + ' – ' + (played.length - wins)), 'matches won – lost'],
-                    [el('b', 'ld-count', gf + ' – ' + ga), 'games won – lost']].forEach(function (pair) {
+                // a team yet to play gets one line, not a row of zeros
+                const facts = !played.length ? [[el('b', 'ld-count new', 'First'), 'match of the season']]
+                    : [played.length >= ENOUGH ? [counter(pct(wins, played.length), '%'), 'match win rate'] : null,
+                        [el('b', 'ld-count', wins + ' – ' + (played.length - wins)), 'matches won – lost'],
+                        [el('b', 'ld-count', gf + ' – ' + ga), 'games won – lost']].filter(Boolean);
+                facts.forEach(function (pair) {
                     const tile = step(el('div', 'ld-tile'));
                     tile.appendChild(pair[0]);
                     tile.appendChild(el('i', '', pair[1]));
@@ -365,9 +381,10 @@
                 if (played.length) half.appendChild(last);
                 if (n === 1) {
                     const mid = step(el('div', 'ld-h2h'));
-                    mid.appendChild(el('i', '', 'Earlier meetings'));
+                    mid.appendChild(el('i', '', h2h.length ? 'Earlier meetings' : 'Head to head'));
                     const bw = h2h.filter(function (m) { return m.won; }).length;
                     const big = el('div', 'ld-h2hscore');
+                    if (!h2h.length) big.hidden = true;     // no "0 – 0" before they have met
                     // each number sits over its own team's tag, so it cannot be read the wrong way round
                     const tag = function (s) { return String(state.teams[s].tag || state.teams[s].name || s).slice(0, 5).toUpperCase(); };
                     [['blue', bw], ['red', h2h.length - bw]].forEach(function (pair, k) {
@@ -390,7 +407,7 @@
         } },
 
         // The heroes everybody wants or fears.
-        { id: 'meta', has: function (state) { return gamesCounted(state) > 0; }, build: function (state, box) {
+        { id: 'meta', has: function (state) { return gamesCounted(state) >= ENOUGH; }, build: function (state, box) {
             const games = gamesCounted(state);
             const top = state.season.heroes.filter(function (r) { return Heroes.get(r.id) && (r.p || r.b); })
                 .sort(function (x, y) { return (y.p + y.b) - (x.p + x.b) || y.p - x.p; }).slice(0, 6);

@@ -314,8 +314,18 @@
         return before[a] && before[b] && before[a] === after[b] && before[b] === after[a] ? [a, b] : null;
     }
 
+    // A match with no result whose date has gone by (never played, or its
+    // score never entered) is not "coming up". Schedule times are Philippine
+    // wall-clock time, so the comparison uses the PH date. Undated matches count.
+    function stillAhead(row) {
+        const day = /^\d{4}-\d{2}-\d{2}/.exec(String(row && row.when || ''));
+        if (!day) return true;
+        return day[0] >= new Date(Store.now() + 8 * 3600000).toISOString().slice(0, 10);
+    }
+
     global.Overlay = {
         swapOf: swapOf,
+        stillAhead: stillAhead,
         roleIcons: roleIcons,
         fitWithin: fitWithin,
         hasStandings: hasStandings,

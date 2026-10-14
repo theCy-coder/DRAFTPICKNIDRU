@@ -190,6 +190,13 @@
         return state.season.heroes.filter(function (row) { return row.id === id; })[0] || null;
     }
     function winRate(row) { return row && row.p ? Math.round(row.w / row.p * 100) : null; }
+    // A percentage from one or two games reads oddly on air ("100% win rate"),
+    // so below this many a record is shown as plain wins and losses (the same
+    // rule as the loading screen and the scoreboard).
+    const ENOUGH = 3;
+    function gamesCounted(state) {
+        return Math.round(state.season.heroes.reduce(function (sum, r) { return sum + (r.p || 0); }, 0) / 10);
+    }
 
     // The line under a spotlighted hero. Nothing is claimed until the season
     // has at least one counted game.
@@ -204,17 +211,17 @@
             cell.appendChild(el('i', '', small));
             box.appendChild(cell);
         };
-        if (!row || (!row.p && !row.b)) { add('New', banned ? 'first ban this season' : 'first pick this season'); return; }
-        if (row.p) {
-            add(winRate(row) + '%', 'win rate');
-            add(row.w + ' \u2013 ' + (row.p - row.w), 'won \u2013 lost');
-        } else {
-            add('0', 'times picked');
-        }
         // every game has ten picks, so the picks give the number of games counted
-        const games = Math.round(state.season.heroes.reduce(function (sum, r) { return sum + (r.p || 0); }, 0) / 10);
-        if (games) add(Math.round(row.b / games * 100) + '%', 'ban rate');
-        else add(String(row.b), row.b === 1 ? 'ban' : 'bans');
+        const games = gamesCounted(state);
+        if (!row || (!row.p && !row.b)) {
+            if (!banned || games >= ENOUGH) add('New', banned ? 'first ban this season' : 'first pick this season');
+            return;
+        }
+        if (row.p >= ENOUGH) add(winRate(row) + '%', 'win rate');
+        if (row.p) add(row.w + ' \u2013 ' + (row.p - row.w), 'won \u2013 lost');
+        else if (!banned) add('New', 'first pick this season');
+        if (row.b && games >= ENOUGH) add(Math.round(row.b / games * 100) + '%', 'ban rate');
+        else if (row.b) add(String(row.b), row.b === 1 ? 'ban so far' : 'bans so far');
     }
 
     // After the draft: who is playing what, and how that hero has done this
@@ -273,9 +280,13 @@
                 body.appendChild(on);
                 const rec = heroRecord(state, id);
                 const stat = el('div', 'cs-rec');
-                if (rec && rec.p) {
+                if (rec && rec.p >= ENOUGH) {
                     stat.appendChild(el('b', '', winRate(rec) + '%'));
                     stat.appendChild(el('i', '', rec.w + ' \u2013 ' + (rec.p - rec.w)));
+                } else if (rec && rec.p) {
+                    // a game or two: the record itself
+                    stat.appendChild(el('b', '', rec.w + ' \u2013 ' + (rec.p - rec.w)));
+                    stat.appendChild(el('i', '', 'won \u2013 lost'));
                 } else if (state.season.heroes.length) {
                     stat.appendChild(el('b', 'new', 'New'));
                 }
@@ -350,7 +361,7 @@
             const pair = [String(r.a || '').trim().toLowerCase(), String(r.b || '').trim().toLowerCase()];
             return (pair[0] === names[0] && pair[1] === names[1]) || (pair[0] === names[1] && pair[1] === names[0]);
         })[0];
-        const next = open.filter(function (r) { return r !== live; })[0];
+        const next = open.filter(function (r) { return r !== live && Overlay.stillAhead(r); })[0];
         return chunk(rows, ROWS).map(function (part) {
             return { title: 'Schedule \u00b7 PH time', build: function (body) {
                 const table = el('div', 'cs-table schedule');
@@ -407,6 +418,7 @@
     }
 
     function heroPages(state) {
+        if (gamesCounted(state) < ENOUGH) return [];       // "most contested" means little after a game or two
         const rows = state.season.heroes.filter(function (r) { return r.p || r.b; })
             .sort(function (a, b) { return (b.p + b.b) - (a.p + a.b) || b.w - a.w; }).slice(0, ROWS * 2);
         return chunk(rows, ROWS).map(function (part) {
@@ -423,7 +435,7 @@
                     name.appendChild(document.createTextNode(hero ? hero.name : r.id));
                     tr.appendChild(name);
                     tr.appendChild(el('span', '', String(r.p)));
-                    tr.appendChild(el('span', 'rate', r.p ? winRate(r) + '%' : '\u2013'));
+                    tr.appendChild(el('span', 'rate', r.p >= ENOUGH ? winRate(r) + '%' : r.p ? r.w + ' \u2013 ' + (r.p - r.w) : '\u2013'));
                     tr.appendChild(el('span', '', String(r.b)));
                     table.appendChild(tr);
                 });

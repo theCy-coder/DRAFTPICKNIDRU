@@ -230,14 +230,18 @@
                     card.appendChild(text);
                     return card;
                 }
-                if (r && r.p) {
+                // a percentage only from three games on; before that the record itself
+                if (r && r.p >= 3) {
                     text.appendChild(el('em', '', Math.round(r.w / r.p * 100) + '%'));
                     text.appendChild(el('span', '', 'win rate  ·  ' + r.w + 'W – ' + (r.p - r.w) + 'L'));
+                } else if (r && r.p) {
+                    text.appendChild(el('em', '', r.w + ' – ' + (r.p - r.w)));
+                    text.appendChild(el('span', '', 'won – lost this season'));
                 } else {
                     text.appendChild(el('em', 'new', 'New'));
                     text.appendChild(el('span', '', 'first pick this season'));
                 }
-                if (r && r.b) text.appendChild(el('span', '', 'banned in ' + Math.round(r.b / games * 100) + '% of games'));   // never banned: say nothing
+                if (r && r.b && games >= 3) text.appendChild(el('span', '', 'banned in ' + Math.round(r.b / games * 100) + '% of games'));   // never banned: say nothing
                 card.appendChild(text);
                 return card;
             });
@@ -272,7 +276,7 @@
             return [cards[0], mid, cards[1]];
         } },
         { id: 'next', kicker: 'Schedule', title: 'Coming up', build: function (state) {
-            return fixtures(state).filter(function (r) { return !scoreOf(r.score) && !playing(state, r); }).slice(0, 4)
+            return fixtures(state).filter(function (r) { return !scoreOf(r.score) && !playing(state, r) && Overlay.stillAhead(r); }).slice(0, 4)
                 .map(function (r) { return matchCard(state, r, String(r.when).slice(0, 10) === today() ? 'Today' : ''); });
         } },
         { id: 'results', kicker: 'Season', title: 'Latest results', build: function (state) {

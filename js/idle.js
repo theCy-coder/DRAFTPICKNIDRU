@@ -89,7 +89,7 @@
         const all = matches(state);
         let rows = all.filter(function (r) { return String(r.when).slice(0, 10) === today(); });
         let title = 'Today’s matches';
-        if (!rows.length) { rows = all.filter(function (r) { return !played(r); }); title = 'Coming up'; }
+        if (!rows.length) { rows = all.filter(function (r) { return !played(r) && Overlay.stillAhead(r); }); title = 'Coming up'; }
         rows = rows.slice(0, 6);
         if (!rows.length) return null;
         const page = el('div', 'ip');
@@ -181,7 +181,7 @@
         const all = matches(state);
         const items = [];
         all.filter(played).slice(-6).reverse().forEach(function (r) { items.push(['Result', r.a + '  ' + r.score + '  ' + r.b]); });
-        all.filter(function (r) { return !played(r) && !onNow(state, r); }).slice(0, 3).forEach(function (r) {
+        all.filter(function (r) { return !played(r) && !onNow(state, r) && Overlay.stillAhead(r); }).slice(0, 3).forEach(function (r) {
             items.push(['Coming up', r.a + ' vs ' + r.b + (r.when ? '  ·  ' + dayOf(r.when) + ', ' + clockOf(r.when) : '')]);
         });
         if (state.idle.message) items.unshift(['', state.idle.message]);
