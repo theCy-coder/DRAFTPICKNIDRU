@@ -1323,9 +1323,9 @@
 /* ====================================================================
    DRAFT, picks down the sides: the card
    The hero art stands at the inner end of the card and fades out toward
-   the outer end, where the names are. Showing it at that width takes in
-   almost half the portrait's height, so the face is in frame wherever the
-   artist put it. The player's picture sits inside the name bar, at the
+   the outer end, where the names are. At that width it shows about a third
+   of the portrait's height, so js/draft.js aims that band at each hero's
+   face (its FACE table). The player's picture sits inside the name bar, at the
    outer edge, in the same place on every card.
    ==================================================================== */
 .draft[data-layout="sides"][data-design] .pick > img {
@@ -1383,7 +1383,7 @@
    under it, so the band it shows is the band you see, and each hero can
    move that band (--focus, set in js/draft.js). */
 .draft[data-layout="sides"][data-design] .pick > img { object-position: 50% var(--focus, 16%); }
-.draft[data-layout="sides"][data-design] .pick:has(.nick span:not(:empty)) > img { bottom: 44px; height: auto; }
+.draft[data-layout="sides"][data-design] .pick:has(.nick span:not(:empty)) > img { bottom: 44px; height: calc(100% - 44px); }
 .draft[data-layout="sides"][data-design] .pick:has(.nick span:not(:empty)) .order { inset: 0 0 44px 0; }
 .draft[data-layout="sides"][data-design] .pick:not(:has(.nick span:not(:empty))) .order { inset: 0; }
 

@@ -42,18 +42,44 @@
 
     // Swap the portrait only when the hero actually changes so the entrance
     // animation plays once per lock-in.
-    // The side pick cards show a band of each portrait, starting 16% of the way
-    // down, which frames nearly every face. A hero whose face sits lower or
-    // higher gets its own figure here, by its id from js/heroes.js:
-    // a larger number moves the band down the portrait.
-    const FOCUS = {
-        beleric: 34,      // the face is under the antlers
-        grock: 22,
-        jawhead: 4,       // the pilot rides on top
-        kimmy: 8,
-        kadita: 8,
-        zilong: 8
+    // The side pick cards show a wide band of each tall portrait. To keep the
+    // face in it, every hero has the height of its face here, in % of the
+    // portrait from the top (by its id from js/heroes.js), read off the art in
+    // Assets/HeroPick. A hero not listed (a new one) is taken as 21.
+    const FACE = {
+        aamon: 20, akai: 34, aldous: 24, alice: 21, alpha: 28, alucard: 20, angela: 21, argus: 20,
+        arlot: 21, atlas: 18, aulus: 30, aurora: 22, badang: 20, balmond: 26, bane: 28, barats: 22,
+        baxia: 20, beatrix: 23, beleric: 37, benedetta: 24, brody: 21, bruno: 23, carmila: 21, cecilion: 19,
+        chang_e: 27, chip: 22, chou: 17, cici: 24, claude: 19, clint: 21, cyclops: 34, diggie: 27,
+        dyroth: 20, edith: 23, esmeralda: 22, estes: 20, eudora: 19, fanny: 23, faramis: 25, floryn: 22,
+        franco: 27, fredrin: 23, freya: 21, gatotkaca: 26, gloo: 15, gord: 22, granger: 23, grock: 22,
+        guinevere: 22, gusion: 24, hanabi: 25, hanzo: 33, harith: 20, harley: 26, hayabusa: 21, helcurt: 23,
+        hilda: 24, hirara: 23, hylos: 18, irithel: 18, ixia: 24, jawhead: 8, johnson: 24, joy: 27,
+        julian: 29, kadita: 21, kagura: 22, kaja: 24, kalea: 23, karina: 19, karrie: 30, khaleed: 22,
+        khufra: 21, kimmy: 22, lancelot: 19, lapulapu: 24, layla: 24, leomord: 22, lesley: 21, ling: 22,
+        lolita: 25, lukas: 21, lunox: 26, luoyi: 21, lylia: 31, marcel: 20, martis: 18, masha: 24,
+        mathilda: 15, melissa: 21, minotour: 31, minsitthar: 22, miya: 21, moskov: 24, nana: 37, natalia: 22,
+        nathan: 20, nolan: 21, novaria: 21, obsidia: 20, odette: 18, paquito: 22, parsha: 18, phoveus: 22,
+        popolandkupa: 27, rafaela: 18, roger: 18, ruby: 24, saber: 28, selena: 18, silvanna: 19, sora: 27,
+        sun: 18, suyou: 22, terizla: 20, thamuz: 15, tigreal: 20, uranus: 18, vale: 18, valentina: 18,
+        valir: 22, vexana: 17, wanwan: 21, xavier: 16, xborg: 18, yin: 21, yisunshin: 19, yuzhong: 25,
+        yve: 30, zetian: 23, zhask: 20, zhuxin: 22, zilong: 20
     };
+    const FACE_DEFAULT = 21;
+
+    // Aim a side card's art at the face: the band the card shows is centred on
+    // it, as far as the portrait allows. Only the side layout crops this way.
+    function aim(img) {
+        const id = img.dataset.hero;
+        const w = img.clientWidth, h = img.clientHeight;
+        const nw = img.naturalWidth || 240, nh = img.naturalHeight || 390;
+        if (!w || !h) return;
+        const scaled = nh * Math.max(w / nw, h / nh);       // the portrait's height as drawn (object-fit: cover)
+        if (scaled - h < 1) { img.style.setProperty('--focus', '50%'); return; }
+        const face = (FACE[id] != null ? FACE[id] : FACE_DEFAULT) / 100;
+        const at = Math.min(1, Math.max(0, (face * scaled - h / 2) / (scaled - h)));
+        img.style.setProperty('--focus', (at * 100).toFixed(1) + '%');
+    }
 
     function setHero(slot, heroId, isPick, traded) {
         const id = heroId || '';
@@ -75,8 +101,9 @@
         img.alt = hero.name;
         img.onerror = function () { slot.classList.add('noimg'); };
         img.src = hero.img;
-        // where the face is, for the wide cards down the sides (see FOCUS)
-        if (FOCUS[hero.id] != null) img.style.setProperty('--focus', FOCUS[hero.id] + '%');
+        // aimed at the face once it is in place and its size is known (see FACE)
+        img.dataset.hero = hero.id;
+        img.addEventListener('load', function () { aim(img); });
         slot.insertBefore(img, slot.firstChild);
         if (isPick) {
             void slot.offsetWidth;
@@ -168,6 +195,10 @@
         Overlay.setText($('phase'), step ? (step.side + ' ' + step.type) : 'Draft complete');
         // Each design has different box widths, so measure the text again.
         if (restyled) refit();
+        // the card's art box changes with the design and with a name bar, so aim every time
+        Store.SIDES.forEach(function (side) {
+            slots.pick[side].forEach(function (pick) { const img = pick.querySelector(':scope > img'); if (img) aim(img); });
+        });
         CentreStage.render(state);
         tick();
     }
