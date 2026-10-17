@@ -224,6 +224,49 @@
         SIDES.forEach(function (side) { s.teams[side].stats = { towers: 0, turtles: 0, lords: 0 }; });
     }
 
+    // A series from nothing: no games recorded (the result screen goes back to
+    // waiting), 0 - 0, game 1, an empty draft.
+    function newSeries(s) {
+        s.series.games = [];
+        s.series.mvp = '';
+        s.pause = { kind: '', at: 0 };
+        s.tournament.game = 1;
+        SIDES.forEach(function (side) {
+            s.teams[side].score = 0;
+            s.teams[side].played = [];
+        });
+        resetDraft(s);
+        clearGame(s);
+    }
+
+    // Putting a different pair of teams up starts their series from nothing:
+    // otherwise the new teams would inherit the last one's score, and the
+    // result screen its winner. Only one team changed in the middle of an
+    // unfinished series is left alone, as that is most likely a fix; Reset
+    // series on the Live tab is there for that case.
+    function freshMatchup(s, before) {
+        const now = [s.teams.blue.name, s.teams.red.name];
+        if (pairKey(before[0], before[1]) === pairKey(now[0], now[1])) {
+            // the same two teams the other way round: their score, games and draft go with them
+            if (!sameName(now[0], before[0]) && sameName(now[0], before[1])) {
+                ['score', 'played', 'stats'].forEach(function (key) {
+                    const held = s.teams.blue[key];
+                    s.teams.blue[key] = s.teams.red[key];
+                    s.teams.red[key] = held;
+                });
+                ['picks', 'bans'].forEach(function (key) {
+                    const held = s.draft[key].blue;
+                    s.draft[key].blue = s.draft[key].red;
+                    s.draft[key].red = held;
+                });
+            }
+            return;
+        }
+        const kept = now.some(function (name) { return name && (sameName(name, before[0]) || sameName(name, before[1])); });
+        const started = s.series.games.length || SIDES.some(function (side) { return s.teams[side].score > 0; });
+        if (!kept || !started || seriesWinner(s)) newSeries(s);
+    }
+
     function advanceGame(s) {
         recordPlayed(s);
         s.tournament.game += 1;
@@ -444,16 +487,7 @@
         },
         'reset-series': function (s) {
             snapshot(s, true);
-            s.series.games = [];
-            s.series.mvp = '';
-            s.pause = { kind: '', at: 0 };
-            s.tournament.game = 1;
-            SIDES.forEach(function (side) {
-                s.teams[side].score = 0;
-                s.teams[side].played = [];
-            });
-            resetDraft(s);
-            clearGame(s);
+            newSeries(s);
             selected = null;
         },
         'stat-up': function (s, b) { s.teams[b.dataset.side].stats[b.dataset.stat] = clamp(s.teams[b.dataset.side].stats[b.dataset.stat] + 1, 0, 9); },
@@ -1097,7 +1131,9 @@
         Store.update(function (st) {
             const team = st.season.teams.filter(function (t) { return t.id === id; })[0];
             if (!team || sameName(team.name, st.teams[side === 'blue' ? 'red' : 'blue'].name)) return;
+            const before = [st.teams.blue.name, st.teams.red.name];
             putTeam(st, side, team);
+            freshMatchup(st, before);
         });
     }
 
@@ -1131,6 +1167,7 @@
         Store.update(function (st) {
             const match = st.season.schedule[index];
             if (!match) return;
+            const before = [st.teams.blue.name, st.teams.red.name];
             [['blue', match.a], ['red', match.b]].forEach(function (pair) {
                 putTeam(st, pair[0], seasonTeamByName(st, pair[1]) || { name: pair[1] });
             });
@@ -1138,6 +1175,7 @@
                 return r.round && ((sameName(r.a, match.a) && sameName(r.b, match.b)) || (sameName(r.a, match.b) && sameName(r.b, match.a)));
             })[0];
             if (round) st.tournament.stage = round.round;
+            freshMatchup(st, before);
         });
     }
 
