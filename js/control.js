@@ -50,15 +50,56 @@
         if (history.length > 60) history.shift();
     }
 
-    // ---- two team-mates trading heroes ---------------------------------------
-    // The players stay in their seats; the heroes in two of a team's picks
-    // change places. Press "Swap heroes", then the two picks (or drag one pick
-    // onto the other). It stays on for further trades until pressed again or Esc.
-    const swapMode = { on: false, first: null, note: '' };
-    function setSwapMode(on) {
-        swapMode.on = on;
-        swapMode.first = null;
-        if (on) { swapMode.note = ''; selected = null; }
+    // ---- team-mates trading heroes --------------------------------------------
+    // The players stay in their seats; the heroes change places. Press "Swap
+    // heroes", then two picks of one team, as many times as there are trades.
+    // The trades wait here, on this screen only, until the button is pressed
+    // again: then they all go to the stream at once, where each hero flies to
+    // its new player (js/draft.js). Esc throws the waiting trades away.
+    // Dragging one pick onto another outside Swap mode trades straight away.
+    const swapMode = { on: false, first: null, note: '', pending: null };
+    function pendingOf(state) { return { blue: state.draft.picks.blue.slice(), red: state.draft.picks.red.slice() }; }
+    function heroName(id) { const h = Heroes.get(id); return h ? h.name : id; }
+    // the trades waiting, as "Hilda ⇄ Alpha" lines, for the note and the button
+    function waitingTrades(state) {
+        const out = [];
+        if (!swapMode.pending) return out;
+        SIDES.forEach(function (side) {
+            const now = state.draft.picks[side], next = swapMode.pending[side];
+            for (let i = 0; i < 5; i++) if (next[i] && next[i] !== now[i]) out.push(heroName(next[i]) + ' \u2192 ' + (state.teams[side].players[i] || 'pick ' + (i + 1)));
+        });
+        return out;
+    }
+    function setSwapMode(on, cancel) {
+        const state = Store.get();
+        if (on) {
+            swapMode.on = true;
+            swapMode.first = null;
+            swapMode.note = '';
+            swapMode.pending = pendingOf(state);
+            selected = null;
+        } else {
+            const moves = waitingTrades(state);
+            const next = swapMode.pending;
+            swapMode.on = false;
+            swapMode.first = null;
+            swapMode.pending = null;
+            // the trades go out only if they are still a reshuffle of what is on stream
+            const same = next && SIDES.every(function (side) {
+                return next[side].slice().sort().join() === state.draft.picks[side].slice().sort().join();
+            });
+            if (cancel || !moves.length) swapMode.note = cancel && moves.length ? 'Trades cancelled; nothing changed on stream.' : '';
+            else if (!same) swapMode.note = 'The draft changed while swapping, so the trades were not sent. Try them again.';
+            else {
+                swapMode.note = 'On stream: ' + moves.join(',  ') + '. Undo puts them back.';
+                Store.update(function (s) {
+                    snapshot(s);
+                    s.draft.picks.blue = next.blue.slice();
+                    s.draft.picks.red = next.red.slice();
+                    followPicks(s);
+                });
+            }
+        }
         render(Store.get());
     }
     // What was copied from the draft elsewhere follows the picks as they now are:
@@ -80,9 +121,19 @@
         });
     }
     function swapHeroes(side, a, b) {
+        // in Swap mode the trade waits on this screen until the button is pressed again
+        if (swapMode.on && swapMode.pending) {
+            const row = swapMode.pending[side];
+            if (a === b || !row[a] || !row[b]) return false;
+            const held = row[a];
+            row[a] = row[b];
+            row[b] = held;
+            render(Store.get());
+            return true;
+        }
         const row = Store.get().draft.picks[side];
         if (a === b || !row[a] || !row[b]) return false;      // both players need a hero to trade
-        const names = [row[a], row[b]].map(function (id) { const h = Heroes.get(id); return h ? h.name : id; });
+        const names = [row[a], row[b]].map(heroName);
         swapMode.note = 'Swapped ' + names[0] + ' and ' + names[1] + '. Undo puts them back.';
         Store.update(function (s) {
             snapshot(s);
@@ -395,6 +446,8 @@
         },
         'tour-logo-clear': function (s) { s.tournament.logo = ''; },
         'sb-image-clear': function (s) { s.scoreboard.image = ''; },
+        'promo-logo-clear': function (s) { s.scoreboard.promoLogo = ''; },
+        'promo-bg-clear': function (s) { s.scoreboard.promoBg = ''; },
         // Season tab
         'season-add': function (s, b) {
             const list = b.dataset.list;
@@ -1800,13 +1853,19 @@
         $('sb-middle-hint').hidden = !$('sb-middle-hint').textContent;
         const framed = sb.layout === 'frame';
         document.querySelectorAll('[data-frame]').forEach(function (node) { node.hidden = !framed; });
+        const promoOn = sb.layout === 'promo';
+        document.querySelectorAll('[data-promo]').forEach(function (node) { node.hidden = !promoOn; });
+        renderLogoPreview($('promo-logo-preview'), sb.promoLogo || 'Assets/Other/1630-logo.png', '');
+        renderLogoPreview($('promo-bg-preview'), sb.promoBg || 'Assets/Other/1630-pattern.jpg', '');
         document.querySelectorAll('[data-sides]').forEach(function (node) { node.hidden = !sb.sides; });
         $('sb-gap-field').hidden = sb.layout !== 'split';
-        $('sb-top-field').hidden = framed;
+        $('sb-top-field').hidden = framed || promoOn;
+        $('sb-shows-group').hidden = promoOn;      // Frame only has no scoreboard to show them on
         $('sb-centre-group').hidden = sb.layout !== 'bar';
         const barTop = Math.max(40, Math.min(400, Number(sb.frameTop) || 108));
         $('layout-hint').textContent = framed
             ? 'Top bar ' + barTop + ' px, bottom bar ' + (Number(sb.frameBottom) || barTop * 2) + ' px' + (Number(sb.frameBottom) ? '.' : ' (twice the top).')
+            : promoOn ? 'No scoreboard: your artwork in the borders, a corner card over the game’s settings buttons and a marquee along the bottom.'
             : sb.layout === 'bar' ? 'One strip across the top, with the tournament text, logo or an image in the middle.'
             : 'Widen the centre gap until the two plates clear the game’s own kill and gold display.';
 
@@ -1815,19 +1874,24 @@
             (state.teams.blue.tag || 'BLU') + ' ' + state.teams.blue.score + ' \u2013 ' + state.teams.red.score + ' ' + (state.teams.red.tag || 'RED');
         $('draft-done').hidden = !!step;
         // Swap heroes: which picks can be pressed, and what just happened
-        if (swapMode.on && currentTab !== 'draft') { swapMode.on = false; swapMode.first = null; }
+        // leaving the Draft tab keeps the waiting trades off the stream
+        if (swapMode.on && currentTab !== 'draft') { swapMode.on = false; swapMode.first = null; swapMode.pending = null; }
+        const waiting = waitingTrades(state);
         document.body.classList.toggle('swapping', swapMode.on);
         $('swap-toggle').classList.toggle('on', swapMode.on);
-        $('swap-toggle').textContent = swapMode.on ? '⇄ Swapping – press to finish' : '⇄ Swap heroes';
+        $('swap-toggle').textContent = !swapMode.on ? '⇄ Swap heroes'
+            : waiting.length ? '⇄ Show ' + waiting.length + ' trade' + (waiting.length === 1 ? '' : 's') + ' on stream' : '⇄ Swapping – press to finish';
         SIDES.forEach(function (side) {
             for (let i = 0; i < 5; i++) {
                 const btn = slotEls.pick[side][i];
                 btn.classList.toggle('swap-first', swapMode.on && !!swapMode.first && swapMode.first.side === side && swapMode.first.i === i);
                 btn.classList.toggle('swap-off', swapMode.on && !!swapMode.first && swapMode.first.side !== side);
+                btn.classList.toggle('swap-moved', !!swapMode.pending && !!swapMode.pending[side][i] && swapMode.pending[side][i] !== state.draft.picks[side][i]);
             }
         });
         const note = swapMode.on
-            ? (swapMode.first ? 'Now click the team-mate’s pick to trade with.' : 'Click the two picks of one team that are trading heroes.') + (swapMode.note ? '  ' + swapMode.note : '')
+            ? (swapMode.first ? 'Now click the team-mate’s pick to trade with.' : 'Click the two picks of one team that are trading heroes.')
+                + (waiting.length ? '  Waiting, not on stream yet: ' + waiting.join(',  ') + '. Press the yellow button to show them all; Esc cancels.' : '')
             : swapMode.note;
         $('swap-note').hidden = true;      // its words are shown in the hint line under the board
         $('swap-note').textContent = note;
@@ -1855,7 +1919,7 @@
             ['pick', 'ban'].forEach(function (type) {
                 for (let i = 0; i < 5; i++) {
                     const btn = slotEls[type][side][i];
-                    const hero = Heroes.get(d[type + 's'][side][i]);
+                    const hero = Heroes.get(type === 'pick' && swapMode.pending ? swapMode.pending[side][i] : d[type + 's'][side][i]);
                     const img = btn.querySelector('img');
                     if (hero) {
                         if (img.getAttribute('src') !== hero.img) { img.hidden = false; img.src = hero.img; }
@@ -1931,7 +1995,7 @@
     }
 
     // ---- events ----------------------------------------------------------
-    function readImage(file, maxSize, done) {
+    function readImage(file, maxSize, done, type) {
         const reader = new FileReader();
         reader.onload = function () {
             const img = new Image();
@@ -1942,7 +2006,7 @@
                 canvas.width = Math.max(1, Math.round(img.width * scale));
                 canvas.height = Math.max(1, Math.round(img.height * scale));
                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                done(canvas.toDataURL('image/png'));
+                done(type === 'jpeg' ? canvas.toDataURL('image/jpeg', 0.82) : canvas.toDataURL('image/png'));
             };
             img.src = reader.result;
         };
@@ -1979,7 +2043,7 @@
             const slot = e.target.closest('.slot');
             if (slot && swapMode.on) {
                 const s = slotOf(slot);
-                const filled = s.type === 'pick' && Store.get().draft.picks[s.side][s.i];
+                const filled = s.type === 'pick' && (swapMode.pending || Store.get().draft.picks)[s.side][s.i];
                 if (!filled) return;
                 if (!swapMode.first) swapMode.first = s;
                 else if (swapMode.first.side !== s.side) return;                 // team-mates only
@@ -2145,14 +2209,17 @@
                 const file = e.target.files[0];
                 const side = e.target.dataset.logo;
                 const forBar = e.target.dataset.image === 'scoreboard';
+                const promoKey = /^promo(Logo|Bg)$/.test(e.target.dataset.image || '') ? e.target.dataset.image : '';
                 if (!file) return;
-                readImage(file, side ? 320 : 480, function (dataUrl) {
+                // the border artwork is a big picture: kept as a JPEG so the shared state stays small
+                readImage(file, promoKey === 'promoBg' ? 1600 : side ? 320 : 480, function (dataUrl) {
                     Store.update(function (s) {
-                        if (forBar) s.scoreboard.image = dataUrl;
+                        if (promoKey) s.scoreboard[promoKey] = dataUrl;
+                        else if (forBar) s.scoreboard.image = dataUrl;
                         else if (side) s.teams[side].logo = dataUrl;
                         else s.tournament.logo = dataUrl;
                     });
-                });
+                }, promoKey === 'promoBg' ? 'jpeg' : 'png');
                 e.target.value = '';
             }
         });
@@ -2207,7 +2274,7 @@
         document.addEventListener('keydown', function (e) {
             const tag = (e.target.tagName || '').toLowerCase();
             const typing = tag === 'input' || tag === 'select' || tag === 'textarea';
-            if (e.key === 'Escape' && swapMode.on) { e.preventDefault(); setSwapMode(false); return; }
+            if (e.key === 'Escape' && swapMode.on) { e.preventDefault(); setSwapMode(false, true); return; }
             if (hotkey(e, typing)) { e.preventDefault(); return; }
             if (typing) return;
             if (e.key === '/') { e.preventDefault(); showTab('draft'); search.focus(); }

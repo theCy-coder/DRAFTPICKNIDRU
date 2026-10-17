@@ -689,3 +689,5 @@ body.swapping .slot.pick.swap-first { border-style: solid; box-shadow: 0 0 0 3px
 /* Live tab: Reset series under the game number, with its Undo beside it */
 .reset-row { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
 .reset-row .btn { padding: 6px 12px; font-size: 13px; }
+/* a pick whose trade is waiting to go on stream */
+body.swapping .slot.pick.swap-moved { border-style: solid; border-color: #4fd17a; box-shadow: 0 0 0 3px rgba(79, 209, 122, 0.4); }

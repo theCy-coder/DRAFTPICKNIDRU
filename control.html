@@ -433,6 +433,7 @@
                             <option value="split">Split – either side of the in-game score</option>
                             <option value="bar">Bar – one solid strip</option>
                             <option value="frame">Frame – solid bars above and below the game</option>
+                            <option value="promo">Frame only – your artwork and promos around the game, no scoreboard</option>
                         </select>
                     </label>
                     <!-- each layout has its own few fields; the others are hidden -->
@@ -445,7 +446,38 @@
                     <label class="check"><input type="checkbox" data-bind="scoreboard.frameInfo"> Season info in the bottom bar</label>
                     <label class="field small">Seconds per page<input type="number" min="4" max="120" data-bind="scoreboard.frameSeconds" data-num></label>
                 </div>
+                <!-- Frame only: the borders, the corner card and what they say -->
+                <div class="options" data-promo>
+                    <label class="field small">Top border (px)<input type="number" min="0" max="400" step="2" data-bind="scoreboard.promoTop" data-num></label>
+                    <label class="field small">Bottom border (px)<input type="number" min="0" max="400" step="2" data-bind="scoreboard.promoBottom" data-num></label>
+                    <label class="field small">Side borders (px)<input type="number" min="0" max="400" step="1" data-bind="scoreboard.promoSide" data-num></label>
+                    <label class="field small">Corner width (px)<input type="number" min="0" max="960" step="10" data-bind="scoreboard.promoCorner" data-num></label>
+                    <label class="field small">Corner height (px)<input type="number" min="0" max="600" step="2" data-bind="scoreboard.promoCornerH" data-num></label>
+                    <label class="field small">Corner turns every (s)<input type="number" min="3" max="60" data-bind="scoreboard.promoSeconds" data-num></label>
+                </div>
+                <div class="options" data-promo>
+                    <label class="field medium">Production name<input type="text" data-bind="scoreboard.promoName" placeholder="1630 Productions"></label>
+                    <label class="field medium">Socials<input type="text" data-bind="scoreboard.promoSocials" placeholder="fb.com/1630productions · @1630productions"></label>
+                    <label class="field medium">Your message in the marquee<input type="text" data-bind="scoreboard.promoMessage" placeholder="Shown first along the bottom; leave empty for none"></label>
+                </div>
+                <div class="options" data-promo>
+                    <div class="field">Production logo
+                        <div class="logo-row">
+                            <div class="logo-preview" id="promo-logo-preview"></div>
+                            <label class="btn">Upload<input type="file" accept="image/*" data-image="promoLogo" hidden></label>
+                            <button type="button" class="btn ghost" data-act="promo-logo-clear">Use 1630</button>
+                        </div>
+                    </div>
+                    <div class="field">Border artwork
+                        <div class="logo-row">
+                            <div class="logo-preview wide" id="promo-bg-preview"></div>
+                            <label class="btn">Upload<input type="file" accept="image/*" data-image="promoBg" hidden></label>
+                            <button type="button" class="btn ghost" data-act="promo-bg-clear">Use 1630</button>
+                        </div>
+                    </div>
+                </div>
                 <p class="hint" id="layout-hint"></p>
+                <details class="help" data-promo><summary>About Frame only</summary><p>No scoreboard: the black borders around the phone picture are covered with your artwork, and the game&rsquo;s own minimap, score and hero lists stay in full view. Set the three border sizes to the black strips your capture leaves, then the corner card&rsquo;s width and height until it covers the game&rsquo;s settings buttons at the top right. The corner takes turns between your production, the tournament and your socials; the marquee along the bottom shows your message, the next matches, the latest results, the standings and your socials. Turtle, lord and turret announcements slide out under the corner, clear of the action. Each look on the Setup tab restyles it.</p></details>
                 <details class="help" data-frame><summary>About the Frame layout</summary><p>For a phone capture (scrcpy) that leaves black strips. Raise the two heights until the strips, and any part of the game you want hidden, are covered; a 20:9 phone at full width leaves 108 px above and below. Leave the bottom height at 0 to keep it twice the top. The bottom bar takes turns through the series so far (always shown), coming matches, latest results, earlier meetings of these two teams, the standings and the season record of each hero in this game; anything the season has no data for is skipped.</p></details>
             </div>
             <div class="group">
@@ -459,7 +491,7 @@
                 </div>
                 <details class="help"><summary>How this works</summary><p>As on a league broadcast: a name strip in the team&rsquo;s colour over the hero each player picked, blue on the left edge and red on the right. It works with every layout, shows once the draft has picks or the players are named, and clears with the draft. Use &ldquo;From the top&rdquo; to sit it under the minimap, &ldquo;Length&rdquo; to make the strips longer or shorter, and &ldquo;In from the edge&rdquo; to move both lists toward the centre when the game picture does not reach the sides of the screen.</p></details>
             </div>
-            <div class="group">
+            <div class="group" id="sb-shows-group">
                 <h3>What it shows</h3>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showInfo"> Tournament / game info</label>
                 <label class="check"><input type="checkbox" data-bind="scoreboard.showStats"> Turrets / turtles / lords under each team</label>

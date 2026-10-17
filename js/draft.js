@@ -107,9 +107,59 @@
         slot.insertBefore(img, slot.firstChild);
         if (isPick) {
             void slot.offsetWidth;
-            // a hero traded between team-mates turns over; a new pick flashes
-            slot.classList.add(traded ? 'traded' : 'flash');
+            // a new pick flashes; a traded hero waits for its card to fly in (see flyTrades)
+            slot.classList.add(traded ? 'incoming' : 'flash');
         }
+    }
+
+    // A trade on stream: every hero that changed hands lifts off its old card,
+    // arcs across to its new one and lands with a flash, one after another,
+    // while the players' names stay where they are.
+    function flyTrades(side, before, after, moved) {
+        const stage = $('stage');
+        const box = stage.getBoundingClientRect();
+        const k = box.width / 1920 || 1;
+        const cards = slots.pick[side];
+        const sides = $('draft').dataset.layout === 'sides';
+        const used = {};
+        moved.forEach(function (to, n) {
+            // where this hero was: the old slot holding it (a hero is only picked once per team)
+            let from = -1;
+            for (let j = 0; j < before.length; j++) if (before[j] === after[to] && !used[j] && j !== to) { from = j; break; }
+            if (from < 0) { cards[to].classList.remove('incoming'); return; }
+            used[from] = true;
+            const hero = Heroes.get(after[to]);
+            const a = cards[from].getBoundingClientRect(), b = cards[to].getBoundingClientRect();
+            const fly = el('div', 'trade-fly ' + side);
+            fly.style.left = (a.left - box.left) / k + 'px';
+            fly.style.top = (a.top - box.top) / k + 'px';
+            fly.style.width = a.width / k + 'px';
+            fly.style.height = a.height / k + 'px';
+            fly.style.backgroundImage = 'url("' + hero.img + '")';
+            const label = el('b');
+            label.textContent = hero.name;
+            fly.appendChild(label);
+            stage.appendChild(fly);
+            const dx = (b.left - a.left) / k, dy = (b.top - a.top) / k;
+            // an arc: up and over along the bottom row, out toward the middle down the sides
+            const ax = sides ? (side === 'blue' ? 140 : -140) : 0, ay = sides ? 0 : -150;
+            const tilt = (n % 2 ? -1 : 1) * 6;
+            cards[from].classList.add('trading');
+            cards[to].classList.add('trading');
+            const run = fly.animate([
+                { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 0.4, offset: 0 },
+                { transform: 'translate(0, 0) scale(1.08) rotate(0deg)', opacity: 1, offset: 0.12 },
+                { transform: 'translate(' + (dx / 2 + ax) + 'px, ' + (dy / 2 + ay) + 'px) scale(1.18) rotate(' + tilt + 'deg)', opacity: 1, offset: 0.55 },
+                { transform: 'translate(' + dx + 'px, ' + dy + 'px) scale(1) rotate(0deg)', opacity: 1, offset: 1 }
+            ], { duration: 1100, delay: 250 + n * 180, easing: 'cubic-bezier(0.45, 0, 0.2, 1)', fill: 'both' });
+            run.onfinish = function () {
+                fly.remove();
+                cards[to].classList.remove('incoming', 'trading');
+                cards[from].classList.remove('trading');
+                void cards[to].offsetWidth;
+                cards[to].classList.add('landed');
+            };
+        });
     }
     let lastPicks = null;     // the picks as last drawn, to tell a trade from a pick
 
@@ -170,6 +220,7 @@
                 ban.classList.toggle('active', !!step && step.type === 'ban' && step.side === side && step.slots.indexOf(i) >= 0 && !d.bans[side][i]);
 
                 const pick = slots.pick[side][i];
+                pick.classList.remove('landed');
                 setHero(pick, d.picks[side][i], true, !!trade && trade.indexOf(i) >= 0);
                 pick.classList.toggle('active', !!step && step.type === 'pick' && step.side === side && step.slots.indexOf(i) >= 0 && !d.picks[side][i]);
                 Overlay.setText(pick.querySelector('.nick span'), team.players[i] || '');
@@ -177,6 +228,7 @@
                 if (team.players[i]) Overlay.setPlayerImage(face, state, team.players[i]);
                 else face.hidden = true;
             }
+            if (trade) flyTrades(side, lastPicks[side], d.picks[side], trade);
         });
 
         lastPicks = { blue: d.picks.blue.slice(), red: d.picks.red.slice() };

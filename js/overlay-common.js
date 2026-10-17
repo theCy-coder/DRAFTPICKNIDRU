@@ -303,15 +303,17 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoFit);
     else autoFit();
 
-    // Two team-mates trading heroes: the same five picks, with exactly two of
-    // them having changed places. Returns those two slots, or null.
+    // Team-mates trading heroes: the same picks, some of them in other places
+    // (two players swapping, or several trades sent at once). Returns the slots
+    // that changed, or null when it is anything else (a new pick, a cleared one).
     function swapOf(before, after) {
         if (!before || !after) return null;
         const moved = [];
         for (let i = 0; i < after.length; i++) if ((before[i] || '') !== (after[i] || '')) moved.push(i);
-        if (moved.length !== 2) return null;
-        const a = moved[0], b = moved[1];
-        return before[a] && before[b] && before[a] === after[b] && before[b] === after[a] ? [a, b] : null;
+        if (moved.length < 2) return null;
+        const was = moved.map(function (i) { return before[i] || ''; }).sort().join('|');
+        const now = moved.map(function (i) { return after[i] || ''; }).sort().join('|');
+        return was === now && moved.every(function (i) { return after[i]; }) ? moved : null;
     }
 
     // A match with no result whose date has gone by (never played, or its

@@ -13,7 +13,11 @@
         const box = $('evt');
         const size = Math.max(40, Math.min(200, Number(state.banner.scale) || 100)) / 100;
         box.querySelector('.evt-box').style.zoom = size;
-        box.style.top = Math.max(Number(state.banner.top) || 0, clearOfBar(state, true)) + 'px';
+        // Frame only: the announcement slides out under the corner card, off the action
+        const corner = state.scoreboard.layout === 'promo' && state.scoreboard.visible;
+        box.classList.toggle('at-corner', corner);
+        box.style.setProperty('--side', promoBox(state.scoreboard).side + 'px');
+        box.style.top = (corner ? cornerStack(state) : Math.max(Number(state.banner.top) || 0, clearOfBar(state, true))) + 'px';
         const e = state.event;
         if (e.at === lastEventAt) return;
         lastEventAt = e.at;
@@ -44,8 +48,18 @@
 
     // In the Frame layout, how far down the screen the top bar reaches (with the
     // objective counters that hang under it, when asked), so pop-ups start below it.
+    // Under the corner card, and under the effect panel when that hangs there too.
+    function cornerStack(state) {
+        const scale = $('stage').getBoundingClientRect().width / 1920 || 1;
+        let top = clearOfBar(state, 'corner');
+        const fxp = $('fxp');
+        if (fxp.classList.contains('show') && !fxp.classList.contains('left')) top = Math.max(top, Math.round(fxp.getBoundingClientRect().bottom / scale) + 10);
+        return top;
+    }
     function clearOfBar(state, withCounters) {
         const sb = state.scoreboard;
+        // Frame only: clear of the top border (a pause banner) or of the corner card
+        if (sb.layout === 'promo' && sb.visible) { const b = promoBox(sb); return (withCounters === 'corner' ? b.ch : b.top) + 12; }
         if (sb.layout !== 'frame' || !sb.visible) return 0;
         const scale = $('stage').getBoundingClientRect().width / 1920 || 1;
         let bottom = $('band-top').getBoundingClientRect().bottom;
@@ -487,11 +501,132 @@
         settledK = k;
     }
 
+    // ---- Frame only (layout 'promo') ------------------------------------------
+    // No scoreboard: the borders a phone capture leaves are covered in artwork,
+    // the game itself (minimap, its own score, hero lists) is left alone, and a
+    // corner card hides the game's settings buttons. Everything in it moves.
+    const PROMO_BG = 'Assets/Other/1630-pattern.jpg';
+    const PROMO_LOGO = 'Assets/Other/1630-logo.png';
+    let promoKey = '', tickerKey = '', cornerKey = '', cornerAt = 0, cornerIndex = 0;
+    function promoBox(sb) {
+        const n = function (v, d, lo, hi) { v = v === '' || v == null ? NaN : Number(v); return Math.max(lo, Math.min(hi, isNaN(v) ? d : v)); };
+        return {
+            top: n(sb.promoTop, 108, 0, 400), bottom: n(sb.promoBottom, 108, 0, 400), side: n(sb.promoSide, 25, 0, 400),
+            cw: n(sb.promoCorner, 420, 0, 960), ch: n(sb.promoCornerH, 190, 0, 600)
+        };
+    }
+    // What the marquee says: a message of your own, the next matches, the
+    // latest results, the top of the standings and the socials.
+    function tickerItems(state) {
+        const sb = state.scoreboard;
+        const items = [];
+        if (sb.promoMessage) items.push(['', sb.promoMessage]);
+        fixtures(state).filter(function (r) { return !scoreOf(r.score) && !playing(state, r) && Overlay.stillAhead(r); }).slice(0, 3)
+            .forEach(function (r) { items.push(['Next', r.a + ' vs ' + r.b + (r.when ? '  ·  ' + dayOf(r.when) + (clockOf(r.when) ? ', ' + clockOf(r.when) : '') : '')]); });
+        fixtures(state).filter(function (r) { return scoreOf(r.score); }).slice(-3).reverse()
+            .forEach(function (r) { const sc = scoreOf(r.score); items.push(['Result', r.a + '  ' + sc[0] + ' – ' + sc[1] + '  ' + r.b]); });
+        if (Overlay.hasStandings(state)) {
+            const table = state.season.standings.filter(function (r) { return r.team; }).slice().sort(function (x, y) {
+                return (Number(y.pts) || 0) - (Number(x.pts) || 0) || (Number(y.w) || 0) - (Number(x.w) || 0);
+            }).slice(0, 4);
+            items.push(['Standings', table.map(function (r, i) { return (i + 1) + '. ' + r.team; }).join('  ·  ')]);
+        }
+        if (sb.promoSocials) items.push(['Follow', sb.promoSocials]);
+        if (!items.length) items.push(['', [sb.promoName, state.tournament.name].filter(Boolean).join('  ·  ')]);
+        return items;
+    }
+    function renderTicker(state) {
+        const items = tickerItems(state);
+        const key = JSON.stringify(items);
+        if (key === tickerKey) return;
+        tickerKey = key;
+        const run = $('pf-run');
+        run.textContent = '';
+        // the list twice over, so the loop has no seam
+        for (let k = 0; k < 2; k++) {
+            items.forEach(function (it) {
+                const item = el('span', 'pf-item');
+                if (it[0]) item.appendChild(el('u', '', it[0]));
+                item.appendChild(document.createTextNode(it[1]));
+                run.appendChild(item);
+            });
+        }
+        // the same speed whatever the length: about 110 px a second
+        run.style.animationDuration = Math.max(12, run.scrollWidth / 2 / 110) + 's';
+    }
+    // The corner card takes turns: the production, the tournament, the socials.
+    function renderCorner(state) {
+        const sb = state.scoreboard, t = state.tournament;
+        const faces = [
+            { logo: sb.promoLogo || PROMO_LOGO, title: sb.promoName || '', sub: sb.promoName ? 'presents' : '', mark: true },
+            { logo: t.logo || Overlay.DEFAULT_TOURNAMENT_LOGO, title: t.name || '', sub: t.stage || state.season.title || '' }
+        ];
+        if (sb.promoSocials) faces.push({ title: 'Follow us', sub: sb.promoSocials });
+        const key = JSON.stringify(faces.map(function (f) { return [String(f.logo || '').length, String(f.logo || '').slice(-30), f.title, f.sub]; }));
+        const box = $('pf-corner');
+        if (key !== cornerKey) {
+            cornerKey = key;
+            box.textContent = '';
+            faces.forEach(function (f) {
+                const face = el('div', 'pf-face' + (f.mark ? ' mark' : ''));
+                if (f.logo) { const img = el('img'); img.alt = ''; img.src = f.logo; face.appendChild(img); }
+                const text = el('span', 'pf-ftext');
+                if (f.title) text.appendChild(el('b', '', f.title));
+                if (f.sub) text.appendChild(el('i', '', f.sub));
+                face.appendChild(text);
+                box.appendChild(face);
+            });
+            cornerIndex = 0;
+            cornerAt = Date.now();
+        }
+        const seconds = Math.max(3, Math.min(60, Number(sb.promoSeconds) || 6));
+        if (Date.now() - cornerAt >= seconds * 1000) { cornerIndex = (cornerIndex + 1) % box.children.length; cornerAt = Date.now(); }
+        Array.prototype.forEach.call(box.children, function (face, i) {
+            face.classList.toggle('on', i === cornerIndex);
+        });
+    }
+    function renderPromo(state, on) {
+        const promo = $('promo');
+        promo.classList.toggle('on', on);
+        if (!on) return;
+        const sb = state.scoreboard, t = state.tournament;
+        Overlay.applyDesign(promo, state.design, 'scoreboard');
+        const b = promoBox(sb);
+        promo.style.setProperty('--top', b.top + 'px');
+        promo.style.setProperty('--bottom', b.bottom + 'px');
+        promo.style.setProperty('--side', b.side + 'px');
+        promo.style.setProperty('--cw', b.cw + 'px');
+        promo.style.setProperty('--ch', b.ch + 'px');
+        const bg = sb.promoBg || PROMO_BG;
+        const key = bg.length + bg.slice(-40);
+        if (key !== promoKey) { promoKey = key; $('pf-bg').style.backgroundImage = 'url("' + bg + '")'; }
+
+        Overlay.renderLogo($('pf-tlogo'), { logo: t.logo || Overlay.DEFAULT_TOURNAMENT_LOGO, tag: '' });
+        if (Overlay.setText($('pf-tname'), t.name || '')) Overlay.fitText($('pf-tname'), 30, 16);
+        Overlay.setText($('pf-tsub'), [state.season.title && !same(state.season.title, t.name) ? state.season.title : '', t.stage].filter(Boolean).join('  ·  '));
+
+        // the match: tags, the series score and the game, once both teams are set
+        const blue = state.teams.blue, red = state.teams.red;
+        const named = !!(blue.name && red.name);
+        $('pf-match').hidden = !named;
+        if (named) {
+            Overlay.setText($('pf-blue'), blue.tag || blue.name);
+            Overlay.setText($('pf-red'), red.tag || red.name);
+            Overlay.setText($('pf-score'), blue.score + ' – ' + red.score);
+            Overlay.setText($('pf-game'), 'Game ' + t.game + '  ·  Best of ' + t.bestOf);
+        }
+        const mark = sb.promoLogo || PROMO_LOGO;
+        if ($('pf-tagimg').getAttribute('src') !== mark) $('pf-tagimg').src = mark;
+        Overlay.setText($('pf-tagname'), String(sb.promoName || '').split(' ')[0]);
+        renderTicker(state);
+        renderCorner(state);
+    }
+
     // ?layout=frame (or split, bar) on the address previews a layout in this
     // window only, the way ?design= does for the look.
     const layoutOverride = new URLSearchParams(location.search).get('layout');
     function withOverride(state) {
-        if (['split', 'bar', 'frame'].indexOf(layoutOverride) < 0 || state.scoreboard.layout === layoutOverride) return state;
+        if (['split', 'bar', 'frame', 'promo'].indexOf(layoutOverride) < 0 || state.scoreboard.layout === layoutOverride) return state;
         const copy = Object.assign({}, state);
         copy.scoreboard = Object.assign({}, state.scoreboard, { layout: layoutOverride });
         return copy;
@@ -502,11 +637,13 @@
         const sb = state.scoreboard;
         const board = $('sb');
         const frame = sb.layout === 'frame';
-        const split = sb.layout !== 'bar' && !frame;
+        const promo = sb.layout === 'promo';
+        const split = sb.layout !== 'bar' && !frame && !promo;
         board.classList.toggle('split', split);
         board.classList.toggle('bar', !split);
         board.classList.toggle('frame', frame);
-        board.classList.toggle('hidden', !sb.visible);
+        board.classList.toggle('hidden', !sb.visible || promo);
+        renderPromo(state, promo && sb.visible);
         board.classList.toggle('no-info', !sb.showInfo);
         board.classList.toggle('no-stats', !sb.showStats);
         const restyled = Overlay.applyDesign(board, state.design, 'scoreboard');
@@ -559,7 +696,13 @@
         fxp.style.zoom = fxSize;
         fxp.style.left = onLeft ? edge : 'auto';
         fxp.style.right = onLeft ? 'auto' : edge;
-        fxp.style.top = Math.max(Number(sb.effectTop) || 0, clearOfBar(state, false)) / fxSize + 'px';
+        fxp.style.top = Math.max(Number(sb.effectTop) || 0, clearOfBar(state, sb.layout === 'promo' ? 'corner' : false)) / fxSize + 'px';
+        if (sb.layout === 'promo') {
+            // Frame only: the panel keeps to the border, clear of the game
+            const side = promoBox(sb).side / fxSize + 'px';
+            fxp.style.left = onLeft ? side : 'auto';
+            fxp.style.right = onLeft ? 'auto' : side;
+        }
         Overlay.renderEffect(fxp, t.effect, sb.visible && sb.showEffect);
         renderEvent(state);
         renderHold(state);
@@ -567,7 +710,12 @@
 
     Overlay.setupStage($('stage'));
     Store.subscribe(render);
-    setInterval(function () { renderInfo(withOverride(Store.get()), true); renderHold(withOverride(Store.get())); }, 500);
+    setInterval(function () {
+        const state = withOverride(Store.get());
+        renderInfo(state, true);
+        renderHold(state);
+        if (state.scoreboard.layout === 'promo' && state.scoreboard.visible) renderCorner(state);
+    }, 500);
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {

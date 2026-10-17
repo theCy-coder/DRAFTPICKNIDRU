@@ -55,7 +55,13 @@
                 // edges during the game (name, hero), from sidesTop px down,
                 // each row sidesRow px high and sidesWidth px long, sidesEdge px in from the screen edge.
                 sides: false, sidesTop: 348, sidesRow: 89, sidesEdge: 0, sidesWidth: 180,
-                showEffect: true, effectSide: 'right', effectTop: 20, effectEdge: 20, effectScale: 100 },
+                showEffect: true, effectSide: 'right', effectTop: 20, effectEdge: 20, effectScale: 100,
+                // layout 'promo' ("Frame only"): no scoreboard, just the borders a
+                // phone capture leaves (promoTop/Bottom/Side px) dressed in artwork,
+                // with a corner card promoCorner x promoCornerH px over the game's
+                // settings buttons. Empty images mean the bundled 1630 artwork.
+                promoTop: 108, promoBottom: 108, promoSide: 25, promoCorner: 420, promoCornerH: 190,
+                promoBg: '', promoLogo: '', promoName: '1630 Productions', promoSocials: '', promoMessage: '', promoSeconds: 6 },
             // Last announcement sent from the Live tab (see js/events.js). `at` is
             // the moment it was pressed, so an overlay only plays a fresh one.
             event: { id: '', side: '', at: 0 },
