@@ -219,6 +219,11 @@
                     <button type="button" id="game-up" data-act="game-up" aria-label="Next game number">+</button>
                 </div>
                 <div class="score-label" id="series-label"></div>
+                <!-- one click: a new series from 0 - 0 for these two teams; Undo puts it back -->
+                <div class="reset-row">
+                    <button type="button" class="btn ghost danger" data-act="reset-series" id="reset-series" title="Clears the score, the recorded games (so the result screen starts over) and the draft">↺ Reset series</button>
+                    <button type="button" class="btn ghost" data-act="undo" id="reset-undo" hidden>Undo reset</button>
+                </div>
                 <div class="effect-row">
                     <span class="effect-label">Battlefield effect</span>
                     <select class="effect-select" aria-label="Battlefield effect"></select>
@@ -294,7 +299,6 @@
                     <div class="actions">
                         <label class="check"><input type="checkbox" id="swap-on-next"> Swap sides for the next game</label>
                         <button type="button" class="btn ghost" id="next-game" data-act="next-game">Next game without a result</button>
-                        <button type="button" class="btn ghost danger" data-act="reset-series">Reset series</button>
                     </div>
                     <a class="btn ghost result-link" href="result.html" target="_blank">Open the result screen</a>
                     <details class="help"><summary>What does this do?</summary><p>It also records the game for the result screen, which slides through the game just finished and its MVP and, once the series is decided, the winner and the series MVP you name in step 3. One press adds the win, bumps the game number, clears the draft and takes you to the Draft tab. If that win decides the series, it only adds the win. It also clears the picks, which is why the MVP comes first. Pressed the wrong one? Use Undo on the Draft tab, or the &minus; next to the score.</p></details>

@@ -686,3 +686,6 @@ body.no-keys .ebtn kbd, body.no-keys .btn[data-key]::after { display: none; }
 body.swapping .slot.ban, body.swapping .slot.pick:not(.filled), body.swapping #hero-grid, body.swapping .slot.pick.swap-off { opacity: 0.35; }
 body.swapping .slot.pick.filled:not(.swap-off) { cursor: pointer; border-color: var(--gold); border-style: dashed; }
 body.swapping .slot.pick.swap-first { border-style: solid; box-shadow: 0 0 0 3px rgba(255, 201, 77, 0.55); }
+/* Live tab: Reset series under the game number, with its Undo beside it */
+.reset-row { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+.reset-row .btn { padding: 6px 12px; font-size: 13px; }

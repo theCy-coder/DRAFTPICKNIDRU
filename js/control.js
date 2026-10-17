@@ -40,6 +40,7 @@
                 // only the scores, so other edits to the season survive an undo
                 scores: state.season.schedule.map(function (r) { return r.score; }),
                 bracket: state.season.bracket.map(function (r) { return [r.sa, r.sb]; }),
+                mvp: state.series.mvp,
                 swapped: false,
                 blue: { score: state.teams.blue.score, played: state.teams.blue.played, stats: state.teams.blue.stats },
                 red: { score: state.teams.red.score, played: state.teams.red.played, stats: state.teams.red.stats }
@@ -111,6 +112,7 @@
         state.tournament.effect = snap.series.effect || '';
         if (snap.series.heroes) state.season.heroes = snap.series.heroes;
         if (snap.series.games) state.series.games = snap.series.games;
+        if (snap.series.mvp != null) state.series.mvp = snap.series.mvp;
         if (snap.series.scores && snap.series.scores.length === state.season.schedule.length) {
             state.season.schedule.forEach(function (r, i) { r.score = snap.series.scores[i]; });
         }
@@ -226,6 +228,9 @@
 
     // A series from nothing: no games recorded (the result screen goes back to
     // waiting), 0 - 0, game 1, an empty draft.
+    let resetAt = 0;            // when Reset series was last pressed
+    let resetDepth = -1;        // the undo history just after it
+    const UNDO_MS = 20000;      // how long "Undo reset" stays beside it
     function newSeries(s) {
         s.series.games = [];
         s.series.mvp = '';
@@ -485,10 +490,14 @@
             if (seriesWinner(s)) recordResult(s);
             if (!seriesOver(s)) advanceGame(s);
         },
+        // One click, no confirming: "Undo reset" stays beside it for a while instead.
         'reset-series': function (s) {
             snapshot(s, true);
             newSeries(s);
             selected = null;
+            resetAt = Date.now();
+            resetDepth = history.length;     // Undo then undoes this, not something done after it
+            setTimeout(function () { render(Store.get()); }, UNDO_MS + 50);
         },
         'stat-up': function (s, b) { s.teams[b.dataset.side].stats[b.dataset.stat] = clamp(s.teams[b.dataset.side].stats[b.dataset.stat] + 1, 0, 9); },
         'stat-down': function (s, b) { s.teams[b.dataset.side].stats[b.dataset.stat] = clamp(s.teams[b.dataset.side].stats[b.dataset.stat] - 1, 0, 9); },
@@ -502,6 +511,7 @@
         'step-prev': function (s) { selected = null; setStep(s, s.draft.step - 1, false); },
         'step-next': function (s) { selected = null; setStep(s, s.draft.step + 1, s.draft.autoTimer && s.draft.timer.running); },
         'undo': function (s) {
+            resetAt = 0;
             if (!history.length) return;
             restore(s, JSON.parse(history.pop()));
             followPicks(s);
@@ -516,7 +526,7 @@
             SIDES.forEach(function (side) { s.teams[side].played = []; });
         }
     };
-    const needsConfirm = { 'reset-draft': true, 'reset-series': true, 'clear-played': true, 'season-clear': true, 'season-heroes-clear': true };
+    const needsConfirm = { 'reset-draft': true, 'clear-played': true, 'season-clear': true, 'season-heroes-clear': true };
 
     // Destructive buttons need a second click within 3 seconds.
     function armed(btn) {
@@ -1901,6 +1911,7 @@
         $('timer-toggle').textContent = d.timer.running ? 'Pause timer' : 'Start timer';
         $('timer-toggle').disabled = !step;
         $('undo').disabled = !history.length;
+        $('reset-undo').hidden = !(history.length === resetDepth && Date.now() - resetAt < UNDO_MS);
         // Changing the ban count mid-draft would reshuffle the phase order.
         $('ban-count').disabled = d.step > 0;
 
@@ -1961,7 +1972,7 @@
                 const game = Store.get().tournament.game;
                 Store.update(function (s) { actions[name](s, actBtn); });
                 // A new game starts with its draft.
-                if (Store.get().tournament.game > game) showTab('draft');
+                if (Store.get().tournament.game > game && name !== 'undo') showTab('draft');   // (Undo keeps you where you are)
                 return;
             }
             if (e.target.closest('#swap-toggle')) { setSwapMode(!swapMode.on); return; }
