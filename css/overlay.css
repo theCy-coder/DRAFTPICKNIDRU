@@ -1872,7 +1872,7 @@ body.bg-green { background: #00ff00; }
 .pf-tag img { height: 70%; filter: brightness(0); }
 .pf-tag b { font-weight: normal; padding-top: 4px; }
 .pf-track { position: relative; flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; }
-.pf-run { display: flex; white-space: nowrap; animation: pf-marquee 30s linear infinite; }
+.pf-run { display: flex; white-space: nowrap; will-change: transform; }   /* moved by js/scoreboard.js */
 .pf-item { flex: none; padding: 4px 34px 0; font-size: 28px; letter-spacing: 1px; }
 .pf-item u { text-decoration: none; color: var(--acc); margin-right: 12px; letter-spacing: 3px; }
 .pf-item::after { content: '◆'; margin-left: 68px; margin-right: -34px; font-size: 16px; color: color-mix(in srgb, var(--acc) 70%, transparent); vertical-align: 4px; }

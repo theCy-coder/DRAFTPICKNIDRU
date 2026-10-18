@@ -535,10 +535,28 @@
         if (!items.length) items.push(['', [sb.promoName, state.tournament.name].filter(Boolean).join('  ·  ')]);
         return items;
     }
+    // The marquee runs at the same speed whatever its length (px a second).
+    // It is started only once it is on screen and its length can be measured:
+    // the text comes in from the right-hand edge, then loops without a seam.
+    const TICKER_SPEED = 110;
+    let tickerRunning = false;
+    function startTicker() {
+        const run = $('pf-run'), track = run.parentNode;
+        const length = run.scrollWidth / 2, room = track.clientWidth;
+        if (!length || !room) return;              // not on screen yet: tried again on the next render
+        run.getAnimations().forEach(function (a) { a.cancel(); });
+        tickerRunning = true;
+        const enter = run.animate([{ transform: 'translateX(' + room + 'px)' }, { transform: 'translateX(0)' }],
+            { duration: room / TICKER_SPEED * 1000, easing: 'linear' });
+        enter.onfinish = function () {
+            run.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + -length + 'px)' }],
+                { duration: length / TICKER_SPEED * 1000, iterations: Infinity, easing: 'linear' });
+        };
+    }
     function renderTicker(state) {
         const items = tickerItems(state);
         const key = JSON.stringify(items);
-        if (key === tickerKey) return;
+        if (key === tickerKey) { if (!tickerRunning) startTicker(); return; }
         tickerKey = key;
         const run = $('pf-run');
         run.textContent = '';
@@ -551,8 +569,8 @@
                 run.appendChild(item);
             });
         }
-        // the same speed whatever the length: about 110 px a second
-        run.style.animationDuration = Math.max(12, run.scrollWidth / 2 / 110) + 's';
+        tickerRunning = false;
+        startTicker();
     }
     // The corner card takes turns: the production, the tournament, the socials.
     function renderCorner(state) {
@@ -588,7 +606,7 @@
     function renderPromo(state, on) {
         const promo = $('promo');
         promo.classList.toggle('on', on);
-        if (!on) return;
+        if (!on) { tickerRunning = false; return; }     // shown again later: the marquee starts afresh
         const sb = state.scoreboard, t = state.tournament;
         Overlay.applyDesign(promo, state.design, 'scoreboard');
         const b = promoBox(sb);
@@ -714,7 +732,7 @@
         const state = withOverride(Store.get());
         renderInfo(state, true);
         renderHold(state);
-        if (state.scoreboard.layout === 'promo' && state.scoreboard.visible) renderCorner(state);
+        if (state.scoreboard.layout === 'promo' && state.scoreboard.visible) { renderCorner(state); if (!tickerRunning) startTicker(); }
     }, 500);
     Store.init().then(function () {
         if (document.fonts && document.fonts.ready) {
